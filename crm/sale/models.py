@@ -1,12 +1,13 @@
 from django.db import models
 from django.utils import timezone
 from ..user.models import (
+    UserMobileMixin,
     BaseUser,
     UserInfo,
     )
 
 
-class Seller(models.Model):
+class Seller(models.Model, UserMobileMixin):
 
     user = models.OneToOneField(
         BaseUser, on_delete=models.CASCADE, primary_key=True,

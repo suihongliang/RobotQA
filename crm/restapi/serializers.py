@@ -3,6 +3,9 @@ from ..user.models import (
     UserInfo,
     UserOnlineOrder,
     )
+from ..sale.models import (
+    Seller,
+    )
 # import time
 import json
 
@@ -37,10 +40,26 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
         model = UserOnlineOrder
         fields = (
             'user',
+            'mobile',
             'created',
             'location',
             'order',
         )
+
+
+class SellerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Seller
+        fields = (
+            'user',
+            'created',
+            'mobile',
+            'code',
+            'qr_code_url',
+        )
+        read_only_fields = (
+            'user', 'created', 'mobile', 'qr_code_url', 'code')
 
 
 # class DownloadTaskSerializer(serializers.ModelSerializer):

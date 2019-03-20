@@ -29,6 +29,7 @@ router = DefaultRouter()
 
 router.register(r'user', rest_views.UserInfoViewSet)
 router.register(r'useronlineorder', rest_views.UserOnlineOrderViewSet)
+router.register(r'seller', rest_views.SellerViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
