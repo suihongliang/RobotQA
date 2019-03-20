@@ -63,6 +63,8 @@ class UserInfo(models.Model):
         max_length=5, verbose_name='意愿度', default='')
     net_worth = models.CharField(
         max_length=5, verbose_name='净值度', default='')
+    is_seller = models.BooleanField(
+        verbose_name='是否销售', default=False)
 
     def __str__(self):
         return str(self.user)
