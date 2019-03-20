@@ -66,6 +66,10 @@ class UserInfo(models.Model):
     is_seller = models.BooleanField(
         verbose_name='是否销售', default=False)
 
+    @property
+    def mobile(self):
+        return self.user.mobile
+
     def __str__(self):
         return str(self.user)
 
@@ -87,6 +91,10 @@ class UserOnlineOrder(models.Model):
     detail = models.TextField(
         verbose_name='点餐详情', default='')
 
+    @property
+    def mobile(self):
+        return self.user.mobile
+
     def __str__(self):
         return str(self.user)
 
@@ -106,6 +114,10 @@ class UserBehavior(models.Model):
         ], default=0, verbose_name='类别')
     location = models.CharField(
         max_length=50, verbose_name='位置')
+
+    @property
+    def mobile(self):
+        return self.user.mobile
 
     def __str__(self):
         return str(self.user)

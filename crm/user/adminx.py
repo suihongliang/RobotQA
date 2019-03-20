@@ -3,6 +3,7 @@ import xadmin
 from .models import (
     BaseUser,
     UserInfo,
+    UserOnlineOrder,
     )
 # from django.utils import timezone
 
@@ -18,5 +19,13 @@ class BaseUserAdmin():
 class UserInfoAdmin():
     '''
     '''
-    list_display = ('user',)
-    ordering = ('user',)
+    list_display = ('user', 'created')
+    ordering = ('created',)
+
+
+@xadmin.sites.register(UserOnlineOrder)
+class UserOnlineOrderAdmin():
+    '''
+    '''
+    list_display = ('user', 'created')
+    ordering = ('-created',)
