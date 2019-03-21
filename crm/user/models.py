@@ -11,6 +11,13 @@ class BaseUserManager(models.Manager):
         return super().get_queryset()
 
 
+class UserMobileMixin():
+
+    @property
+    def mobile(self):
+        return self.user.mobile
+
+
 class BaseUser(models.Model):
 
     mobile = models.CharField(
@@ -32,7 +39,7 @@ class BaseUser(models.Model):
         unique_together = (("mobile", "store_code"),)
 
 
-class UserInfo(models.Model):
+class UserInfo(models.Model, UserMobileMixin):
     '''
     用户基本信息
     '''
@@ -73,7 +80,7 @@ class UserInfo(models.Model):
         verbose_name = '用户基本信息'
 
 
-class UserOnlineOrder(models.Model):
+class UserOnlineOrder(models.Model, UserMobileMixin):
     '''
     用户在线点餐记录
     '''
@@ -94,7 +101,7 @@ class UserOnlineOrder(models.Model):
         verbose_name = '用户在线点餐'
 
 
-class UserBehavior(models.Model):
+class UserBehavior(models.Model, UserMobileMixin):
 
     user = models.ForeignKey(
         BaseUser, on_delete=models.CASCADE, verbose_name="用户")

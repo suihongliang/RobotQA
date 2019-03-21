@@ -165,8 +165,10 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
-    # 'PAGE_SIZE': 15,
-    # 'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 15,
+    'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
 }
 
 LOG_DIR = os.path.join(BASE_DIR, '../logs')

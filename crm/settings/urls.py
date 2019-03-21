@@ -17,6 +17,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
+from ..restapi import views as rest_views
 import xadmin
 from xadmin.plugins import xversion
 
@@ -26,7 +27,9 @@ xversion.register_models()
 
 router = DefaultRouter()
 
-# router.register(r'user', views.UserInfoViewSet)
+router.register(r'user', rest_views.UserInfoViewSet)
+router.register(r'useronlineorder', rest_views.UserOnlineOrderViewSet)
+router.register(r'seller', rest_views.SellerViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
