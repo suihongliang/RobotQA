@@ -18,6 +18,8 @@ class Seller(models.Model, UserMobileMixin):
         verbose_name="qrcode编码", max_length=50)
     qr_code_url = models.CharField(
         verbose_name="二维码图片链接", max_length=500)
+    name = models.CharField(
+        max_length=25, verbose_name='昵称', default='')
 
     def __str__(self):
         return str(self.user)

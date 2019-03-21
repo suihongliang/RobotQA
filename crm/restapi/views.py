@@ -10,12 +10,15 @@ from rest_framework.permissions import (
     # IsAuthenticated,
     AllowAny,
     )
-# from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.response import Response
 # from django.http import Http404
 from .serializers import (
     UserInfoSerializer,
     UserOnlineOrderSerializer,
     SellerSerializer,
+    CreateSellerSerializer,
+    UpdateSellerSerializer,
     )
 
 # Create your views here.
@@ -87,6 +90,10 @@ class SellerViewSet(viewsets.GenericViewSet,
     create:
         创建销售
         ---
+
+    update_seller:
+        启用禁用销售
+        ---
     '''
 
     permission_classes = (
@@ -95,3 +102,19 @@ class SellerViewSet(viewsets.GenericViewSet,
 
     queryset = Seller.objects.order_by('created')
     serializer_class = SellerSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreateSellerSerializer
+        elif self.action == 'update_seller':
+            return UpdateSellerSerializer
+        return SellerSerializer
+
+    @action(methods=['patch'], url_path='update', detail=True)
+    def update_seller(self, request, *args, **kwargs):
+        instance = self.get_object()
+        is_seller = request.data.get('is_seller', True)
+        instance.user.userinfo.is_seller = is_seller
+        instance.user.userinfo.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

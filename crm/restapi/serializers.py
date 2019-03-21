@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from ..user.models import (
+    BaseUser,
     UserInfo,
     UserOnlineOrder,
     )
@@ -7,7 +8,20 @@ from ..sale.models import (
     Seller,
     )
 # import time
+from rest_framework.utils import model_meta
+import traceback
+import django
 import json
+
+
+class BaseUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BaseUser
+        fields = (
+            'mobile',
+            'store_code',
+        )
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -49,6 +63,11 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
 
 class SellerSerializer(serializers.ModelSerializer):
 
+    is_active = serializers.SerializerMethodField('get_custom_is_active')
+
+    def get_custom_is_active(self, instance):
+        return instance.user.userinfo.is_seller
+
     class Meta:
         model = Seller
         fields = (
@@ -57,9 +76,93 @@ class SellerSerializer(serializers.ModelSerializer):
             'mobile',
             'code',
             'qr_code_url',
+            'name',
+            'is_active',
         )
         read_only_fields = (
-            'user', 'created', 'mobile', 'qr_code_url', 'code')
+            'user', 'created', 'mobile', 'qr_code_url', 'code', 'name',
+            'is_active')
+
+
+class UpdateSellerSerializer(serializers.ModelSerializer):
+
+    is_seller = serializers.BooleanField(
+        help_text='是否是销售', write_only=True)
+
+    class Meta:
+        model = Seller
+        fields = (
+            'user',
+            'is_seller',
+        )
+        read_only_fields = ('user',)
+
+
+class CreateSellerSerializer(serializers.ModelSerializer):
+
+    mobile = serializers.CharField(
+        help_text='手机号', max_length=20, write_only=True)
+    store_code = serializers.CharField(
+        help_text='门店编号', max_length=10, write_only=True)
+
+    def create(self, validated_data):
+        mobile = validated_data.pop('mobile')
+        store_code = validated_data.pop('store_code')
+        user = BaseUser.objects.origin_all().filter(
+            mobile=mobile, store_code=store_code).first()
+        if not user:
+            user = BaseUser.objects.create(
+                mobile=mobile, store_code=store_code)
+        user.userinfo.is_seller = True
+        user.userinfo.save()
+
+        ModelClass = self.Meta.model
+
+        info = model_meta.get_field_info(ModelClass)
+        many_to_many = {}
+        for field_name, relation_info in info.relations.items():
+            if relation_info.to_many and (field_name in validated_data):
+                many_to_many[field_name] = validated_data.pop(field_name)
+
+        try:
+            instance = ModelClass._default_manager.create(
+                user=user, **validated_data)
+        except TypeError:
+            tb = traceback.format_exc()
+            msg = (
+                'Got a `TypeError` when calling `%s.%s.create()`. '
+                'This may be because you have a writable field on the '
+                'serializer class that is not a valid argument to '
+                '`%s.%s.create()`. You may need to make the field '
+                'read-only, or override the %s.create() method to handle '
+                'this correctly.\nOriginal exception was:\n %s' %
+                (
+                    ModelClass.__name__,
+                    ModelClass._default_manager.name,
+                    ModelClass.__name__,
+                    ModelClass._default_manager.name,
+                    self.__class__.__name__,
+                    tb
+                )
+            )
+            raise TypeError(msg)
+        except django.db.utils.IntegrityError:
+            raise serializers.ValidationError("用户已创建")
+
+        if many_to_many:
+            for field_name, value in many_to_many.items():
+                field = getattr(instance, field_name)
+                field.set(value)
+
+        return instance
+
+    class Meta:
+        model = Seller
+        fields = (
+            'mobile',
+            'store_code',
+            'name',
+        )
 
 
 # class DownloadTaskSerializer(serializers.ModelSerializer):
