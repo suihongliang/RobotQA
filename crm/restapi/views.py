@@ -77,7 +77,8 @@ class UserOnlineOrderViewSet(viewsets.GenericViewSet,
 class SellerViewSet(viewsets.GenericViewSet,
                     mixins.RetrieveModelMixin,
                     mixins.ListModelMixin,
-                    mixins.CreateModelMixin):
+                    mixins.CreateModelMixin,
+                    mixins.UpdateModelMixin):
     '''
     retrieve:
         获取销售详情
@@ -102,6 +103,7 @@ class SellerViewSet(viewsets.GenericViewSet,
 
     queryset = Seller.objects.order_by('created')
     serializer_class = SellerSerializer
+    filterset_fields = ('name', 'is_active')
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -110,7 +112,7 @@ class SellerViewSet(viewsets.GenericViewSet,
             return UpdateSellerSerializer
         return SellerSerializer
 
-    @action(methods=['patch'], url_path='update', detail=True)
+    @action(methods=['patch'], url_path='seller-config', detail=True)
     def update_seller(self, request, *args, **kwargs):
         instance = self.get_object()
         is_seller = request.data.get('is_seller', True)

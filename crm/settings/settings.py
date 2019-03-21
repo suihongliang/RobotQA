@@ -167,6 +167,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',),
     'PAGE_SIZE': 15,
     'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
 }
@@ -206,9 +208,3 @@ LOGGING = {
 }
 
 from .local_settings import *
-
-# semaphore config
-
-TOWER_REST_URL = 'http://172.28.2.74/api/v2/'
-TOWER_USER = 'admin'
-TOWER_PASS = 'admin'

@@ -11,7 +11,7 @@ from ..sale.models import (
 from rest_framework.utils import model_meta
 import traceback
 import django
-import json
+# import json
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -80,7 +80,7 @@ class SellerSerializer(serializers.ModelSerializer):
             'is_active',
         )
         read_only_fields = (
-            'user', 'created', 'mobile', 'qr_code_url', 'code', 'name',
+            'user', 'created', 'mobile', 'qr_code_url', 'code',
             'is_active')
 
 
