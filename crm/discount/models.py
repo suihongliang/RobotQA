@@ -23,7 +23,7 @@ class CoinRule(models.Model):
             (8, '活动扫码送积分3'),
             (9, '活动扫码送积分4'),
             (10, '活动扫码送积分5'),
-        ], verbose_name='购房状态', unique=True)
+        ], verbose_name='购房状态')
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     coin = models.IntegerField(
@@ -37,12 +37,15 @@ class CoinRule(models.Model):
         verbose_name="qrcode编码(非必填)", max_length=50, default='')
     qr_code_url = models.CharField(
         verbose_name="二维码图片链接(非必填)", max_length=500, default='')
+    store_code = models.CharField(
+        verbose_name='门店编码', max_length=255)
 
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = '积分规则'
+        unique_together = (('category', 'store_code'),)
 
 
 class Coupon(models.Model):
