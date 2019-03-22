@@ -18,3 +18,5 @@ DATABASES = {
         },
     },
 }
+
+ERP_JIAN24_URL = 'http://test.jian24.com'

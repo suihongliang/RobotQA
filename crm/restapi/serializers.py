@@ -7,11 +7,27 @@ from ..user.models import (
 from ..sale.models import (
     Seller,
     )
+from ..discount.models import (
+    CoinRule,
+    UserCoinRecord,
+    )
+from ..discount.tasks import (
+    SyncCoinTask,
+    )
 # import time
 from rest_framework.utils import model_meta
 import traceback
 import django
 # import json
+
+
+def get_or_create_user(mobile, store_code):
+    user = BaseUser.objects.origin_all().filter(
+        mobile=mobile, store_code=store_code).first()
+    if not user:
+        user = BaseUser.objects.create(
+            mobile=mobile, store_code=store_code)
+    return user
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -26,6 +42,9 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 class UserInfoSerializer(serializers.ModelSerializer):
 
+    gender_display = serializers.CharField(source='get_gender_display')
+    status_display = serializers.CharField(source='get_status_display')
+
     class Meta:
         model = UserInfo
         fields = (
@@ -39,8 +58,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'willingness',
             'net_worth',
             'created',
+            'is_seller',
+            'gender_display',
+            'status_display',
         )
-        read_only_fields = ('user', 'created', 'mobile')
+        read_only_fields = (
+            'user', 'created', 'mobile', 'is_seller', 'gender_display',
+            'status_display')
 
 
 class UserOnlineOrderSerializer(serializers.ModelSerializer):
@@ -103,11 +127,7 @@ class CreateSellerSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         mobile = validated_data.pop('mobile')
         store_code = validated_data.pop('store_code')
-        user = BaseUser.objects.origin_all().filter(
-            mobile=mobile, store_code=store_code).first()
-        if not user:
-            user = BaseUser.objects.create(
-                mobile=mobile, store_code=store_code)
+        user = get_or_create_user(mobile, store_code)
         user.userinfo.is_seller = True
         user.userinfo.save()
 
@@ -160,204 +180,56 @@ class CreateSellerSerializer(serializers.ModelSerializer):
         )
 
 
-# class DownloadTaskSerializer(serializers.ModelSerializer):
-#
-#     store_list = serializers.JSONField(
-#         required=True, write_only=True,
-#         help_text='冷柜, 如: ["F0001", "F0002", ....]')
-#     dynamic_path = serializers.CharField(
-#         required=True, write_only=True, help_text='动态模型地址')
-#     static_path = serializers.CharField(
-#         required=True, write_only=True, help_text='静态模型地址')
-#     dynamic_update_version = serializers.CharField(
-#         required=True, write_only=True,
-#         help_text='动态下载更新版本号, 如: 1.10.2')
-#     static_update_version = serializers.CharField(
-#         required=True, write_only=True,
-#         help_text='静态下载更新版本号, 如: 1.10.2')
-#     callback_url = serializers.CharField(
-#         help_text='回调地址, 任务执行完成后调用')
-#
-#     class Meta:
-#         model = DeployTask
-#         fields = (
-#             'id',
-#             'task_name',
-#             'store_list',
-#             'dynamic_path',
-#             'static_path',
-#             'dynamic_update_version',
-#             'static_update_version',
-#             'callback_url',
-#         )
-#
-#     def create(self, validated_data):
-#         # update_time = datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S')
-#         store_list = validated_data.pop('store_list')
-#         dynamic_path = validated_data.pop('dynamic_path')
-#         static_path = validated_data.pop('static_path')
-#         d_update_version = validated_data.pop('dynamic_update_version')
-#         s_update_version = validated_data.pop('static_update_version')
-#         # playbook
-#         try:
-#             playbook = AwxPlaybook.objects.get(name='download-model.yml')
-#             validated_data['playbook'] = playbook
-#         except AwxPlaybook.DoesNotExist:
-#             raise serializers.ValidationError("playbook 不存在")
-#         # template
-#         try:
-#             template = AwxJobTemplate.objects.get(name='download-model')
-#             validated_data['template'] = template
-#         except AwxJobTemplate.DoesNotExist:
-#             raise serializers.ValidationError("template 不存在")
-#         # stores
-#         inventories = AwxInventory.objects.filter(name__in=store_list)
-#         if not inventories.exists():
-#             raise serializers.ValidationError("冷柜编号 不存在")
-#         group = InventoryGroup(
-#             name=validated_data['task_name'],
-#             is_autocreated=True)
-#         group.save()
-#         group.inventories.add(*list(inventories))
-#         validated_data['group'] = group
-#         validated_data['descrption'] = 'download_model'
-#         extra_vars = {
-#             'dynamic_path': dynamic_path,
-#             'static_path': static_path,
-#             'dynamic_update_version': d_update_version,
-#             'static_update_version': s_update_version,
-#         }
-#         validated_data['extra_vars'] = json.dumps(extra_vars)
-#         instance = DeployTask.objects.create(**validated_data)
-#
-#         RunTask.apply_async(args=[instance.id, json.dumps(extra_vars)])
-#         # RunTask().run(instance.id, json.dumps(extra_vars))
-#         return instance
-#
-#
-# class PublishTaskSerializer(serializers.ModelSerializer):
-#
-#     store_list = serializers.JSONField(
-#         required=True, write_only=True,
-#         help_text='冷柜, 如: ["F0001", "F0002", ....]')
-#     dynamic_update_version = serializers.CharField(
-#         required=True, write_only=True,
-#         help_text='动态更新版本号, 如: 1.10.2')
-#     dynamic_current_version = serializers.CharField(
-#         required=True, write_only=True,
-#         help_text='动态当前版本号, 如: 1.10.2')
-#     static_update_version = serializers.CharField(
-#         required=True, write_only=True,
-#         help_text='静态更新版本号, 如: 1.10.2')
-#     static_current_version = serializers.CharField(
-#         required=True, write_only=True,
-#         help_text='静态当前版本号, 如: 1.10.2')
-#     product_info = serializers.JSONField(
-#         required=True, write_only=True,
-#         help_text='商品信息, 如: {}')
-#     callback_url = serializers.CharField(
-#         help_text='回调地址, 任务执行完成后调用')
-#
-#     class Meta:
-#         model = DeployTask
-#         fields = (
-#             'id',
-#             'task_name',
-#             'store_list',
-#             'dynamic_update_version',
-#             'dynamic_current_version',
-#             'static_update_version',
-#             'static_current_version',
-#             'callback_url',
-#             'product_info',
-#         )
-#
-#     def create(self, validated_data):
-#         store_list = validated_data.pop('store_list')
-#         d_update_version = validated_data.pop('dynamic_update_version')
-#         d_current_version = validated_data.pop('dynamic_current_version')
-#         s_update_version = validated_data.pop('static_update_version')
-#         s_current_version = validated_data.pop('static_current_version')
-#         product_info = validated_data.pop('product_info')
-#         # playbook
-#         try:
-#             playbook = AwxPlaybook.objects.get(name='publish-model.yml')
-#             validated_data['playbook'] = playbook
-#         except AwxPlaybook.DoesNotExist:
-#             raise serializers.ValidationError("playbook 不存在")
-#         # template
-#         try:
-#             template = AwxJobTemplate.objects.get(name='publish-model')
-#             validated_data['template'] = template
-#         except AwxJobTemplate.DoesNotExist:
-#             raise serializers.ValidationError("template 不存在")
-#         # stores
-#         inventories = AwxInventory.objects.filter(name__in=store_list)
-#         if not inventories.exists():
-#             raise serializers.ValidationError("冷柜编号 不存在")
-#         group = InventoryGroup(
-#             name=validated_data['task_name'],
-#             is_autocreated=True)
-#         group.save()
-#         group.inventories.add(*list(inventories))
-#         validated_data['group'] = group
-#         validated_data['descrption'] = 'publish_model'
-#         extra_vars = {
-#             'dynamic_update_version': d_update_version,
-#             'dynamic_current_version': d_current_version,
-#             'static_update_version': s_update_version,
-#             'static_current_version': s_current_version,
-#             'product_info': json.dumps(product_info),
-#         }
-#         validated_data['extra_vars'] = json.dumps(extra_vars)
-#         instance = DeployTask.objects.create(**validated_data)
-#
-#         RunTask.apply_async(args=[instance.id, json.dumps(extra_vars)])
-#         # RunTask().run(instance.id, json.dumps(extra_vars))
-#         return instance
-#
-#
-# class AwxJobTemplateSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = AwxJobTemplate
-#         fields = (
-#             'id',
-#             'name',
-#         )
-#
-#
-# class AwxInventorySerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = AwxInventory
-#         fields = (
-#             'id',
-#             'name',
-#         )
-#
-#
-# class AwxPlaybookSerializer(serializers.ModelSerializer):
-#
-#     class Meta:
-#         model = AwxPlaybook
-#         fields = (
-#             'id',
-#             'name',
-#         )
-#
-#
-# class InventoryGroupSerializer(serializers.ModelSerializer):
-#
-#     inventories = serializers.SerializerMethodField('get_inventorie_list')
-#
-#     def get_inventorie_list(self, instance):
-#         return instance.inventories.values_list('name', flat=True)
-#
-#     class Meta:
-#         model = InventoryGroup
-#         fields = (
-#             'id',
-#             'name',
-#             'inventories',
-#         )
+class CoinRuleSerializer(serializers.ModelSerializer):
+
+    category_display = serializers.CharField(source='get_category_display')
+
+    class Meta:
+        model = CoinRule
+        fields = (
+            'category',
+            'category_display',
+            'coin',
+            'qr_code_url',
+        )
+        read_only_fields = ('category', 'category_display', 'qr_code_url',
+                            'store_code',)
+
+
+class UserCoinRecordSerializer(serializers.ModelSerializer):
+
+    user_mobile = serializers.CharField(
+        max_length=50, write_only=True)
+    store_code = serializers.CharField(
+        max_length=50, write_only=True)
+    category = serializers.IntegerField(
+        help_text='积分规则', write_only=True)
+
+    def create(self, validated_data):
+        mobile = validated_data.pop('user_mobile')
+        store_code = validated_data.pop('store_code')
+        user = get_or_create_user(mobile, store_code)
+        category = validated_data.pop('category')
+        rule = CoinRule.objects.filter(
+            category=category, store_code=store_code).first()
+        if not rule:
+            raise serializers.ValidationError("规则不存在")
+
+        ModelClass = self.Meta.model
+        instance = ModelClass._default_manager.create(
+            user=user.userinfo, rule=rule, coin=rule.coin, **validated_data)
+        SyncCoinTask.apply_async(args=[instance.id])
+        return instance
+
+    class Meta:
+        model = UserCoinRecord
+        fields = (
+            'mobile',
+            'created',
+            'coin',
+            'rule',
+            'store_code',
+            'category',
+            'user_mobile',
+        )
+        read_only_fields = ('created', 'coin', 'rule')

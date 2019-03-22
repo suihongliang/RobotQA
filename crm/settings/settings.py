@@ -168,7 +168,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_FILTER_BACKENDS': (
-        'django_filters.rest_framework.DjangoFilterBackend',),
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter'),
     'PAGE_SIZE': 15,
     'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
 }
@@ -207,4 +208,13 @@ LOGGING = {
     }
 }
 
+# Swagger
+LOGIN_URL = '/xadmin'
+LOGOUT_URL = '/xadmin'
+
+# Coin Update
+ERP_JIAN24_URL = 'http://test.jian24.com'
+
 from .local_settings import *
+
+UPDATE_USER_COIN = ERP_JIAN24_URL + '/update'

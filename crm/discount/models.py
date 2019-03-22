@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from ..user.models import (
     UserInfo,
+    UserMobileMixin,
     )
 from ..sale.models import (
     Seller,
@@ -41,11 +42,31 @@ class CoinRule(models.Model):
         verbose_name='门店编码', max_length=255)
 
     def __str__(self):
-        return self.name
+        return self.get_category_display()
 
     class Meta:
         verbose_name = '积分规则'
         unique_together = (('category', 'store_code'),)
+
+
+class UserCoinRecord(models.Model, UserMobileMixin):
+
+    user = models.ForeignKey(
+        UserInfo, on_delete=models.CASCADE, verbose_name="用户")
+    rule = models.ForeignKey(
+        CoinRule, on_delete=models.CASCADE, verbose_name="类型")
+    created = models.DateTimeField(
+        verbose_name='创建时间', default=timezone.now)
+    coin = models.IntegerField(
+        verbose_name='赠送积分', default=0)
+    update_status = models.BooleanField(
+        default=False, verbose_name='更新状态')
+
+    def __str__(self):
+        return self.user
+
+    class Meta:
+        verbose_name = '用户积分记录'
 
 
 class Coupon(models.Model):
