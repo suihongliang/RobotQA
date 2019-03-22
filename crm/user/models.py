@@ -107,10 +107,8 @@ class UserBehavior(models.Model, UserMobileMixin):
         BaseUser, on_delete=models.CASCADE, verbose_name="用户")
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
-    category = models.IntegerField(
-        choices=[
-            (0, '男'),
-        ], default=0, verbose_name='类别')
+    category = models.CharField(
+        verbose_name='类别', max_length=20)
     location = models.CharField(
         max_length=50, verbose_name='位置')
 
