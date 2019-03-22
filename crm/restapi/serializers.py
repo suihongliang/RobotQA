@@ -63,11 +63,6 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
 
 class SellerSerializer(serializers.ModelSerializer):
 
-    is_active = serializers.SerializerMethodField('get_custom_is_active')
-
-    def get_custom_is_active(self, instance):
-        return instance.user.userinfo.is_seller
-
     class Meta:
         model = Seller
         fields = (

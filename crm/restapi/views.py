@@ -48,9 +48,8 @@ class UserInfoViewSet(viewsets.GenericViewSet,
 
     queryset = UserInfo.objects.order_by('created')
     serializer_class = UserInfoSerializer
-
-    # def get_serializer_class(self):
-    #     return UserInfoSerializer
+    lookup_url_kwarg = 'user__mobile'
+    lookup_field = 'user__mobile'
 
 
 class UserOnlineOrderViewSet(viewsets.GenericViewSet,
@@ -72,6 +71,8 @@ class UserOnlineOrderViewSet(viewsets.GenericViewSet,
 
     queryset = UserOnlineOrder.objects.order_by('created')
     serializer_class = UserOnlineOrderSerializer
+    lookup_url_kwarg = 'user__mobile'
+    lookup_field = 'user__mobile'
 
 
 class SellerViewSet(viewsets.GenericViewSet,
@@ -103,7 +104,9 @@ class SellerViewSet(viewsets.GenericViewSet,
 
     queryset = Seller.objects.order_by('created')
     serializer_class = SellerSerializer
-    filterset_fields = ('name', 'is_active')
+    filterset_fields = ('name',)
+    lookup_url_kwarg = 'user__mobile'
+    lookup_field = 'user__mobile'
 
     def get_serializer_class(self):
         if self.action == 'create':

@@ -21,6 +21,10 @@ class Seller(models.Model, UserMobileMixin):
     name = models.CharField(
         max_length=25, verbose_name='昵称', default='')
 
+    @property
+    def is_active(self):
+        return self.user.userinfo.is_seller
+
     def __str__(self):
         return str(self.user)
 
