@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_swagger',
     # apps
+    'crm.core',
     'crm.user',
     'crm.sale',
     'crm.discount',
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'crm.core.middleware.AccessAuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -218,3 +220,7 @@ ERP_JIAN24_URL = 'http://test.jian24.com'
 from .local_settings import *
 
 UPDATE_USER_COIN = ERP_JIAN24_URL + '/update'
+
+# signature key
+INTERNAL_KEY = '8d1235sa0e212f10'
+INTERNAL_SALT = 's38d'
