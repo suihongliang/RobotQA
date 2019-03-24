@@ -1,6 +1,8 @@
 from ..user.models import (
     UserInfo,
     UserOnlineOrder,
+    BackendPermission,
+    BackendRole,
     )
 from ..sale.models import (
     Seller,
@@ -19,6 +21,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 # from django.http import Http404
 from .serializers import (
+    BackendPermissionSerializer,
     UserInfoSerializer,
     UserOnlineOrderSerializer,
     SellerSerializer,
@@ -26,15 +29,61 @@ from .serializers import (
     UpdateSellerSerializer,
     CoinRuleSerializer,
     UserCoinRecordSerializer,
+    BackendRoleSerializer,
     )
 
 # Create your views here.
 
 
+class ChoicesViewMixin():
+
+    def get_choice_data(self, model, field):
+        return {'results': [
+            {
+                'key': key,
+                'name': name,
+            }
+            for key, name in model._meta.get_field(field).choices
+        ]}
+
+
+class BackendPermissionViewSet(viewsets.GenericViewSet,
+                               mixins.RetrieveModelMixin,
+                               mixins.ListModelMixin,):
+    '''
+    list:
+        获取权限列表
+        ---
+    '''
+    permission_classes = (
+        AllowAny,
+    )
+
+    queryset = BackendPermission.objects.order_by('id')
+    serializer_class = BackendPermissionSerializer
+
+
+class BackendRoleViewSet(viewsets.GenericViewSet,
+                         mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,):
+    '''
+    list:
+        获取权限列表
+        ---
+    '''
+    permission_classes = (
+        AllowAny,
+    )
+
+    queryset = BackendRole.objects.order_by('created')
+    serializer_class = BackendRoleSerializer
+
+
 class UserInfoViewSet(viewsets.GenericViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
-                      mixins.UpdateModelMixin):
+                      mixins.UpdateModelMixin,
+                      ChoicesViewMixin):
     '''
     retrieve:
         获取用户详情
@@ -46,6 +95,14 @@ class UserInfoViewSet(viewsets.GenericViewSet,
 
     update:
         更新用户信息
+        ---
+
+    gender_list:
+        选项列表
+        ---
+
+    status_list:
+        选项列表
         ---
     '''
 
@@ -60,6 +117,14 @@ class UserInfoViewSet(viewsets.GenericViewSet,
     serializer_class = UserInfoSerializer
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
+
+    @action(methods=['get'], url_path='list/gender', detail=False)
+    def gender_list(self, request, *args, **kwargs):
+        return Response(self.get_choice_data(UserInfo, 'gender'))
+
+    @action(methods=['get'], url_path='list/status', detail=False)
+    def status_list(self, request, *args, **kwargs):
+        return Response(self.get_choice_data(UserInfo, 'status'))
 
 
 class UserOnlineOrderViewSet(viewsets.GenericViewSet,

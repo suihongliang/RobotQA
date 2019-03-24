@@ -3,6 +3,8 @@ from ..user.models import (
     BaseUser,
     UserInfo,
     UserOnlineOrder,
+    BackendPermission,
+    BackendRole,
     )
 from ..sale.models import (
     Seller,
@@ -37,6 +39,30 @@ class BaseUserSerializer(serializers.ModelSerializer):
         fields = (
             'mobile',
             'store_code',
+        )
+
+
+class BackendPermissionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BackendPermission
+        fields = (
+            'id',
+            'name',
+            'code',
+        )
+
+
+class BackendRoleSerializer(serializers.ModelSerializer):
+
+    permissions = BackendPermissionSerializer(many=True)
+
+    class Meta:
+        model = BackendRole
+        fields = (
+            'name',
+            'created',
+            'permissions',
         )
 
 

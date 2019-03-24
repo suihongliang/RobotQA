@@ -32,6 +32,8 @@ router.register(r'useronlineorder', rest_views.UserOnlineOrderViewSet)
 router.register(r'seller', rest_views.SellerViewSet)
 router.register(r'coinrule', rest_views.CoinRuleViewSet)
 router.register(r'usercoinrecord', rest_views.UserCoinRecordViewSet)
+router.register(r'backendpermission', rest_views.BackendPermissionViewSet)
+router.register(r'backendrole', rest_views.BackendRoleViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
