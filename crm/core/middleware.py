@@ -73,5 +73,7 @@ class AccessAuthMiddleware(MiddlewareMixin):
                     return HttpResponseForbidden('签名生成错误...')
                 if internal_sign != signature:
                     return HttpResponseForbidden('签名错误...')
+            elif request.user.is_authenticated:
+                pass
             elif not signature and not settings.DEBUG:
                 return HttpResponseForbidden('未授权...')
