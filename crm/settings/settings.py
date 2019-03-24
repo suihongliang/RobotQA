@@ -135,10 +135,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static/'
 
+REDIS_URL = "redis://127.0.0.1:6379/0"
+
 # Celery settings
 # Broker url
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/3"
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/3"
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
@@ -211,6 +213,19 @@ LOGGING = {
         },
     }
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,  # noqa
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {"max_connections": 100},
+        }
+    }
+}
+# cache session
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 
 # Swagger
 LOGIN_URL = '/xadmin'
