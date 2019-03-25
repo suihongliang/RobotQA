@@ -5,8 +5,35 @@ from .models import (
     UserInfo,
     UserOnlineOrder,
     UserBehavior,
+    BackendPermission,
+    BackendRole,
+    BackendUser,
     )
 # from django.utils import timezone
+
+
+xadmin.site.unregister(BackendUser)
+
+
+@xadmin.sites.register(BackendPermission)
+class BackendPermissionAdmin():
+    '''
+    '''
+    list_display = ('id', 'name', 'code')
+
+
+@xadmin.sites.register(BackendRole)
+class BackendRoleAdmin():
+    '''
+    '''
+    list_display = ('id', 'name', 'created')
+
+
+@xadmin.sites.register(BackendUser)
+class BackendUserAdmin():
+    '''
+    '''
+    list_display = ('id', 'mobile', 'created')
 
 
 @xadmin.sites.register(BaseUser)
