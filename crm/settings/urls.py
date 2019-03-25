@@ -35,7 +35,10 @@ router.register(r'coinrule', rest_views.CoinRuleViewSet)
 router.register(r'usercoinrecord', rest_views.UserCoinRecordViewSet)
 router.register(r'backendpermission', rest_views.BackendPermissionViewSet)
 router.register(r'backendrole', rest_views.BackendRoleViewSet)
+router.register(r'backenduser', rest_views.BackendUserViewSet)
 router.register(r'customerrelation', rest_views.CustomerRelationViewSet)
+router.register(r'coupon', rest_views.CouponViewSet)
+router.register(r'sendcoupon', rest_views.SendCouponViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),

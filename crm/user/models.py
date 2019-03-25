@@ -99,8 +99,6 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
         verbose_name="激活", default=True)
     is_staff = models.BooleanField(
         verbose_name="Is Staff", default=False)
-    store_code = models.CharField(
-        verbose_name='门店编码', max_length=255, default='')
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     role = models.ForeignKey(
@@ -157,8 +155,8 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='创建时间', default=timezone.now)
     name = models.CharField(
         max_length=25, verbose_name='用户昵称', default='')
-    age = models.IntegerField(
-        verbose_name='年龄', default=-1)
+    age = models.CharField(
+        max_length=25, verbose_name='年龄', default='')
     gender = models.IntegerField(
         choices=[
             (0, '男'),

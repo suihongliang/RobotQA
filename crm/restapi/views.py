@@ -3,6 +3,7 @@ from ..user.models import (
     UserOnlineOrder,
     BackendPermission,
     BackendRole,
+    BackendUser,
     )
 from ..sale.models import (
     Seller,
@@ -11,15 +12,19 @@ from ..sale.models import (
 from ..discount.models import (
     CoinRule,
     UserCoinRecord,
+    Coupon,
+    SendCoupon,
     )
-from rest_framework import viewsets, mixins
+from rest_framework import mixins
+from rest_framework import viewsets
 from rest_framework.permissions import (
     # IsAuthenticated,
     AllowAny,
     )
 from ..core.views import (
-    StoreFilterMixin,
-    SellerFilterMixin,
+    StoreFilterViewSet,
+    SellerFilterViewSet,
+    custom_permission,
     )
 # from django.http import Http404
 from rest_framework.decorators import action
@@ -35,7 +40,10 @@ from .serializers import (
     CoinRuleSerializer,
     UserCoinRecordSerializer,
     BackendRoleSerializer,
+    BackendUserSerializer,
     CustomerRelationSerializer,
+    CouponSerializer,
+    SendCouponSerializer,
     )
 
 # Create your views here.
@@ -54,7 +62,6 @@ class ChoicesViewMixin():
 
 
 class BackendPermissionViewSet(viewsets.GenericViewSet,
-                               StoreFilterMixin,
                                mixins.RetrieveModelMixin,
                                mixins.ListModelMixin,):
     '''
@@ -62,18 +69,29 @@ class BackendPermissionViewSet(viewsets.GenericViewSet,
         获取权限列表
         ---
     '''
+    # c_perms = {
+    #     'list': [
+    #         'system_m',
+    #     ],
+    #     'retrieve': [
+    #         'system_m',
+    #     ]
+    # }
     permission_classes = (
         AllowAny,
+        # custom_permission(c_perms),
     )
 
     queryset = BackendPermission.objects.order_by('id')
     serializer_class = BackendPermissionSerializer
 
 
-class BackendRoleViewSet(viewsets.GenericViewSet,
-                         StoreFilterMixin,
+class BackendRoleViewSet(StoreFilterViewSet,
                          mixins.RetrieveModelMixin,
-                         mixins.ListModelMixin,):
+                         mixins.ListModelMixin,
+                         mixins.CreateModelMixin,
+                         mixins.UpdateModelMixin,
+                         mixins.DestroyModelMixin,):
     '''
     list:
         获取权限列表
@@ -87,8 +105,27 @@ class BackendRoleViewSet(viewsets.GenericViewSet,
     serializer_class = BackendRoleSerializer
 
 
-class UserInfoViewSet(viewsets.GenericViewSet,
-                      StoreFilterMixin,
+class BackendUserViewSet(StoreFilterViewSet,
+                         mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                         mixins.CreateModelMixin):
+    '''
+    list:
+        获取后台登录用户列表
+        ---
+    '''
+    permission_classes = (
+        AllowAny,
+    )
+
+    queryset = BackendUser.objects.filter(
+        is_superuser=False, is_active=True, is_staff=False).order_by('created')
+    serializer_class = BackendUserSerializer
+    lookup_url_kwarg = 'mobile'
+    lookup_field = 'mobile'
+
+
+class UserInfoViewSet(StoreFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin,
@@ -119,7 +156,8 @@ class UserInfoViewSet(viewsets.GenericViewSet,
         AllowAny,
     )
     filterset_fields = (
-        'name', 'gender', 'status', 'willingness', 'net_worth',)
+        'name', 'gender', 'status', 'willingness', 'net_worth',
+        'is_seller',)
     ordering = ('created', 'gender', 'name',)
 
     queryset = UserInfo.objects.order_by('created')
@@ -137,8 +175,7 @@ class UserInfoViewSet(viewsets.GenericViewSet,
         return Response(self.get_choice_data(UserInfo, 'status'))
 
 
-class UserOnlineOrderViewSet(viewsets.GenericViewSet,
-                             StoreFilterMixin,
+class UserOnlineOrderViewSet(StoreFilterViewSet,
                              mixins.RetrieveModelMixin,
                              mixins.ListModelMixin,):
     '''
@@ -163,8 +200,7 @@ class UserOnlineOrderViewSet(viewsets.GenericViewSet,
     lookup_field = 'user__mobile'
 
 
-class SellerViewSet(viewsets.GenericViewSet,
-                    StoreFilterMixin,
+class SellerViewSet(StoreFilterViewSet,
                     mixins.RetrieveModelMixin,
                     mixins.ListModelMixin,
                     mixins.CreateModelMixin,
@@ -219,9 +255,7 @@ class SellerViewSet(viewsets.GenericViewSet,
         return Response(serializer.data)
 
 
-class CustomerRelationViewSet(viewsets.GenericViewSet,
-                              StoreFilterMixin,
-                              SellerFilterMixin,
+class CustomerRelationViewSet(SellerFilterViewSet,
                               mixins.ListModelMixin,
                               mixins.CreateModelMixin,
                               mixins.UpdateModelMixin):
@@ -254,8 +288,7 @@ class CustomerRelationViewSet(viewsets.GenericViewSet,
     ordering = ('created',)
 
 
-class CoinRuleViewSet(viewsets.GenericViewSet,
-                      StoreFilterMixin,
+class CoinRuleViewSet(StoreFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin):
@@ -282,8 +315,7 @@ class CoinRuleViewSet(viewsets.GenericViewSet,
     filterset_fields = ('store_code', 'category',)
 
 
-class UserCoinRecordViewSet(viewsets.GenericViewSet,
-                            StoreFilterMixin,
+class UserCoinRecordViewSet(StoreFilterViewSet,
                             mixins.RetrieveModelMixin,
                             mixins.ListModelMixin,
                             mixins.CreateModelMixin):
@@ -310,4 +342,67 @@ class UserCoinRecordViewSet(viewsets.GenericViewSet,
     filterset_fields = ('rule',)
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
+    storefilter_field = 'user__user__store_code'
+
+
+class CouponViewSet(StoreFilterViewSet,
+                    mixins.RetrieveModelMixin,
+                    mixins.ListModelMixin,
+                    mixins.CreateModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,):
+    '''
+    retrieve:
+        获取积分规则详情
+        ---
+
+    list:
+        获取积分规则列表
+        ---
+
+    create:
+        用户领取积分
+        ---
+    '''
+
+    permission_classes = (
+        AllowAny,
+    )
+
+    queryset = Coupon.objects.order_by('id')
+    serializer_class = CouponSerializer
+    filterset_fields = ('is_active',)
+    storefilter_field = 'store_code'
+
+
+class SendCouponViewSet(StoreFilterViewSet,
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        mixins.CreateModelMixin,
+                        mixins.UpdateModelMixin,):
+    '''
+    retrieve:
+        获取用户优惠券
+        ---
+
+    list:
+        获取用户优惠券列表
+        ---
+
+    create:
+        发送优惠券
+        ---
+
+    update:
+        更新优惠券
+        ---
+    '''
+
+    permission_classes = (
+        AllowAny,
+    )
+
+    queryset = SendCoupon.objects.order_by('id')
+    serializer_class = SendCouponSerializer
+    filterset_fields = ('coupon__is_active', 'user__user__mobile')
     storefilter_field = 'user__user__store_code'

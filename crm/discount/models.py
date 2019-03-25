@@ -4,8 +4,11 @@ from ..user.models import (
     UserInfo,
     UserMobileMixin,
     )
-from ..sale.models import (
-    Seller,
+# from ..sale.models import (
+#     Seller,
+#     )
+from ..user.models import (
+    BackendUser,
     )
 
 
@@ -79,6 +82,8 @@ class Coupon(models.Model):
         verbose_name='创建时间', default=timezone.now)
     store_code = models.CharField(
         verbose_name='门店编码', max_length=255)
+    is_active = models.BooleanField(
+        verbose_name='是否激活', default=True)
 
     def __str__(self):
         return str(self.discunt)
@@ -89,8 +94,8 @@ class Coupon(models.Model):
 
 class SendCoupon(models.Model):
 
-    seller = models.ForeignKey(
-        Seller, on_delete=models.CASCADE, verbose_name="销售")
+    backenduser = models.ForeignKey(
+        BackendUser, on_delete=models.CASCADE, verbose_name="后台用户")
     user = models.ForeignKey(
         UserInfo, on_delete=models.CASCADE, verbose_name="客户")
     created = models.DateTimeField(

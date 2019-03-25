@@ -5,6 +5,7 @@ from ..user.models import (
     UserOnlineOrder,
     BackendPermission,
     BackendRole,
+    BackendUser,
     )
 from ..sale.models import (
     Seller,
@@ -13,6 +14,8 @@ from ..sale.models import (
 from ..discount.models import (
     CoinRule,
     UserCoinRecord,
+    Coupon,
+    SendCoupon,
     )
 from ..discount.tasks import (
     SyncCoinTask,
@@ -31,6 +34,17 @@ def get_or_create_user(mobile, store_code):
         user = BaseUser.objects.create(
             mobile=mobile, store_code=store_code)
     return user
+
+
+class AssignUserStoreSerializer(serializers.ModelSerializer):
+
+    def get_fields(self):
+        fields = super().get_fields()
+
+        if self.context['request'].user.is_authenticated:
+            store_code = self.context['request'].user.store_code
+            self.context['request'].data['store_code'] = store_code
+        return fields
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -54,17 +68,62 @@ class BackendPermissionSerializer(serializers.ModelSerializer):
         )
 
 
-class BackendRoleSerializer(serializers.ModelSerializer):
+class BackendRoleSerializer(AssignUserStoreSerializer):
 
-    permissions = BackendPermissionSerializer(many=True)
+    permissions = BackendPermissionSerializer(
+        many=True, read_only=True)
+    store_code = serializers.CharField(
+        help_text='门店编号', max_length=50, write_only=True)
+    w_permissions = serializers.PrimaryKeyRelatedField(
+        many=True, write_only=True,
+        queryset=BackendPermission.objects.all(), source='permissions')
 
     class Meta:
         model = BackendRole
         fields = (
+            'id',
             'name',
             'created',
             'permissions',
+            'store_code',
+            'w_permissions',
         )
+        read_only_fields = ('created',)
+
+
+class BackendUserSerializer(serializers.ModelSerializer):
+
+    password = serializers.CharField(
+        help_text='密码', write_only=True, max_length=50)
+    role = BackendRoleSerializer(
+        read_only=True)
+    role_id = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=BackendRole.objects.all(), source='role')
+
+    def get_fields(self):
+        fields = super().get_fields()
+
+        if self.context['request'].user.is_authenticated:
+            store_code = self.context['request'].user.store_code
+            self.context['request'].data['store_code'] = store_code
+
+            fields['role_id'].queryset = fields['role_id'].queryset.filter(
+                store_code=store_code)
+        return fields
+
+    class Meta:
+        model = BackendUser
+        fields = (
+            'id',
+            'mobile',
+            'created',
+            'password',
+            'store_code',
+            'role',
+            'role_id',
+        )
+        read_only_fields = ('created',)
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -104,6 +163,7 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserOnlineOrder
         fields = (
+            'id',
             'user',
             'mobile',
             'created',
@@ -130,7 +190,7 @@ class SellerSerializer(serializers.ModelSerializer):
             'is_active')
 
 
-class CustomerRelationSerializer(serializers.ModelSerializer):
+class CustomerRelationSerializer(AssignUserStoreSerializer):
 
     mobile_user = serializers.CharField(
         help_text='用户手机号', max_length=20, write_only=True)
@@ -188,7 +248,7 @@ class UpdateSellerSerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
 
-class CreateSellerSerializer(serializers.ModelSerializer):
+class CreateSellerSerializer(AssignUserStoreSerializer):
 
     mobile = serializers.CharField(
         help_text='手机号', max_length=20, write_only=True)
@@ -258,6 +318,7 @@ class CoinRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CoinRule
         fields = (
+            'id',
             'category',
             'category_display',
             'coin',
@@ -267,7 +328,7 @@ class CoinRuleSerializer(serializers.ModelSerializer):
                             'store_code',)
 
 
-class UserCoinRecordSerializer(serializers.ModelSerializer):
+class UserCoinRecordSerializer(AssignUserStoreSerializer):
 
     user_mobile = serializers.CharField(
         max_length=50, write_only=True)
@@ -295,6 +356,7 @@ class UserCoinRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserCoinRecord
         fields = (
+            'id',
             'mobile',
             'created',
             'coin',
@@ -304,3 +366,65 @@ class UserCoinRecordSerializer(serializers.ModelSerializer):
             'user_mobile',
         )
         read_only_fields = ('created', 'coin', 'rule')
+
+
+class CouponSerializer(AssignUserStoreSerializer):
+
+    class Meta:
+        model = Coupon
+        fields = (
+            'id',
+            'description',
+            'discount',
+            'created',
+            'store_code',
+            'is_active',
+        )
+        read_only_fields = ('created',)
+
+
+class SendCouponSerializer(AssignUserStoreSerializer):
+
+    mobile_user = serializers.CharField(
+        help_text='用户手机号', max_length=20, write_only=True)
+    store_code = serializers.CharField(
+        help_text='门店编号', max_length=50, write_only=True)
+    coupon = CouponSerializer(
+        read_only=True)
+    coupon_id = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=Coupon.objects.all(), source='coupon')
+    user = UserInfoSerializer(
+        read_only=True)
+    backenduser = BackendUserSerializer(
+        read_only=True)
+
+    def create(self, validated_data):
+        mobile_user = validated_data.pop('mobile_user')
+        store_code = validated_data.pop('store_code')
+
+        if not self.context['request'].user.is_authenticated:
+            raise serializers.ValidationError("请登录")
+        b_user = self.context['request'].user
+
+        user = get_or_create_user(mobile_user, store_code)
+
+        ModelClass = self.Meta.model
+        try:
+            instance = ModelClass._default_manager.create(
+                user=user.userinfo, backenduser=b_user, **validated_data)
+        except django.db.utils.IntegrityError:
+            raise serializers.ValidationError("参数错误")
+        return instance
+
+    class Meta:
+        model = SendCoupon
+        fields = (
+            'id',
+            'mobile_user',
+            'user',
+            'backenduser',
+            'store_code',
+            'coupon',
+            'coupon_id',
+        )

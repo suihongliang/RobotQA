@@ -1,7 +1,8 @@
-# from rest_framework import viewsets
+from rest_framework import permissions
+from rest_framework import viewsets
 
 
-class StoreFilterMixin():
+class StoreFilterViewSet(viewsets.GenericViewSet):
     '''
     通过用户过滤门店编号
     '''
@@ -22,7 +23,7 @@ class StoreFilterMixin():
         return queryset
 
 
-class SellerFilterMixin():
+class SellerFilterViewSet(StoreFilterViewSet):
     '''
     销售元权限只能查看自己资源过滤
     '''
@@ -40,3 +41,30 @@ class SellerFilterMixin():
             else:
                 queryset = queryset.filter(**{self.userfilter_field: ''})
         return queryset
+
+
+def custom_permission(backend_perms):
+
+    class BackendPermission(permissions.BasePermission):
+        '''
+        后台权限控制
+        '''
+
+        def has_permission(self, request, view):
+            perms = backend_perms.get(view.action)
+            if not perms:
+                return True
+            user = request.user
+            if user.is_authenticated:
+                role = user.role
+                if not role:
+                    return False
+                user_perms = user.role.permissions.all().values('code')
+                if set(user_perms) & set(perms):
+                    return True
+                else:
+                    return False
+            else:
+                return True
+
+    return BackendPermission
