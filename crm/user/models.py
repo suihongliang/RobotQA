@@ -77,12 +77,15 @@ class BackendRole(models.Model):
         verbose_name='', default=False)
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
+    store_code = models.CharField(
+        verbose_name='门店编码', max_length=255)
 
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = '后台群组'
+        unique_together = (("name", "store_code"),)
 
 
 class BackendUser(AbstractBaseUser, PermissionsMixin):
@@ -102,6 +105,8 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
         verbose_name='创建时间', default=timezone.now)
     role = models.ForeignKey(
         BackendRole, null=True, blank=True, on_delete=models.SET_NULL)
+    store_code = models.CharField(
+        verbose_name='门店编码', max_length=255)
 
     objects = BackendUserManager()
 

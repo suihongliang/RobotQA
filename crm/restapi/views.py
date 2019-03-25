@@ -6,6 +6,7 @@ from ..user.models import (
     )
 from ..sale.models import (
     Seller,
+    CustomerRelation,
     )
 from ..discount.models import (
     CoinRule,
@@ -15,6 +16,10 @@ from rest_framework import viewsets, mixins
 from rest_framework.permissions import (
     # IsAuthenticated,
     AllowAny,
+    )
+from ..core.views import (
+    StoreFilterMixin,
+    SellerFilterMixin,
     )
 # from django.http import Http404
 from rest_framework.decorators import action
@@ -30,6 +35,7 @@ from .serializers import (
     CoinRuleSerializer,
     UserCoinRecordSerializer,
     BackendRoleSerializer,
+    CustomerRelationSerializer,
     )
 
 # Create your views here.
@@ -48,6 +54,7 @@ class ChoicesViewMixin():
 
 
 class BackendPermissionViewSet(viewsets.GenericViewSet,
+                               StoreFilterMixin,
                                mixins.RetrieveModelMixin,
                                mixins.ListModelMixin,):
     '''
@@ -64,6 +71,7 @@ class BackendPermissionViewSet(viewsets.GenericViewSet,
 
 
 class BackendRoleViewSet(viewsets.GenericViewSet,
+                         StoreFilterMixin,
                          mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,):
     '''
@@ -80,6 +88,7 @@ class BackendRoleViewSet(viewsets.GenericViewSet,
 
 
 class UserInfoViewSet(viewsets.GenericViewSet,
+                      StoreFilterMixin,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin,
@@ -117,6 +126,7 @@ class UserInfoViewSet(viewsets.GenericViewSet,
     serializer_class = UserInfoSerializer
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
+    storefilter_field = 'user__store_code'
 
     @action(methods=['get'], url_path='list/gender', detail=False)
     def gender_list(self, request, *args, **kwargs):
@@ -128,6 +138,7 @@ class UserInfoViewSet(viewsets.GenericViewSet,
 
 
 class UserOnlineOrderViewSet(viewsets.GenericViewSet,
+                             StoreFilterMixin,
                              mixins.RetrieveModelMixin,
                              mixins.ListModelMixin,):
     '''
@@ -144,6 +155,7 @@ class UserOnlineOrderViewSet(viewsets.GenericViewSet,
         AllowAny,
     )
     filterset_fields = ('location',)
+    storefilter_field = 'user__user__store_code'
 
     queryset = UserOnlineOrder.objects.order_by('created')
     serializer_class = UserOnlineOrderSerializer
@@ -152,6 +164,7 @@ class UserOnlineOrderViewSet(viewsets.GenericViewSet,
 
 
 class SellerViewSet(viewsets.GenericViewSet,
+                    StoreFilterMixin,
                     mixins.RetrieveModelMixin,
                     mixins.ListModelMixin,
                     mixins.CreateModelMixin,
@@ -181,6 +194,7 @@ class SellerViewSet(viewsets.GenericViewSet,
     permission_classes = (
         AllowAny,
     )
+    storefilter_field = 'user__store_code'
 
     queryset = Seller.objects.order_by('created')
     serializer_class = SellerSerializer
@@ -205,7 +219,43 @@ class SellerViewSet(viewsets.GenericViewSet,
         return Response(serializer.data)
 
 
+class CustomerRelationViewSet(viewsets.GenericViewSet,
+                              StoreFilterMixin,
+                              SellerFilterMixin,
+                              mixins.ListModelMixin,
+                              mixins.CreateModelMixin,
+                              mixins.UpdateModelMixin):
+    '''
+    list:
+        获取客户关系列表
+        ---
+
+    create:
+        创建客户关系
+        ---
+
+    update:
+        更改客户关系信息
+        ---
+    '''
+
+    permission_classes = (
+        AllowAny,
+    )
+    storefilter_field = 'seller__user__store_code'
+
+    queryset = CustomerRelation.objects.order_by('created')
+    serializer_class = CustomerRelationSerializer
+    filterset_fields = (
+        'is_delete',
+        'user__user__mobile',
+        'seller__user__mobile',
+    )
+    ordering = ('created',)
+
+
 class CoinRuleViewSet(viewsets.GenericViewSet,
+                      StoreFilterMixin,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin):
@@ -233,6 +283,7 @@ class CoinRuleViewSet(viewsets.GenericViewSet,
 
 
 class UserCoinRecordViewSet(viewsets.GenericViewSet,
+                            StoreFilterMixin,
                             mixins.RetrieveModelMixin,
                             mixins.ListModelMixin,
                             mixins.CreateModelMixin):
@@ -259,3 +310,4 @@ class UserCoinRecordViewSet(viewsets.GenericViewSet,
     filterset_fields = ('rule',)
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
+    storefilter_field = 'user__user__store_code'

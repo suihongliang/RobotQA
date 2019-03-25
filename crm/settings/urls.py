@@ -18,6 +18,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
 from ..restapi import views as rest_views
+from ..user import views as user_views
 import xadmin
 from xadmin.plugins import xversion
 
@@ -34,9 +35,12 @@ router.register(r'coinrule', rest_views.CoinRuleViewSet)
 router.register(r'usercoinrecord', rest_views.UserCoinRecordViewSet)
 router.register(r'backendpermission', rest_views.BackendPermissionViewSet)
 router.register(r'backendrole', rest_views.BackendRoleViewSet)
+router.register(r'customerrelation', rest_views.CustomerRelationViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
+    path(r'user/login', user_views.LoginView.as_view()),
+    path(r'user/logout', user_views.LogoutView.as_view()),
     path(r'api/1.0/', include(router.urls)),
 ]
 

@@ -38,6 +38,8 @@ class CustomerRelation(models.Model):
         Seller, on_delete=models.CASCADE, verbose_name="销售")
     user = models.ForeignKey(
         UserInfo, on_delete=models.CASCADE, verbose_name="客户")
+    is_delete = models.BooleanField(
+        verbose_name='是否删除', default=False)
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
 
@@ -46,3 +48,4 @@ class CustomerRelation(models.Model):
 
     class Meta:
         verbose_name = '客户关系'
+        unique_together = (("seller", "user"),)
