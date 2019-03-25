@@ -53,7 +53,7 @@ class UserInfoViewSet(viewsets.GenericViewSet,
         AllowAny,
     )
     filterset_fields = (
-        'name', 'gender', 'status', 'willingness', 'net_worth',)
+        'name', 'gender', 'status', 'willingness', 'net_worth', 'customerrelation__seller')
     ordering = ('created', 'gender', 'name',)
 
     queryset = UserInfo.objects.order_by('created')

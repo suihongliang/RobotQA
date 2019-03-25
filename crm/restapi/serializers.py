@@ -42,8 +42,8 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 class UserInfoSerializer(serializers.ModelSerializer):
 
-    gender_display = serializers.CharField(source='get_gender_display')
-    status_display = serializers.CharField(source='get_status_display')
+    gender_display = serializers.CharField(source='get_gender_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = UserInfo

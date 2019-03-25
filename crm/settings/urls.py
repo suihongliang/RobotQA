@@ -36,6 +36,8 @@ router.register(r'usercoinrecord', rest_views.UserCoinRecordViewSet)
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
     path(r'api/1.0/', include(router.urls)),
+    path(r'sale/', include('crm.sale.urls')),
+    path(r'user/', include('crm.user.urls')),
 ]
 
 # if settings.DEBUG:
