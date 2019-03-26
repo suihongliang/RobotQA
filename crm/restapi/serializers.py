@@ -100,6 +100,8 @@ class BackendUserSerializer(serializers.ModelSerializer):
     role_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=BackendRole.objects.all(), source='role')
+    is_active = serializers.BooleanField(
+        required=False, default=True)
 
     def get_fields(self):
         fields = super().get_fields()
@@ -122,6 +124,7 @@ class BackendUserSerializer(serializers.ModelSerializer):
             'store_code',
             'role',
             'role_id',
+            'is_active',
         )
         read_only_fields = ('created',)
 
@@ -130,6 +133,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     gender_display = serializers.CharField(source='get_gender_display')
     status_display = serializers.CharField(source='get_status_display')
+    # seller = serializers.SerializerMethodField()
 
     class Meta:
         model = UserInfo

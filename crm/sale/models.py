@@ -35,11 +35,11 @@ class Seller(models.Model, UserMobileMixin):
 class CustomerRelation(models.Model):
 
     seller = models.ForeignKey(
-        Seller, on_delete=models.CASCADE, verbose_name="销售")
-    user = models.ForeignKey(
-        UserInfo, on_delete=models.CASCADE, verbose_name="客户")
-    is_delete = models.BooleanField(
-        verbose_name='是否删除', default=False)
+        Seller, null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="销售")
+    user = models.OneToOneField(
+        BaseUser, on_delete=models.CASCADE, primary_key=True,
+        verbose_name="客户")
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
 
@@ -48,4 +48,3 @@ class CustomerRelation(models.Model):
 
     class Meta:
         verbose_name = '客户关系'
-        unique_together = (("seller", "user"),)

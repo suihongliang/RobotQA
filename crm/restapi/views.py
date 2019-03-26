@@ -162,7 +162,8 @@ class BackendRoleViewSet(StoreFilterViewSet,
 class BackendUserViewSet(StoreFilterViewSet,
                          mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
-                         mixins.CreateModelMixin):
+                         mixins.CreateModelMixin,
+                         mixins.UpdateModelMixin,):
     '''
     list:
         获取后台登录用户列表
@@ -179,9 +180,6 @@ class BackendUserViewSet(StoreFilterViewSet,
             'system_m',
         ],
         'update': [
-            'system_m',
-        ],
-        'destroy': [
             'system_m',
         ],
     }
@@ -224,9 +222,25 @@ class UserInfoViewSet(StoreFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'system_m',
+        ],
+        'retrieve': [
+            'system_m',
+        ],
+        'create': [
+            'system_m',
+        ],
+        'update': [
+            'system_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
+
     filterset_fields = (
         'name', 'gender', 'status', 'willingness', 'net_worth',
         'is_seller',)

@@ -95,7 +95,8 @@ class Coupon(models.Model):
 class SendCoupon(models.Model):
 
     backenduser = models.ForeignKey(
-        BackendUser, on_delete=models.CASCADE, verbose_name="后台用户")
+        BackendUser, null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="后台用户")
     user = models.ForeignKey(
         UserInfo, on_delete=models.CASCADE, verbose_name="客户")
     created = models.DateTimeField(

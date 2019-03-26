@@ -5,6 +5,9 @@ from .models import (
     UserInfo,
     BackendUser,
     )
+from ..sale.models import (
+    CustomerRelation,
+    )
 
 
 @receiver(post_save, sender=BaseUser)
@@ -14,7 +17,8 @@ def sync_create_userinfo(sender, **kwargs):
     '''
     user = kwargs['instance']
     if kwargs['created']:
-        UserInfo.objects.create(user=user)
+        userinfo = UserInfo.objects.create(user=user)
+        CustomerRelation.objects.create(user=userinfo)
 
 
 @receiver(pre_save, sender=BackendUser)
