@@ -9,17 +9,18 @@ class StoreFilterViewSet(viewsets.GenericViewSet):
 
     storefilter_field = 'store_code'
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
+    def get_param_store_code(self):
         if self.request.user.is_authenticated:
             store_code = self.request.user.store_code
-            queryset = queryset.filter(
-                **{self.storefilter_field: store_code})
         else:
             store_code = self.request.query_params.get('store_code')
-            if store_code:
-                queryset = queryset.filter(
-                    **{self.storefilter_field: store_code})
+        return store_code
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        store_code = self.get_param_store_code()
+        queryset = queryset.filter(
+            **{self.storefilter_field: store_code})
         return queryset
 
 

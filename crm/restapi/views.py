@@ -1,4 +1,5 @@
 from ..user.models import (
+    BaseUser,
     UserInfo,
     UserOnlineOrder,
     BackendPermission,
@@ -45,6 +46,7 @@ from .serializers import (
     CouponSerializer,
     SendCouponSerializer,
     )
+from django.http import Http404
 
 # Create your views here.
 
@@ -202,7 +204,7 @@ class UserInfoViewSet(StoreFilterViewSet,
                       ChoicesViewMixin):
     '''
     retrieve:
-        获取用户详情
+        获取用户详情, 可以追加参数 create: 若不存在就创建
         ---
 
     list:
@@ -237,8 +239,8 @@ class UserInfoViewSet(StoreFilterViewSet,
         ],
     }
     permission_classes = (
-        # AllowAny,
-        custom_permission(c_perms),
+        AllowAny,
+        # custom_permission(c_perms),
     )
 
     filterset_fields = (
@@ -259,6 +261,40 @@ class UserInfoViewSet(StoreFilterViewSet,
     @action(methods=['get'], url_path='list/status', detail=False)
     def status_list(self, request, *args, **kwargs):
         return Response(self.get_choice_data(UserInfo, 'status'))
+
+    def get_object(self):
+        '''
+        处理自动创建用户
+        '''
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Perform the lookup filtering.
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+
+        assert lookup_url_kwarg in self.kwargs, (
+            'Expected view %s to be called with a URL keyword argument '
+            'named "%s". Fix your URL conf, or set the `.lookup_field` '
+            'attribute on the view correctly.' %
+            (self.__class__.__name__, lookup_url_kwarg)
+        )
+
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        obj = queryset.filter(**filter_kwargs).first()
+        if not obj:
+            store_code = self.get_param_store_code()
+            create = self.request.query_params.get('create')
+            if create and store_code:
+                b_user = BaseUser.objects.create(
+                    store_code=store_code,
+                    mobile=self.kwargs[lookup_url_kwarg])
+                obj = b_user.userinfo
+            else:
+                raise Http404()
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
 
 
 class UserOnlineOrderViewSet(StoreFilterViewSet,
@@ -362,13 +398,13 @@ class CustomerRelationViewSet(SellerFilterViewSet,
     queryset = CustomerRelation.objects.order_by('created')
     serializer_class = CustomerRelationSerializer
     filterset_fields = (
-        'user__mobile',
+        'user__user__mobile',
         'seller__user__mobile',
     )
     userfilter_field = 'seller__user__mobile'
     ordering = ('created',)
-    lookup_url_kwarg = 'user__mobile'
-    lookup_field = 'user__mobile'
+    lookup_url_kwarg = 'user__user__mobile'
+    lookup_field = 'user__user__mobile'
 
 
 class CoinRuleViewSet(StoreFilterViewSet,

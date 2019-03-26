@@ -176,7 +176,7 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
         )
 
 
-class SellerSerializer(serializers.ModelSerializer):
+class SellerSerializer(AssignUserStoreSerializer):
 
     class Meta:
         model = Seller
