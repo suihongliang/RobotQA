@@ -17,6 +17,7 @@ def sync_create_userinfo(sender, **kwargs):
     '''
     user = kwargs['instance']
     if kwargs['created']:
+        import pdb; pdb.set_trace()
         userinfo = UserInfo.objects.create(user=user)
         CustomerRelation.objects.create(user=userinfo)
 
