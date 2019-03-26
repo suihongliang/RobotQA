@@ -343,15 +343,10 @@ class SellerViewSet(StoreFilterViewSet,
 
 class CustomerRelationViewSet(SellerFilterViewSet,
                               mixins.ListModelMixin,
-                              mixins.CreateModelMixin,
                               mixins.UpdateModelMixin):
     '''
     list:
         获取客户关系列表
-        ---
-
-    create:
-        创建客户关系
         ---
 
     update:
@@ -367,12 +362,13 @@ class CustomerRelationViewSet(SellerFilterViewSet,
     queryset = CustomerRelation.objects.order_by('created')
     serializer_class = CustomerRelationSerializer
     filterset_fields = (
-        'is_delete',
-        'user__user__mobile',
+        'user__mobile',
         'seller__user__mobile',
     )
     userfilter_field = 'seller__user__mobile'
     ordering = ('created',)
+    lookup_url_kwarg = 'user__mobile'
+    lookup_field = 'user__mobile'
 
 
 class CoinRuleViewSet(StoreFilterViewSet,

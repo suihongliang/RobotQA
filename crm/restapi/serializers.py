@@ -196,45 +196,37 @@ class SellerSerializer(serializers.ModelSerializer):
 
 class CustomerRelationSerializer(AssignUserStoreSerializer):
 
-    mobile_user = serializers.CharField(
-        help_text='用户手机号', max_length=20, write_only=True)
     mobile_seller = serializers.CharField(
         help_text='销售手机号', max_length=20, write_only=True)
     store_code = serializers.CharField(
         help_text='门店编号', max_length=50, write_only=True)
-    is_delete = serializers.BooleanField(
-        required=False, default=False)
 
-    def create(self, validated_data):
-        mobile_user = validated_data.pop('mobile_user')
+    def update(self, instance, validated_data):
         mobile_seller = validated_data.pop('mobile_seller')
         store_code = validated_data.pop('store_code')
-
         seller = Seller.objects.filter(
             user__mobile=mobile_seller, user__store_code=store_code).first()
         if not seller:
             raise serializers.ValidationError("销售不存在")
-        user = get_or_create_user(mobile_user, store_code)
 
-        ModelClass = self.Meta.model
-        try:
-            instance = ModelClass._default_manager.create(
-                user=user.userinfo, seller=seller, **validated_data)
-        except django.db.utils.IntegrityError:
-            instance = ModelClass._default_manager.get(
-                user=user.userinfo, seller=seller)
-            instance.is_delete = False
-            instance.save()
+        info = model_meta.get_field_info(instance)
+
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                field = getattr(instance, attr)
+                field.set(value)
+            else:
+                setattr(instance, attr, value)
+        instance.seller = seller
+        instance.save()
+
         return instance
 
     class Meta:
         model = CustomerRelation
         fields = (
-            'id',
-            'mobile_user',
             'mobile_seller',
             'store_code',
-            'is_delete',
         )
 
 
