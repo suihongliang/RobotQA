@@ -135,6 +135,10 @@ class UserInfoSerializer(serializers.ModelSerializer):
     gender_display = serializers.CharField(source='get_gender_display')
     status_display = serializers.CharField(source='get_status_display')
     seller = serializers.SerializerMethodField()
+    extra_data = serializers.SerializerMethodField()
+
+    def get_extra_data(self, instance):
+        return instance.get_extra_data_json()
 
     def get_seller(self, instance):
         seller = instance.customerrelation.seller
@@ -159,10 +163,15 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'gender_display',
             'status_display',
             'seller',
+            'last_active_time',
+            'access_times',
+            'spend_coin',
+            'extra_data',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller', 'gender_display',
-            'status_display')
+            'status_display', 'last_active_time', 'access_times',
+            'spend_coin')
 
 
 class UserOnlineOrderSerializer(serializers.ModelSerializer):

@@ -5,6 +5,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+import json
 
 
 class BackendUserManager(BaseUserManager):
@@ -155,8 +156,8 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='创建时间', default=timezone.now)
     name = models.CharField(
         max_length=25, verbose_name='用户昵称', default='')
-    age = models.CharField(
-        max_length=25, verbose_name='年龄', default='')
+    age = models.IntegerField(
+        verbose_name='年龄', default=-1)
     gender = models.IntegerField(
         choices=[
             (0, '男'),
@@ -176,6 +177,21 @@ class UserInfo(models.Model, UserMobileMixin):
         max_length=5, verbose_name='净值度', default='')
     is_seller = models.BooleanField(
         verbose_name='是否销售', default=False)
+    last_active_time = models.DateTimeField(
+        verbose_name='活跃时间', default=timezone.now)
+    access_times = models.IntegerField(
+        verbose_name='到访次数', default=0)
+    spend_coin = models.IntegerField(
+        verbose_name='花费积分', default=0)
+    extra_data = models.TextField(
+        verbose_name='额外参数', default='')
+
+    def get_extra_data_json(self):
+        try:
+            json.loads(self.extra_data)
+            return {}
+        except json.JSONDecodeError:
+            return {}
 
     def __str__(self):
         return str(self.user)

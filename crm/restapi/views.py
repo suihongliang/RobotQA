@@ -46,6 +46,7 @@ from .serializers import (
     CouponSerializer,
     SendCouponSerializer,
     )
+from django_filters import rest_framework as filters
 from django.http import Http404
 
 # Create your views here.
@@ -197,6 +198,45 @@ class BackendUserViewSet(StoreFilterViewSet,
     lookup_field = 'mobile'
 
 
+class UserInfoFilter(filters.FilterSet):
+    min_age = filters.NumberFilter(
+        field_name="age", lookup_expr='gte',
+        help_text='年龄')
+    max_age = filters.NumberFilter(
+        field_name="age", lookup_expr='lte')
+    min_created = filters.DateTimeFilter(
+        field_name="created", lookup_expr='gte',
+        help_text='创建时间')
+    max_created = filters.DateTimeFilter(
+        field_name="created", lookup_expr='lte')
+    min_spend_coin = filters.NumberFilter(
+        field_name="spend_coin", lookup_expr='gte',
+        help_text='花费积分')
+    max_spend_coin = filters.NumberFilter(
+        field_name="spend_coin", lookup_expr='lte')
+    min_last_active_time = filters.DateTimeFilter(
+        field_name="last_active_time", lookup_expr='gte',
+        help_text='上次到访时间')
+    max_last_active_time = filters.DateTimeFilter(
+        field_name="last_active_time", lookup_expr='lte')
+    min_access_times = filters.NumberFilter(
+        field_name="access_times", lookup_expr='gte',
+        help_text='访问次数')
+    max_access_times = filters.NumberFilter(
+        field_name="access_times", lookup_expr='lte')
+
+    class Meta:
+        model = UserInfo
+        fields = (
+            'min_age', 'max_age', 'name', 'gender',
+            'status', 'willingness', 'net_worth',
+            'is_seller', 'customerrelation__seller__user__mobile',
+            'min_created', 'max_created',
+            'max_spend_coin', 'min_spend_coin',
+            'min_last_active_time', 'max_last_active_time',
+            'min_access_times', 'max_access_times')
+
+
 class UserInfoViewSet(StoreFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
@@ -243,9 +283,11 @@ class UserInfoViewSet(StoreFilterViewSet,
         # custom_permission(c_perms),
     )
 
-    filterset_fields = (
-        'name', 'gender', 'status', 'willingness', 'net_worth',
-        'is_seller', 'customerrelation',)
+    filterset_class = UserInfoFilter
+    # filterset_fields = (
+    #     'name', 'gender', 'status', 'willingness', 'net_worth',
+    #     'is_seller', 'customerrelation__seller__user__mobile',
+    #     'age')
     ordering = ('created', 'gender', 'name',)
 
     queryset = UserInfo.objects.order_by('created')
