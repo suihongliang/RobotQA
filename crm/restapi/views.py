@@ -18,10 +18,10 @@ from ..discount.models import (
     )
 from rest_framework import mixins
 from rest_framework import viewsets
-from rest_framework.permissions import (
-    # IsAuthenticated,
-    AllowAny,
-    )
+# from rest_framework.permissions import (
+#     IsAuthenticated,
+#     AllowAny,
+#     )
 from ..core.views import (
     StoreFilterViewSet,
     SellerFilterViewSet,
@@ -149,6 +149,9 @@ class BackendRoleViewSet(StoreFilterViewSet,
         'update': [
             'system_m',
         ],
+        'partial_update': [
+            'system_m',
+        ],
         'destroy': [
             'system_m',
         ],
@@ -183,6 +186,9 @@ class BackendUserViewSet(StoreFilterViewSet,
             'system_m',
         ],
         'update': [
+            'system_m',
+        ],
+        'partial_update': [
             'system_m',
         ],
     }
@@ -266,21 +272,27 @@ class UserInfoViewSet(StoreFilterViewSet,
 
     c_perms = {
         'list': [
-            'system_m',
+            'customer_m',
         ],
         'retrieve': [
-            'system_m',
+            'customer_m',
         ],
-        'create': [
-            'system_m',
+        'gender_list': [
+            'customer_m',
+        ],
+        'status_list': [
+            'customer_m',
         ],
         'update': [
-            'system_m',
+            'customer_m',
+        ],
+        'partial_update': [
+            'customer_m',
         ],
     }
     permission_classes = (
-        AllowAny,
-        # custom_permission(c_perms),
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     filterset_class = UserInfoFilter
@@ -352,8 +364,17 @@ class UserOnlineOrderViewSet(StoreFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'order_m',
+        ],
+        'retrieve': [
+            'order_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
     filterset_fields = ('location',)
     storefilter_field = 'user__user__store_code'
@@ -391,8 +412,29 @@ class SellerViewSet(StoreFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'system_m',
+        ],
+        'retrieve': [
+            'system_m',
+        ],
+        'create': [
+            'system_m',
+        ],
+        'update': [
+            'system_m',
+        ],
+        'partial_update': [
+            'system_m',
+        ],
+        'update_seller': [
+            'system_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
     storefilter_field = 'user__store_code'
 
@@ -432,8 +474,20 @@ class CustomerRelationViewSet(SellerFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'system_m',
+        ],
+        'update': [
+            'system_m',
+        ],
+        'partial_update': [
+            'system_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
     storefilter_field = 'user__user__store_code'
 
@@ -467,8 +521,23 @@ class CoinRuleViewSet(StoreFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'coin_m',
+        ],
+        'update': [
+            'coin_m',
+        ],
+        'partial_update': [
+            'coin_m',
+        ],
+        'retrieve': [
+            'coin_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     queryset = CoinRule.objects.order_by('category')
@@ -494,8 +563,20 @@ class UserCoinRecordViewSet(StoreFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'coin_m',
+        ],
+        'create': [
+            'coin_m',
+        ],
+        'retrieve': [
+            'coin_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     queryset = UserCoinRecord.objects.order_by('id')
@@ -526,8 +607,29 @@ class CouponViewSet(StoreFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'coin_m',
+        ],
+        'create': [
+            'coin_m',
+        ],
+        'retrieve': [
+            'coin_m',
+        ],
+        'destroy': [
+            'coin_m',
+        ],
+        'update': [
+            'coin_m',
+        ],
+        'partial_update': [
+            'coin_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     queryset = Coupon.objects.order_by('id')
@@ -559,8 +661,26 @@ class SendCouponViewSet(SellerFilterViewSet,
         ---
     '''
 
+    c_perms = {
+        'list': [
+            'coin_m',
+        ],
+        'create': [
+            'coin_m',
+        ],
+        'retrieve': [
+            'coin_m',
+        ],
+        'update': [
+            'coin_m',
+        ],
+        'partial_update': [
+            'coin_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     queryset = SendCoupon.objects.order_by('id')
