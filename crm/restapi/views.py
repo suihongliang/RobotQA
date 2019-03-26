@@ -245,7 +245,7 @@ class UserInfoViewSet(StoreFilterViewSet,
 
     filterset_fields = (
         'name', 'gender', 'status', 'willingness', 'net_worth',
-        'is_seller',)
+        'is_seller', 'customerrelation',)
     ordering = ('created', 'gender', 'name',)
 
     queryset = UserInfo.objects.order_by('created')
@@ -393,7 +393,7 @@ class CustomerRelationViewSet(SellerFilterViewSet,
     permission_classes = (
         AllowAny,
     )
-    storefilter_field = 'seller__user__store_code'
+    storefilter_field = 'user__user__store_code'
 
     queryset = CustomerRelation.objects.order_by('created')
     serializer_class = CustomerRelationSerializer

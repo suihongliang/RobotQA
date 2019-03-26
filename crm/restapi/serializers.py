@@ -41,9 +41,10 @@ class AssignUserStoreSerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
 
-        if self.context['request'].user.is_authenticated:
-            store_code = self.context['request'].user.store_code
-            self.context['request'].data['store_code'] = store_code
+        if 'request' in self.context.keys():
+            if self.context['request'].user.is_authenticated:
+                store_code = self.context['request'].user.store_code
+                self.context['request'].data['store_code'] = store_code
         return fields
 
 
@@ -133,7 +134,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     gender_display = serializers.CharField(source='get_gender_display')
     status_display = serializers.CharField(source='get_status_display')
-    # seller = serializers.SerializerMethodField()
+    seller = serializers.SerializerMethodField()
+
+    def get_seller(self, instance):
+        seller = instance.customerrelation.seller
+        if seller:
+            return SellerSerializer(seller).data
+        return None
 
     class Meta:
         model = UserInfo
@@ -151,6 +158,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'is_seller',
             'gender_display',
             'status_display',
+            'seller',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller', 'gender_display',
@@ -225,6 +233,7 @@ class CustomerRelationSerializer(AssignUserStoreSerializer):
     class Meta:
         model = CustomerRelation
         fields = (
+            'user',
             'mobile_seller',
             'store_code',
         )
