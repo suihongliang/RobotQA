@@ -3,6 +3,8 @@ import xadmin
 from .models import (
     CoinRule,
     UserCoinRecord,
+    Coupon,
+    SendCoupon,
     )
 # from django.utils import timezone
 
@@ -19,3 +21,17 @@ class UserCoinRecordAdmin():
     '''
     '''
     list_display = ('mobile', 'created', 'coin', 'update_status')
+
+
+@xadmin.sites.register(Coupon)
+class CouponAdmin():
+    '''
+    '''
+    list_display = ('id', 'description', 'discount', 'store_code', 'created')
+
+
+@xadmin.sites.register(SendCoupon)
+class SendCouponAdmin():
+    '''
+    '''
+    list_display = ('id', 'backenduser', 'user', 'created')

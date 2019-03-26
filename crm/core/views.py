@@ -11,7 +11,7 @@ class StoreFilterViewSet(viewsets.GenericViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.request.user:
+        if self.request.user.is_authenticated:
             store_code = self.request.user.store_code
             queryset = queryset.filter(
                 **{self.storefilter_field: store_code})
@@ -32,7 +32,7 @@ class SellerFilterViewSet(StoreFilterViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if self.request.user:
+        if self.request.user.is_authenticated:
             if self.request.user.role:
                 if self.request.user.role.only_myself:
                     mobile = self.request.user.mobile
@@ -59,7 +59,8 @@ def custom_permission(backend_perms):
                 role = user.role
                 if not role:
                     return False
-                user_perms = user.role.permissions.all().values('code')
+                user_perms = list(user.role.permissions.all().values_list(
+                    'code', flat=True))
                 if set(user_perms) & set(perms):
                     return True
                 else:

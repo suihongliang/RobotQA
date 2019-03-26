@@ -68,22 +68,42 @@ class BackendPermissionViewSet(viewsets.GenericViewSet,
     list:
         获取权限列表
         ---
+
+    myself_perms:
+        获取我自己的权限
+        ---
     '''
-    # c_perms = {
-    #     'list': [
-    #         'system_m',
-    #     ],
-    #     'retrieve': [
-    #         'system_m',
-    #     ]
-    # }
+    c_perms = {
+        'list': [
+            'system_m',
+        ],
+        'retrieve': [
+            'system_m',
+        ],
+        'myself_perms': [],
+    }
     permission_classes = (
-        AllowAny,
-        # custom_permission(c_perms),
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     queryset = BackendPermission.objects.order_by('id')
     serializer_class = BackendPermissionSerializer
+
+    @action(methods=['get'], url_path='myself', detail=False)
+    def myself_perms(self, request, *args, **kwargs):
+        if self.request.user:
+            user = self.request.user
+            if user.role:
+                queryset = user.role.permissions.all()
+
+                page = self.paginate_queryset(queryset)
+
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+        return Response({
+            'results': []
+        })
 
 
 class BackendRoleViewSet(StoreFilterViewSet,
@@ -94,11 +114,45 @@ class BackendRoleViewSet(StoreFilterViewSet,
                          mixins.DestroyModelMixin,):
     '''
     list:
-        获取权限列表
+        获取角色列表
+        ---
+
+    create:
+        创建角色
+        ---
+
+    retrieve:
+        获取角色详情
+        ---
+
+    update:
+        更新角色
+        ---
+
+    destroy:
+        删除角色
         ---
     '''
+    c_perms = {
+        'list': [
+            'system_m',
+        ],
+        'retrieve': [
+            'system_m',
+        ],
+        'create': [
+            'system_m',
+        ],
+        'update': [
+            'system_m',
+        ],
+        'destroy': [
+            'system_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     queryset = BackendRole.objects.order_by('created')
@@ -114,8 +168,26 @@ class BackendUserViewSet(StoreFilterViewSet,
         获取后台登录用户列表
         ---
     '''
+    c_perms = {
+        'list': [
+            'system_m',
+        ],
+        'retrieve': [
+            'system_m',
+        ],
+        'create': [
+            'system_m',
+        ],
+        'update': [
+            'system_m',
+        ],
+        'destroy': [
+            'system_m',
+        ],
+    }
     permission_classes = (
-        AllowAny,
+        # AllowAny,
+        custom_permission(c_perms),
     )
 
     queryset = BackendUser.objects.filter(
@@ -285,6 +357,7 @@ class CustomerRelationViewSet(SellerFilterViewSet,
         'user__user__mobile',
         'seller__user__mobile',
     )
+    userfilter_field = 'seller__user__mobile'
     ordering = ('created',)
 
 
@@ -375,7 +448,7 @@ class CouponViewSet(StoreFilterViewSet,
     storefilter_field = 'store_code'
 
 
-class SendCouponViewSet(StoreFilterViewSet,
+class SendCouponViewSet(SellerFilterViewSet,
                         mixins.RetrieveModelMixin,
                         mixins.ListModelMixin,
                         mixins.CreateModelMixin,
@@ -406,3 +479,4 @@ class SendCouponViewSet(StoreFilterViewSet,
     serializer_class = SendCouponSerializer
     filterset_fields = ('coupon__is_active', 'user__user__mobile')
     storefilter_field = 'user__user__store_code'
+    userfilter_field = 'backenduser__mobile'
