@@ -86,7 +86,7 @@ class Coupon(models.Model):
         verbose_name='是否激活', default=True)
 
     def __str__(self):
-        return str(self.discunt)
+        return str(self.discount)
 
     class Meta:
         verbose_name = '优惠券'
