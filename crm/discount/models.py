@@ -105,7 +105,7 @@ class SendCoupon(models.Model):
         Coupon, on_delete=models.CASCADE, verbose_name="优惠券")
 
     def __str__(self):
-        return str(self.seller)
+        return str(self.user)
 
     class Meta:
         verbose_name = '用户优惠券'
