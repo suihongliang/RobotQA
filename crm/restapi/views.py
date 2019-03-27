@@ -523,16 +523,16 @@ class CoinRuleViewSet(StoreFilterViewSet,
 
     c_perms = {
         'list': [
-            'coin_m',
+            'system_m',
         ],
         'update': [
-            'coin_m',
+            'system_m',
         ],
         'partial_update': [
-            'coin_m',
+            'system_m',
         ],
         'retrieve': [
-            'coin_m',
+            'system_m',
         ],
     }
     permission_classes = (
@@ -609,22 +609,22 @@ class CouponViewSet(StoreFilterViewSet,
 
     c_perms = {
         'list': [
-            'coin_m',
+            'system_m',
         ],
         'create': [
-            'coin_m',
+            'system_m',
         ],
         'retrieve': [
-            'coin_m',
+            'system_m',
         ],
         'destroy': [
-            'coin_m',
+            'system_m',
         ],
         'update': [
-            'coin_m',
+            'system_m',
         ],
         'partial_update': [
-            'coin_m',
+            'system_m',
         ],
     }
     permission_classes = (
