@@ -57,13 +57,16 @@ class UserCoinRecord(models.Model, UserMobileMixin):
     user = models.ForeignKey(
         UserInfo, on_delete=models.CASCADE, verbose_name="用户")
     rule = models.ForeignKey(
-        CoinRule, on_delete=models.CASCADE, verbose_name="类型")
+        CoinRule, on_delete=models.CASCADE, verbose_name="类型",
+        null=True, blank=True)
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     coin = models.IntegerField(
         verbose_name='赠送积分', default=0)
     update_status = models.BooleanField(
         default=False, verbose_name='更新状态')
+    extra_data = models.TextField(
+        verbose_name='额外参数', default='')
 
     def __str__(self):
         return str(self.user)

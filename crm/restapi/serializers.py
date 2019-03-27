@@ -17,9 +17,9 @@ from ..discount.models import (
     Coupon,
     SendCoupon,
     )
-from ..discount.tasks import (
-    SyncCoinTask,
-    )
+# from ..discount.tasks import (
+#     SyncCoinTask,
+#     )
 # import time
 from rest_framework.utils import model_meta
 import traceback
@@ -165,13 +165,14 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'seller',
             'last_active_time',
             'access_times',
+            'coin',
             'spend_coin',
             'extra_data',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller', 'gender_display',
             'status_display', 'last_active_time', 'access_times',
-            'spend_coin')
+            'spend_coin', 'coin',)
 
 
 class UserOnlineOrderSerializer(serializers.ModelSerializer):
@@ -352,28 +353,39 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
     store_code = serializers.CharField(
         max_length=50, write_only=True)
     category = serializers.IntegerField(
-        help_text='积分规则', write_only=True)
+        help_text='积分规则', write_only=True, required=False)
+    coin = serializers.IntegerField(
+        help_text='积分', required=False)
 
     def create(self, validated_data):
         mobile = validated_data.pop('user_mobile')
         store_code = validated_data.pop('store_code')
         # user = get_or_create_user(mobile, store_code)
-        category = validated_data.pop('category')
+        try:
+            category = validated_data.pop('category')
+        except KeyError:
+            category = None
+        if not validated_data.get('coin') and category is None:
+            raise serializers.ValidationError({
+                'detail': "参数错误"})
         user = UserInfo.objects.filter(
             user__mobile=mobile, user__store_code=store_code).first()
         if not user:
             raise serializers.ValidationError({
                 'detail': "用户不存在"})
-        rule = CoinRule.objects.filter(
-            category=category, store_code=store_code).first()
-        if not rule:
-            raise serializers.ValidationError({
-                'detail': "规则不存在"})
+        if category is None:
+            rule = None
+        else:
+            rule = CoinRule.objects.filter(
+                category=category, store_code=store_code).first()
+            if not rule:
+                raise serializers.ValidationError({
+                    'detail': "规则不存在"})
+            validated_data['coin'] = rule.coin
 
         ModelClass = self.Meta.model
         instance = ModelClass._default_manager.create(
-            user=user, rule=rule, coin=rule.coin, **validated_data)
-        SyncCoinTask.apply_async(args=[instance.id])
+            user=user, rule=rule, **validated_data)
         return instance
 
     class Meta:
@@ -388,7 +400,7 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
             'category',
             'user_mobile',
         )
-        read_only_fields = ('created', 'coin', 'rule')
+        read_only_fields = ('created', 'rule')
 
 
 class CouponSerializer(AssignUserStoreSerializer):

@@ -182,6 +182,8 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='活跃时间', default=timezone.now)
     access_times = models.IntegerField(
         verbose_name='到访次数', default=0)
+    coin = models.IntegerField(
+        verbose_name='积分', default=0)
     spend_coin = models.IntegerField(
         verbose_name='花费积分', default=0)
     extra_data = models.TextField(

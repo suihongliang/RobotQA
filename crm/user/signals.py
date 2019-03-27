@@ -4,6 +4,7 @@ from .models import (
     BaseUser,
     UserInfo,
     BackendUser,
+    UserBehavior,
     )
 from ..sale.models import (
     CustomerRelation,
@@ -29,3 +30,11 @@ def create_backenduser(sender, **kwargs):
     user = kwargs['instance']
     if not user.id:
         user.username = user.mobile
+
+
+@receiver(post_save, sender=UserBehavior)
+def update_user_access_times(sender, **kwargs):
+    '''
+    到访更新, 按天计算
+    '''
+    instance = kwargs['instance']
