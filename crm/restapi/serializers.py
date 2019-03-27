@@ -224,7 +224,8 @@ class CustomerRelationSerializer(AssignUserStoreSerializer):
         seller = Seller.objects.filter(
             user__mobile=mobile_seller, user__store_code=store_code).first()
         if not seller:
-            raise serializers.ValidationError("销售不存在")
+            raise serializers.ValidationError(
+                {'detail': "销售不存在"})
 
         info = model_meta.get_field_info(instance)
 
@@ -307,7 +308,8 @@ class CreateSellerSerializer(AssignUserStoreSerializer):
             )
             raise TypeError(msg)
         except django.db.utils.IntegrityError:
-            raise serializers.ValidationError("用户已创建")
+            raise serializers.ValidationError(
+                {'detail': "用户已创建"})
 
         if many_to_many:
             for field_name, value in many_to_many.items():
@@ -355,16 +357,22 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
     def create(self, validated_data):
         mobile = validated_data.pop('user_mobile')
         store_code = validated_data.pop('store_code')
-        user = get_or_create_user(mobile, store_code)
+        # user = get_or_create_user(mobile, store_code)
         category = validated_data.pop('category')
+        user = UserInfo.objects.filter(
+            user__mobile=mobile, user__store_code=store_code).first()
+        if not user:
+            raise serializers.ValidationError({
+                'detail': "用户不存在"})
         rule = CoinRule.objects.filter(
             category=category, store_code=store_code).first()
         if not rule:
-            raise serializers.ValidationError("规则不存在")
+            raise serializers.ValidationError({
+                'detail': "规则不存在"})
 
         ModelClass = self.Meta.model
         instance = ModelClass._default_manager.create(
-            user=user.userinfo, rule=rule, coin=rule.coin, **validated_data)
+            user=user, rule=rule, coin=rule.coin, **validated_data)
         SyncCoinTask.apply_async(args=[instance.id])
         return instance
 
@@ -419,7 +427,8 @@ class SendCouponSerializer(AssignUserStoreSerializer):
         store_code = validated_data.pop('store_code')
 
         if not self.context['request'].user.is_authenticated:
-            raise serializers.ValidationError("请登录")
+            raise serializers.ValidationError(
+                {'detail': "请登录"})
         b_user = self.context['request'].user
 
         user = get_or_create_user(mobile_user, store_code)
@@ -429,7 +438,8 @@ class SendCouponSerializer(AssignUserStoreSerializer):
             instance = ModelClass._default_manager.create(
                 user=user.userinfo, backenduser=b_user, **validated_data)
         except django.db.utils.IntegrityError:
-            raise serializers.ValidationError("参数错误")
+            raise serializers.ValidationError(
+                {'detail': "参数错误"})
         return instance
 
     class Meta:

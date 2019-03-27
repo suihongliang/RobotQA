@@ -66,7 +66,7 @@ class UserCoinRecord(models.Model, UserMobileMixin):
         default=False, verbose_name='更新状态')
 
     def __str__(self):
-        return self.user
+        return str(self.user)
 
     class Meta:
         verbose_name = '用户积分记录'

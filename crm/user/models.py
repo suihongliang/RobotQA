@@ -195,7 +195,7 @@ class UserInfo(models.Model, UserMobileMixin):
             return {}
 
     def __str__(self):
-        return str(self.user)
+        return str(self.user.mobile)
 
     class Meta:
         verbose_name = '用户基本信息'
