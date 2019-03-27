@@ -327,7 +327,8 @@ class CreateSellerSerializer(AssignUserStoreSerializer):
 
 class CoinRuleSerializer(serializers.ModelSerializer):
 
-    category_display = serializers.CharField(source='get_category_display')
+    category_display = serializers.CharField(
+        source='get_category_display', read_only=True)
 
     class Meta:
         model = CoinRule
@@ -338,7 +339,7 @@ class CoinRuleSerializer(serializers.ModelSerializer):
             'coin',
             'qr_code_url',
         )
-        read_only_fields = ('category', 'category_display', 'qr_code_url',
+        read_only_fields = ('category', 'qr_code_url',
                             'store_code',)
 
 
