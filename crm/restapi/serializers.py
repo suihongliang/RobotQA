@@ -6,6 +6,7 @@ from ..user.models import (
     BackendPermission,
     BackendRole,
     BackendUser,
+    UserBehavior,
     )
 from ..sale.models import (
     Seller,
@@ -469,3 +470,42 @@ class SendCouponSerializer(AssignUserStoreSerializer):
             'coupon',
             'coupon_id',
         )
+
+
+class UserBehaviorSerializer(AssignUserStoreSerializer):
+
+    mobile = serializers.CharField(
+        help_text='用户手机号', max_length=20)
+    store_code = serializers.CharField(
+        help_text='门店编号', max_length=50, write_only=True)
+
+    def create(self, validated_data):
+        mobile = validated_data.pop('mobile')
+        store_code = validated_data.pop('store_code')
+
+        user = BaseUser.objects.origin_all().filter(
+            mobile=mobile, store_code=store_code).first()
+        if not user:
+            raise serializers.ValidationError(
+                {'detail': "用户不存在"})
+
+        ModelClass = self.Meta.model
+        try:
+            instance = ModelClass._default_manager.create(
+                user=user, **validated_data)
+        except django.db.utils.IntegrityError:
+            raise serializers.ValidationError(
+                {'detail': "参数错误"})
+        return instance
+
+    class Meta:
+        model = UserBehavior
+        fields = (
+            'id',
+            'mobile',
+            'store_code',
+            'category',
+            'location',
+            'created',
+        )
+        read_only_fields = ('created',)

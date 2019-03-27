@@ -5,6 +5,7 @@ from ..user.models import (
     BackendPermission,
     BackendRole,
     BackendUser,
+    UserBehavior,
     )
 from ..sale.models import (
     Seller,
@@ -45,6 +46,7 @@ from .serializers import (
     CustomerRelationSerializer,
     CouponSerializer,
     SendCouponSerializer,
+    UserBehaviorSerializer,
     )
 from django_filters import rest_framework as filters
 from django.http import Http404
@@ -230,6 +232,11 @@ class UserInfoFilter(filters.FilterSet):
         help_text='访问次数')
     max_access_times = filters.NumberFilter(
         field_name="access_times", lookup_expr='lte')
+    min_coin = filters.NumberFilter(
+        field_name="spend_coin", lookup_expr='gte',
+        help_text='积分')
+    max_coin = filters.NumberFilter(
+        field_name="coin", lookup_expr='lte')
 
     class Meta:
         model = UserInfo
@@ -240,7 +247,8 @@ class UserInfoFilter(filters.FilterSet):
             'min_created', 'max_created',
             'max_spend_coin', 'min_spend_coin',
             'min_last_active_time', 'max_last_active_time',
-            'min_access_times', 'max_access_times')
+            'min_access_times', 'max_access_times',
+            'min_coin', 'max_coin')
 
 
 class UserInfoViewSet(StoreFilterViewSet,
@@ -582,8 +590,9 @@ class UserCoinRecordViewSet(StoreFilterViewSet,
     queryset = UserCoinRecord.objects.order_by('id')
     serializer_class = UserCoinRecordSerializer
     filterset_fields = ('rule',)
-    lookup_url_kwarg = 'user__mobile'
-    lookup_field = 'user__mobile'
+    filterset_fields = (
+        'user__user__mobile',
+    )
     storefilter_field = 'user__user__store_code'
 
 
@@ -688,3 +697,24 @@ class SendCouponViewSet(SellerFilterViewSet,
     filterset_fields = ('coupon__is_active', 'user__user__mobile')
     storefilter_field = 'user__user__store_code'
     userfilter_field = 'backenduser__mobile'
+
+
+class UserBehaviorViewSet(StoreFilterViewSet,
+                          mixins.ListModelMixin,
+                          mixins.CreateModelMixin,):
+    c_perms = {
+        # 'list': [
+        #     'forbiden',
+        # ],
+        # 'create': [
+        #     'forbiden',
+        # ],
+    }
+    permission_classes = (
+        # AllowAny,
+        custom_permission(c_perms),
+    )
+
+    queryset = UserBehavior.objects.order_by('id')
+    serializer_class = UserBehaviorSerializer
+    storefilter_field = 'user__store_code'
