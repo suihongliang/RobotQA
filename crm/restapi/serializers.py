@@ -356,6 +356,9 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
         help_text='积分规则', write_only=True, required=False)
     coin = serializers.IntegerField(
         help_text='积分', required=False)
+    extra_data = serializers.CharField(
+        help_text='其他参数, 默认不传', required=False, write_only=True,
+        max_length=500)
 
     def create(self, validated_data):
         mobile = validated_data.pop('user_mobile')
@@ -399,6 +402,7 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
             'store_code',
             'category',
             'user_mobile',
+            'extra_data',
         )
         read_only_fields = ('created', 'rule')
 
