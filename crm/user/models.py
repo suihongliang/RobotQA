@@ -160,8 +160,9 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='年龄', default=-1)
     gender = models.IntegerField(
         choices=[
-            (0, '男'),
-            (1, '女'),
+            (1, '男'),
+            (2, '女'),
+            (0, '未知'),
         ], default=0, verbose_name='性别')
     status = models.IntegerField(
         choices=[
