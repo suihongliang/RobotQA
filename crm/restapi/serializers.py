@@ -11,12 +11,14 @@ from ..user.models import (
 from ..sale.models import (
     Seller,
     CustomerRelation,
+    QRCode,
     )
 from ..discount.models import (
     CoinRule,
     UserCoinRecord,
     Coupon,
     SendCoupon,
+    CoinQRCode,
     )
 # from ..discount.tasks import (
 #     SyncCoinTask,
@@ -219,19 +221,24 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
 
 class SellerSerializer(AssignUserCompanySerializer):
 
+    qrcode = serializers.SerializerMethodField()
+
+    def get_qrcode(self, instance):
+        qrcode_info = instance.qrcode
+        return QRCodeSerializer(qrcode_info).data if qrcode_info else None
+
     class Meta:
         model = Seller
         fields = (
             'user',
             'created',
             'mobile',
-            'code',
-            'qr_code_url',
+            'qrcode',
             'name',
             'is_active',
         )
         read_only_fields = (
-            'user', 'created', 'mobile', 'qr_code_url', 'code',
+            'user', 'created', 'mobile', 'qrcode',
             'is_active')
 
 
@@ -364,16 +371,21 @@ class CoinRuleSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(
         source='get_category_display', read_only=True)
 
+    qrcode = serializers.SerializerMethodField()
+
+    def get_qrcode(self, instance):
+        qrcode_info = instance.qrcode
+        return CoinQRCodeSerializer(qrcode_info).data if qrcode_info else None
+
     class Meta:
         model = CoinRule
         fields = (
             'id',
             'category',
             'category_display',
-            'coin',
-            'qr_code_url',
+            'qrcode',
         )
-        read_only_fields = ('category', 'qr_code_url',
+        read_only_fields = ('category', 'qrcode',
                             'company_id',)
 
 
@@ -539,3 +551,27 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
             'created',
         )
         read_only_fields = ('created',)
+
+
+class QRCodeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = QRCode
+        fields = (
+            'id',
+            'code',
+            'qr_code_url',
+            'company_id'
+        )
+
+
+class CoinQRCodeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CoinQRCode
+        fields = (
+            'id',
+            'code',
+            'qr_code_url',
+            'company_id'
+        )

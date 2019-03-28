@@ -1,3 +1,5 @@
+from rest_framework.permissions import AllowAny
+
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -10,12 +12,13 @@ from ..user.models import (
 from ..sale.models import (
     Seller,
     CustomerRelation,
-    )
+    QRCode)
 from ..discount.models import (
     CoinRule,
     UserCoinRecord,
     Coupon,
     SendCoupon,
+    CoinQRCode,
     )
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -48,7 +51,9 @@ from .serializers import (
     CouponSerializer,
     SendCouponSerializer,
     UserBehaviorSerializer,
-    )
+    QRCodeSerializer,
+    CoinQRCodeSerializer,
+)
 from django_filters import rest_framework as filters
 from django.http import Http404
 
@@ -724,3 +729,69 @@ class UserBehaviorViewSet(CompanyFilterViewSet,
     queryset = UserBehavior.objects.order_by('id')
     serializer_class = UserBehaviorSerializer
     companyfilter_field = 'user__company_id'
+
+
+class QRCodeViewSet(CompanyFilterViewSet,
+                    mixins.RetrieveModelMixin,
+                    mixins.ListModelMixin,
+                    mixins.CreateModelMixin,
+                    mixins.UpdateModelMixin):
+    c_perms = {
+        'list': [
+            'coin_m',
+        ],
+        'create': [
+            'coin_m',
+        ],
+        'retrieve': [
+            'coin_m',
+        ],
+        'update': [
+            'coin_m',
+        ],
+        'partial_update': [
+            'coin_m',
+        ],
+    }
+    permission_classes = (
+        # AllowAny,
+        custom_permission(c_perms),
+    )
+
+    queryset = QRCode.objects.order_by('-id')
+    serializer_class = QRCodeSerializer
+    filterset_fields = ('company_id',)
+    companyfilter_field = 'company_id'
+
+
+class CoinQRCodeViewSet(CompanyFilterViewSet,
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        mixins.CreateModelMixin,
+                        mixins.UpdateModelMixin):
+    c_perms = {
+        'list': [
+            'coin_m',
+        ],
+        'create': [
+            'coin_m',
+        ],
+        'retrieve': [
+            'coin_m',
+        ],
+        'update': [
+            'coin_m',
+        ],
+        'partial_update': [
+            'coin_m',
+        ],
+    }
+    permission_classes = (
+        # AllowAny,
+        custom_permission(c_perms),
+    )
+
+    queryset = CoinQRCode.objects.order_by('-id')
+    serializer_class = CoinQRCodeSerializer
+    filterset_fields = ('company_id',)
+    companyfilter_field = 'company_id'

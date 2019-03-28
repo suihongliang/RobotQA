@@ -7,6 +7,19 @@ from ..user.models import (
     )
 
 
+class QRCode(models.Model):
+
+    code = models.CharField(verbose_name="qrcode编码", max_length=50, unique=True)
+    qr_code_url = models.URLField(verbose_name="二维码图片链接", max_length=500)
+    company_id = models.CharField(max_length=20, verbose_name="公司id", null=True, blank=True)
+
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        verbose_name = verbose_name_plural = "销售二维码"
+
+
 class Seller(models.Model, UserMobileMixin):
 
     user = models.OneToOneField(
@@ -14,10 +27,11 @@ class Seller(models.Model, UserMobileMixin):
         verbose_name="用户")
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
-    code = models.CharField(
-        verbose_name="qrcode编码", max_length=50)
-    qr_code_url = models.CharField(
-        verbose_name="二维码图片链接", max_length=500)
+    qrcode = models.OneToOneField(QRCode,
+                                  verbose_name="二维码",
+                                  on_delete=models.SET_NULL,
+                                  related_name="seller",
+                                  blank=True, null=True)
     name = models.CharField(
         max_length=25, verbose_name='昵称', default='')
 

@@ -3,6 +3,7 @@ import xadmin
 from .models import (
     Seller,
     CustomerRelation,
+    QRCode,
     )
 # from django.utils import timezone
 
@@ -17,3 +18,9 @@ class SellerAdmin():
 @xadmin.sites.register(CustomerRelation)
 class CustomerRelationAdmin():
     list_display = ('seller', 'user', 'created')
+
+
+@xadmin.sites.register(QRCode)
+class QRCodeAdmin():
+    list_display = ('code',)
+
