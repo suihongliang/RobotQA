@@ -5,6 +5,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+import json
 
 
 class BackendUserManager(BaseUserManager):
@@ -77,12 +78,15 @@ class BackendRole(models.Model):
         verbose_name='', default=False)
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
+    store_code = models.CharField(
+        verbose_name='门店编码', max_length=255)
 
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = '后台群组'
+        unique_together = (("name", "store_code"),)
 
 
 class BackendUser(AbstractBaseUser, PermissionsMixin):
@@ -96,12 +100,12 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
         verbose_name="激活", default=True)
     is_staff = models.BooleanField(
         verbose_name="Is Staff", default=False)
-    store_code = models.CharField(
-        verbose_name='门店编码', max_length=255, default='')
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     role = models.ForeignKey(
         BackendRole, null=True, blank=True, on_delete=models.SET_NULL)
+    store_code = models.CharField(
+        verbose_name='门店编码', max_length=255)
 
     objects = BackendUserManager()
 
@@ -156,8 +160,9 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='年龄', default=-1)
     gender = models.IntegerField(
         choices=[
-            (0, '男'),
-            (1, '女'),
+            (1, '男'),
+            (2, '女'),
+            (0, '未知'),
         ], default=0, verbose_name='性别')
     status = models.IntegerField(
         choices=[
@@ -173,9 +178,26 @@ class UserInfo(models.Model, UserMobileMixin):
         max_length=5, verbose_name='净值度', default='')
     is_seller = models.BooleanField(
         verbose_name='是否销售', default=False)
+    last_active_time = models.DateTimeField(
+        verbose_name='活跃时间', default=timezone.now)
+    access_times = models.IntegerField(
+        verbose_name='到访次数', default=0)
+    coin = models.IntegerField(
+        verbose_name='积分', default=0)
+    spend_coin = models.IntegerField(
+        verbose_name='花费积分', default=0)
+    extra_data = models.TextField(
+        verbose_name='额外参数', default='')
+
+    def get_extra_data_json(self):
+        try:
+            json.loads(self.extra_data)
+            return {}
+        except json.JSONDecodeError:
+            return {}
 
     def __str__(self):
-        return str(self.user)
+        return str(self.user.mobile)
 
     class Meta:
         verbose_name = '用户基本信息'

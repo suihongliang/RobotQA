@@ -35,9 +35,11 @@ class Seller(models.Model, UserMobileMixin):
 class CustomerRelation(models.Model):
 
     seller = models.ForeignKey(
-        Seller, on_delete=models.CASCADE, verbose_name="销售")
-    user = models.ForeignKey(
-        UserInfo, on_delete=models.CASCADE, verbose_name="客户")
+        Seller, null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="销售")
+    user = models.OneToOneField(
+        UserInfo, on_delete=models.CASCADE, primary_key=True,
+        verbose_name="客户")
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
 

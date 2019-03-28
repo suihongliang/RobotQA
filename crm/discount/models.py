@@ -4,8 +4,11 @@ from ..user.models import (
     UserInfo,
     UserMobileMixin,
     )
-from ..sale.models import (
-    Seller,
+# from ..sale.models import (
+#     Seller,
+#     )
+from ..user.models import (
+    BackendUser,
     )
 
 
@@ -24,7 +27,7 @@ class CoinRule(models.Model):
             (8, '活动扫码送积分3'),
             (9, '活动扫码送积分4'),
             (10, '活动扫码送积分5'),
-        ], verbose_name='购房状态')
+        ], verbose_name='积分规则')
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     coin = models.IntegerField(
@@ -54,16 +57,19 @@ class UserCoinRecord(models.Model, UserMobileMixin):
     user = models.ForeignKey(
         UserInfo, on_delete=models.CASCADE, verbose_name="用户")
     rule = models.ForeignKey(
-        CoinRule, on_delete=models.CASCADE, verbose_name="类型")
+        CoinRule, on_delete=models.CASCADE, verbose_name="类型",
+        null=True, blank=True)
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     coin = models.IntegerField(
         verbose_name='赠送积分', default=0)
     update_status = models.BooleanField(
         default=False, verbose_name='更新状态')
+    extra_data = models.TextField(
+        verbose_name='额外参数', default='')
 
     def __str__(self):
-        return self.user
+        return str(self.user)
 
     class Meta:
         verbose_name = '用户积分记录'
@@ -79,9 +85,11 @@ class Coupon(models.Model):
         verbose_name='创建时间', default=timezone.now)
     store_code = models.CharField(
         verbose_name='门店编码', max_length=255)
+    is_active = models.BooleanField(
+        verbose_name='是否激活', default=True)
 
     def __str__(self):
-        return str(self.discunt)
+        return str(self.discount)
 
     class Meta:
         verbose_name = '优惠券'
@@ -89,8 +97,9 @@ class Coupon(models.Model):
 
 class SendCoupon(models.Model):
 
-    seller = models.ForeignKey(
-        Seller, on_delete=models.CASCADE, verbose_name="销售")
+    backenduser = models.ForeignKey(
+        BackendUser, null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="后台用户")
     user = models.ForeignKey(
         UserInfo, on_delete=models.CASCADE, verbose_name="客户")
     created = models.DateTimeField(
@@ -99,7 +108,7 @@ class SendCoupon(models.Model):
         Coupon, on_delete=models.CASCADE, verbose_name="优惠券")
 
     def __str__(self):
-        return str(self.seller)
+        return str(self.user)
 
     class Meta:
         verbose_name = '用户优惠券'
