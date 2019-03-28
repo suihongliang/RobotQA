@@ -35,6 +35,7 @@ from rest_framework.response import Response
 from .serializers import (
     BackendPermissionSerializer,
     UserInfoSerializer,
+    UserInfoDetailSerializer,
     UserOnlineOrderSerializer,
     SellerSerializer,
     CreateSellerSerializer,
@@ -315,6 +316,11 @@ class UserInfoViewSet(StoreFilterViewSet,
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
     storefilter_field = 'user__store_code'
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return UserInfoDetailSerializer
+        return UserInfoSerializer
 
     @action(methods=['get'], url_path='list/gender', detail=False)
     def gender_list(self, request, *args, **kwargs):
