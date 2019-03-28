@@ -26,7 +26,7 @@ class StoreFilterViewSet(viewsets.GenericViewSet):
 
 class SellerFilterViewSet(StoreFilterViewSet):
     '''
-    销售元权限只能查看自己资源过滤
+    销售员权限只能查看自己资源过滤
     '''
 
     userfilter_field = 'mobile'

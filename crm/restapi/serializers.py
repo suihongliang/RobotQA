@@ -137,6 +137,10 @@ class UserInfoSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display')
     seller = serializers.SerializerMethodField()
     extra_data = serializers.SerializerMethodField()
+    mark_name = serializers.SerializerMethodField()
+
+    def get_mark_name(self, instance):
+        return instance.customerrelation.mark_name
 
     def get_extra_data(self, instance):
         return instance.get_extra_data_json()
@@ -169,6 +173,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'coin',
             'spend_coin',
             'extra_data',
+            'mark_name',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller', 'gender_display',
@@ -236,13 +241,18 @@ class CustomerRelationSerializer(AssignUserStoreSerializer):
         help_text='门店编号', max_length=50, write_only=True)
 
     def update(self, instance, validated_data):
-        mobile_seller = validated_data.pop('mobile_seller')
         store_code = validated_data.pop('store_code')
-        seller = Seller.objects.filter(
-            user__mobile=mobile_seller, user__store_code=store_code).first()
-        if not seller:
-            raise serializers.ValidationError(
-                {'detail': "销售不存在"})
+
+        try:
+            mobile_seller = validated_data.pop('mobile_seller')
+            seller = Seller.objects.filter(
+                user__mobile=mobile_seller,
+                user__store_code=store_code).first()
+            if not seller:
+                raise serializers.ValidationError(
+                    {'detail': "销售不存在"})
+        except KeyError:
+            seller = None
 
         info = model_meta.get_field_info(instance)
 
@@ -252,7 +262,8 @@ class CustomerRelationSerializer(AssignUserStoreSerializer):
                 field.set(value)
             else:
                 setattr(instance, attr, value)
-        instance.seller = seller
+        if seller is None:
+            instance.seller = seller
         instance.save()
 
         return instance
@@ -262,8 +273,10 @@ class CustomerRelationSerializer(AssignUserStoreSerializer):
         fields = (
             'user',
             'mobile_seller',
+            'mark_name',
             'store_code',
         )
+        read_only_fields = ('user',)
 
 
 class UpdateSellerSerializer(serializers.ModelSerializer):
