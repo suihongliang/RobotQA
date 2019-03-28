@@ -46,6 +46,9 @@ urlpatterns = [
     path(r'user/login', user_views.LoginView.as_view()),
     path(r'user/logout', user_views.LogoutView.as_view()),
     path(r'api/1.0/', include(router.urls)),
+    path(r'api/1.0/sale/', include('crm.sale.urls')),
+    path(r'api/1.0/crmuser/', include('crm.user.urls')),
+    path(r'api/1.0/product/', include('crm.product.urls')),
 ]
 
 # if settings.DEBUG:
