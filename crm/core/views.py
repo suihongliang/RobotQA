@@ -4,7 +4,7 @@ from rest_framework import viewsets
 
 class CompanyFilterViewSet(viewsets.GenericViewSet):
     '''
-    通过用户过滤门店编号
+    通过用户公司过滤
     '''
 
     companyfilter_field = 'company_id'

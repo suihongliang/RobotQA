@@ -40,7 +40,7 @@ class CoinRule(models.Model):
     qr_code_url = models.CharField(
         verbose_name="二维码图片链接(非必填)", max_length=500, default='')
     company_id = models.CharField(
-        verbose_name='门店编码', max_length=255)
+        verbose_name='公司编码', max_length=255)
 
     def __str__(self):
         return self.get_category_display()
@@ -82,7 +82,7 @@ class Coupon(models.Model):
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     company_id = models.CharField(
-        verbose_name='门店编码', max_length=255)
+        verbose_name='公司编码', max_length=255)
     is_active = models.BooleanField(
         verbose_name='是否激活', default=True)
 
