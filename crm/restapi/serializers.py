@@ -178,6 +178,21 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'spend_coin', 'coin',)
 
 
+class UserInfoDetailSerializer(UserInfoSerializer):
+
+    seller_info = serializers.SerializerMethodField()
+
+    def get_seller_info(self, instance):
+        if hasattr(instance.user, 'seller'):
+            return SellerSerializer(instance.user.seller).data
+        return {}
+
+    class Meta:
+        model = UserInfo
+        fields = UserInfoSerializer.Meta.fields + (
+            'seller_info',)
+
+
 class UserOnlineOrderSerializer(serializers.ModelSerializer):
 
     order = serializers.SerializerMethodField('get_custom_order')
