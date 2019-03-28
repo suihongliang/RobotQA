@@ -9,3 +9,4 @@ local_settings.py
 __pycache__
 celerybeat-schedule
 celerybeat.pid
+nicelog/
