@@ -3,13 +3,11 @@ from django.utils import timezone
 from ..user.models import (
     UserInfo,
     UserMobileMixin,
+    BackendUser,
     )
 # from ..sale.models import (
 #     Seller,
 #     )
-from ..user.models import (
-    BackendUser,
-    )
 
 
 class CoinRule(models.Model):
@@ -41,7 +39,7 @@ class CoinRule(models.Model):
         verbose_name="qrcode编码(非必填)", max_length=50, default='')
     qr_code_url = models.CharField(
         verbose_name="二维码图片链接(非必填)", max_length=500, default='')
-    store_code = models.CharField(
+    company_id = models.CharField(
         verbose_name='门店编码', max_length=255)
 
     def __str__(self):
@@ -49,7 +47,7 @@ class CoinRule(models.Model):
 
     class Meta:
         verbose_name = '积分规则'
-        unique_together = (('category', 'store_code'),)
+        unique_together = (('category', 'company_id'),)
 
 
 class UserCoinRecord(models.Model, UserMobileMixin):
@@ -83,7 +81,7 @@ class Coupon(models.Model):
         verbose_name="折扣率", max_length=10)
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
-    store_code = models.CharField(
+    company_id = models.CharField(
         verbose_name='门店编码', max_length=255)
     is_active = models.BooleanField(
         verbose_name='是否激活', default=True)

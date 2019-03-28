@@ -40,6 +40,8 @@ class CustomerRelation(models.Model):
     user = models.OneToOneField(
         UserInfo, on_delete=models.CASCADE, primary_key=True,
         verbose_name="客户")
+    mark_name = models.CharField(
+        max_length=25, verbose_name='备注昵称', default='')
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
 

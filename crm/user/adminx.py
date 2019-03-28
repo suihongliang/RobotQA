@@ -40,7 +40,7 @@ class BackendUserAdmin():
 class BaseUserAdmin():
     '''
     '''
-    list_display = ('id', 'mobile', 'store_code')
+    list_display = ('id', 'mobile', 'company_id')
 
 
 @xadmin.sites.register(UserInfo)
