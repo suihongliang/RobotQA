@@ -3,7 +3,7 @@ from crm.discount.models import CoinRule
 
 
 class Command(BaseCommand):
-    help = 'Closes the specified poll for voting'
+    help = 'Create Company default coin rule'
 
     def add_arguments(self, parser):
         parser.add_argument('company_id', help='company_id', type=int)
