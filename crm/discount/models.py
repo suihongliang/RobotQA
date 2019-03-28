@@ -10,6 +10,19 @@ from ..user.models import (
 #     )
 
 
+class CoinQRCode(models.Model):
+
+    code = models.CharField(verbose_name="qrcode编码", max_length=50, unique=True)
+    qr_code_url = models.URLField(verbose_name="二维码图片链接", max_length=500)
+    company_id = models.CharField(max_length=20, verbose_name="公司id", null=True, blank=True)
+
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        verbose_name = verbose_name_plural = "积分二维码"
+
+
 class CoinRule(models.Model):
 
     category = models.IntegerField(
@@ -35,10 +48,11 @@ class CoinRule(models.Model):
     '''
     conditions = models.TextField(
         verbose_name="Json格式参数", default='')
-    code = models.CharField(
-        verbose_name="qrcode编码(非必填)", max_length=50, default='')
-    qr_code_url = models.CharField(
-        verbose_name="二维码图片链接(非必填)", max_length=500, default='')
+    qrcode = models.OneToOneField(CoinQRCode,
+                                  verbose_name="二维码",
+                                  on_delete=models.SET_NULL,
+                                  related_name="coin_rule",
+                                  blank=True, null=True)
     company_id = models.CharField(
         verbose_name='门店编码', max_length=255)
 

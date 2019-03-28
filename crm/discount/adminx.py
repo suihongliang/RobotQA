@@ -5,6 +5,7 @@ from .models import (
     UserCoinRecord,
     Coupon,
     SendCoupon,
+    CoinQRCode,
     )
 # from django.utils import timezone
 
@@ -35,3 +36,8 @@ class SendCouponAdmin():
     '''
     '''
     list_display = ('id', 'backenduser', 'user', 'created')
+
+
+@xadmin.sites.register(CoinQRCode)
+class CoinQRCodeAdmin():
+    list_display = ('code',)
