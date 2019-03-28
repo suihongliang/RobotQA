@@ -58,7 +58,7 @@ class StoreProductViewSet(ViewSet):
             }
         """
         data = request.data
-        res = requests.put(settings.ERP_JIAN24_URL + '/merchant/store-product/{0}/'.format(pk), json=data)
+        res = requests.put(settings.ERP_JIAN24_URL + '/crm/product/{0}/'.format(pk), json=data)
         return Response(res.json())
 
     @action(detail=False)
