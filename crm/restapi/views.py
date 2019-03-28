@@ -24,7 +24,7 @@ from rest_framework import viewsets
 #     AllowAny,
 #     )
 from ..core.views import (
-    StoreFilterViewSet,
+    CompanyFilterViewSet,
     SellerFilterViewSet,
     custom_permission,
     )
@@ -112,7 +112,7 @@ class BackendPermissionViewSet(viewsets.GenericViewSet,
         })
 
 
-class BackendRoleViewSet(StoreFilterViewSet,
+class BackendRoleViewSet(CompanyFilterViewSet,
                          mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          mixins.CreateModelMixin,
@@ -168,7 +168,7 @@ class BackendRoleViewSet(StoreFilterViewSet,
     serializer_class = BackendRoleSerializer
 
 
-class BackendUserViewSet(StoreFilterViewSet,
+class BackendUserViewSet(CompanyFilterViewSet,
                          mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          mixins.CreateModelMixin,
@@ -252,7 +252,7 @@ class UserInfoFilter(filters.FilterSet):
             'min_coin', 'max_coin')
 
 
-class UserInfoViewSet(StoreFilterViewSet,
+class UserInfoViewSet(CompanyFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin,
@@ -315,7 +315,7 @@ class UserInfoViewSet(StoreFilterViewSet,
     serializer_class = UserInfoSerializer
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
-    storefilter_field = 'user__store_code'
+    companyfilter_field = 'user__company_id'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -349,11 +349,11 @@ class UserInfoViewSet(StoreFilterViewSet,
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
         obj = queryset.filter(**filter_kwargs).first()
         if not obj:
-            store_code = self.get_param_store_code()
+            company_id = self.get_param_company_id()
             create = self.request.query_params.get('create')
-            if create and store_code:
+            if create and company_id:
                 b_user = BaseUser.objects.create(
-                    store_code=store_code,
+                    company_id=company_id,
                     mobile=self.kwargs[lookup_url_kwarg])
                 obj = b_user.userinfo
             else:
@@ -365,7 +365,7 @@ class UserInfoViewSet(StoreFilterViewSet,
         return obj
 
 
-class UserOnlineOrderViewSet(StoreFilterViewSet,
+class UserOnlineOrderViewSet(CompanyFilterViewSet,
                              mixins.RetrieveModelMixin,
                              mixins.ListModelMixin,):
     '''
@@ -391,7 +391,7 @@ class UserOnlineOrderViewSet(StoreFilterViewSet,
         custom_permission(c_perms),
     )
     filterset_fields = ('location',)
-    storefilter_field = 'user__user__store_code'
+    companyfilter_field = 'user__user__company_id'
 
     queryset = UserOnlineOrder.objects.order_by('created')
     serializer_class = UserOnlineOrderSerializer
@@ -399,7 +399,7 @@ class UserOnlineOrderViewSet(StoreFilterViewSet,
     lookup_field = 'user__mobile'
 
 
-class SellerViewSet(StoreFilterViewSet,
+class SellerViewSet(CompanyFilterViewSet,
                     mixins.RetrieveModelMixin,
                     mixins.ListModelMixin,
                     mixins.CreateModelMixin,
@@ -450,7 +450,7 @@ class SellerViewSet(StoreFilterViewSet,
         # AllowAny,
         custom_permission(c_perms),
     )
-    storefilter_field = 'user__store_code'
+    companyfilter_field = 'user__company_id'
 
     queryset = Seller.objects.order_by('created')
     serializer_class = SellerSerializer
@@ -503,7 +503,7 @@ class CustomerRelationViewSet(SellerFilterViewSet,
         # AllowAny,
         custom_permission(c_perms),
     )
-    storefilter_field = 'user__user__store_code'
+    companyfilter_field = 'user__user__company_id'
 
     queryset = CustomerRelation.objects.order_by('created')
     serializer_class = CustomerRelationSerializer
@@ -517,7 +517,7 @@ class CustomerRelationViewSet(SellerFilterViewSet,
     lookup_field = 'user__user__mobile'
 
 
-class CoinRuleViewSet(StoreFilterViewSet,
+class CoinRuleViewSet(CompanyFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin):
@@ -556,10 +556,10 @@ class CoinRuleViewSet(StoreFilterViewSet,
 
     queryset = CoinRule.objects.order_by('category')
     serializer_class = CoinRuleSerializer
-    filterset_fields = ('store_code', 'category',)
+    filterset_fields = ('company_id', 'category',)
 
 
-class UserCoinRecordViewSet(StoreFilterViewSet,
+class UserCoinRecordViewSet(CompanyFilterViewSet,
                             mixins.RetrieveModelMixin,
                             mixins.ListModelMixin,
                             mixins.CreateModelMixin):
@@ -599,10 +599,10 @@ class UserCoinRecordViewSet(StoreFilterViewSet,
     filterset_fields = (
         'user__user__mobile',
     )
-    storefilter_field = 'user__user__store_code'
+    companyfilter_field = 'user__user__company_id'
 
 
-class CouponViewSet(StoreFilterViewSet,
+class CouponViewSet(CompanyFilterViewSet,
                     mixins.RetrieveModelMixin,
                     mixins.ListModelMixin,
                     mixins.CreateModelMixin,
@@ -650,7 +650,7 @@ class CouponViewSet(StoreFilterViewSet,
     queryset = Coupon.objects.order_by('id')
     serializer_class = CouponSerializer
     filterset_fields = ('is_active',)
-    storefilter_field = 'store_code'
+    companyfilter_field = 'company_id'
 
 
 class SendCouponViewSet(SellerFilterViewSet,
@@ -701,11 +701,11 @@ class SendCouponViewSet(SellerFilterViewSet,
     queryset = SendCoupon.objects.order_by('id')
     serializer_class = SendCouponSerializer
     filterset_fields = ('coupon__is_active', 'user__user__mobile')
-    storefilter_field = 'user__user__store_code'
+    companyfilter_field = 'user__user__company_id'
     userfilter_field = 'backenduser__mobile'
 
 
-class UserBehaviorViewSet(StoreFilterViewSet,
+class UserBehaviorViewSet(CompanyFilterViewSet,
                           mixins.ListModelMixin,
                           mixins.CreateModelMixin,):
     c_perms = {
@@ -723,4 +723,4 @@ class UserBehaviorViewSet(StoreFilterViewSet,
 
     queryset = UserBehavior.objects.order_by('id')
     serializer_class = UserBehaviorSerializer
-    storefilter_field = 'user__store_code'
+    companyfilter_field = 'user__company_id'

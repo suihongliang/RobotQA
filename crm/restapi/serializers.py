@@ -28,24 +28,24 @@ import django
 # import json
 
 
-def get_or_create_user(mobile, store_code):
+def get_or_create_user(mobile, company_id):
     user = BaseUser.objects.origin_all().filter(
-        mobile=mobile, store_code=store_code).first()
+        mobile=mobile, company_id=company_id).first()
     if not user:
         user = BaseUser.objects.create(
-            mobile=mobile, store_code=store_code)
+            mobile=mobile, company_id=company_id)
     return user
 
 
-class AssignUserStoreSerializer(serializers.ModelSerializer):
+class AssignUserCompanySerializer(serializers.ModelSerializer):
 
     def get_fields(self):
         fields = super().get_fields()
 
         if 'request' in self.context.keys():
             if self.context['request'].user.is_authenticated:
-                store_code = self.context['request'].user.store_code
-                self.context['request'].data['store_code'] = store_code
+                company_id = self.context['request'].user.company_id
+                self.context['request'].data['company_id'] = company_id
         return fields
 
 
@@ -55,7 +55,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
         model = BaseUser
         fields = (
             'mobile',
-            'store_code',
+            'company_id',
         )
 
 
@@ -70,12 +70,12 @@ class BackendPermissionSerializer(serializers.ModelSerializer):
         )
 
 
-class BackendRoleSerializer(AssignUserStoreSerializer):
+class BackendRoleSerializer(AssignUserCompanySerializer):
 
     permissions = BackendPermissionSerializer(
         many=True, read_only=True)
-    store_code = serializers.CharField(
-        help_text='门店编号', max_length=50, write_only=True)
+    company_id = serializers.CharField(
+        help_text='公司编号', max_length=50, write_only=True)
     w_permissions = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True,
         queryset=BackendPermission.objects.all(), source='permissions')
@@ -87,7 +87,7 @@ class BackendRoleSerializer(AssignUserStoreSerializer):
             'name',
             'created',
             'permissions',
-            'store_code',
+            'company_id',
             'w_permissions',
         )
         read_only_fields = ('created',)
@@ -109,11 +109,11 @@ class BackendUserSerializer(serializers.ModelSerializer):
         fields = super().get_fields()
 
         if self.context['request'].user.is_authenticated:
-            store_code = self.context['request'].user.store_code
-            self.context['request'].data['store_code'] = store_code
+            company_id = self.context['request'].user.company_id
+            self.context['request'].data['company_id'] = company_id
 
             fields['role_id'].queryset = fields['role_id'].queryset.filter(
-                store_code=store_code)
+                company_id=company_id)
         return fields
 
     class Meta:
@@ -123,7 +123,7 @@ class BackendUserSerializer(serializers.ModelSerializer):
             'mobile',
             'created',
             'password',
-            'store_code',
+            'company_id',
             'role',
             'role_id',
             'is_active',
@@ -133,8 +133,10 @@ class BackendUserSerializer(serializers.ModelSerializer):
 
 class UserInfoSerializer(serializers.ModelSerializer):
 
-    gender_display = serializers.CharField(source='get_gender_display')
-    status_display = serializers.CharField(source='get_status_display')
+    gender_display = serializers.CharField(
+        source='get_gender_display', read_only=True)
+    status_display = serializers.CharField(
+        source='get_status_display', read_only=True)
     seller = serializers.SerializerMethodField()
     extra_data = serializers.SerializerMethodField()
     mark_name = serializers.SerializerMethodField()
@@ -176,8 +178,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'mark_name',
         )
         read_only_fields = (
-            'user', 'created', 'mobile', 'is_seller', 'gender_display',
-            'status_display', 'last_active_time', 'access_times',
+            'user', 'created', 'mobile', 'is_seller',
+            'last_active_time', 'access_times',
             'spend_coin', 'coin',)
 
 
@@ -215,7 +217,7 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
         )
 
 
-class SellerSerializer(AssignUserStoreSerializer):
+class SellerSerializer(AssignUserCompanySerializer):
 
     class Meta:
         model = Seller
@@ -233,21 +235,21 @@ class SellerSerializer(AssignUserStoreSerializer):
             'is_active')
 
 
-class CustomerRelationSerializer(AssignUserStoreSerializer):
+class CustomerRelationSerializer(AssignUserCompanySerializer):
 
     mobile_seller = serializers.CharField(
         help_text='销售手机号', max_length=20, write_only=True)
-    store_code = serializers.CharField(
-        help_text='门店编号', max_length=50, write_only=True)
+    company_id = serializers.CharField(
+        help_text='公司编号', max_length=50, write_only=True)
 
     def update(self, instance, validated_data):
-        store_code = validated_data.pop('store_code')
+        company_id = validated_data.pop('company_id')
 
         try:
             mobile_seller = validated_data.pop('mobile_seller')
             seller = Seller.objects.filter(
                 user__mobile=mobile_seller,
-                user__store_code=store_code).first()
+                user__company_id=company_id).first()
             if not seller:
                 raise serializers.ValidationError(
                     {'detail': "销售不存在"})
@@ -274,7 +276,7 @@ class CustomerRelationSerializer(AssignUserStoreSerializer):
             'user',
             'mobile_seller',
             'mark_name',
-            'store_code',
+            'company_id',
         )
         read_only_fields = ('user',)
 
@@ -293,17 +295,17 @@ class UpdateSellerSerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
 
-class CreateSellerSerializer(AssignUserStoreSerializer):
+class CreateSellerSerializer(AssignUserCompanySerializer):
 
     mobile = serializers.CharField(
         help_text='手机号', max_length=20, write_only=True)
-    store_code = serializers.CharField(
+    company_id = serializers.CharField(
         help_text='门店编号', max_length=10, write_only=True)
 
     def create(self, validated_data):
         mobile = validated_data.pop('mobile')
-        store_code = validated_data.pop('store_code')
-        user = get_or_create_user(mobile, store_code)
+        company_id = validated_data.pop('company_id')
+        user = get_or_create_user(mobile, company_id)
         user.userinfo.is_seller = True
         user.userinfo.save()
 
@@ -352,7 +354,7 @@ class CreateSellerSerializer(AssignUserStoreSerializer):
         model = Seller
         fields = (
             'mobile',
-            'store_code',
+            'company_id',
             'name',
         )
 
@@ -372,14 +374,14 @@ class CoinRuleSerializer(serializers.ModelSerializer):
             'qr_code_url',
         )
         read_only_fields = ('category', 'qr_code_url',
-                            'store_code',)
+                            'company_id',)
 
 
-class UserCoinRecordSerializer(AssignUserStoreSerializer):
+class UserCoinRecordSerializer(AssignUserCompanySerializer):
 
     user_mobile = serializers.CharField(
         max_length=50, write_only=True)
-    store_code = serializers.CharField(
+    company_id = serializers.CharField(
         max_length=50, write_only=True)
     category = serializers.IntegerField(
         help_text='积分规则', write_only=True, required=False)
@@ -391,8 +393,8 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
 
     def create(self, validated_data):
         mobile = validated_data.pop('user_mobile')
-        store_code = validated_data.pop('store_code')
-        # user = get_or_create_user(mobile, store_code)
+        company_id = validated_data.pop('company_id')
+        # user = get_or_create_user(mobile, company_id)
         try:
             category = validated_data.pop('category')
         except KeyError:
@@ -401,7 +403,7 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
             raise serializers.ValidationError({
                 'detail': "参数错误"})
         user = UserInfo.objects.filter(
-            user__mobile=mobile, user__store_code=store_code).first()
+            user__mobile=mobile, user__company_id=company_id).first()
         if not user:
             raise serializers.ValidationError({
                 'detail': "用户不存在"})
@@ -409,7 +411,7 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
             rule = None
         else:
             rule = CoinRule.objects.filter(
-                category=category, store_code=store_code).first()
+                category=category, company_id=company_id).first()
             if not rule:
                 raise serializers.ValidationError({
                     'detail': "规则不存在"})
@@ -428,7 +430,7 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
             'created',
             'coin',
             'rule',
-            'store_code',
+            'company_id',
             'category',
             'user_mobile',
             'extra_data',
@@ -436,7 +438,7 @@ class UserCoinRecordSerializer(AssignUserStoreSerializer):
         read_only_fields = ('created', 'rule')
 
 
-class CouponSerializer(AssignUserStoreSerializer):
+class CouponSerializer(AssignUserCompanySerializer):
 
     class Meta:
         model = Coupon
@@ -445,17 +447,17 @@ class CouponSerializer(AssignUserStoreSerializer):
             'description',
             'discount',
             'created',
-            'store_code',
+            'company_id',
             'is_active',
         )
         read_only_fields = ('created',)
 
 
-class SendCouponSerializer(AssignUserStoreSerializer):
+class SendCouponSerializer(AssignUserCompanySerializer):
 
     mobile_user = serializers.CharField(
         help_text='用户手机号', max_length=20, write_only=True)
-    store_code = serializers.CharField(
+    company_id = serializers.CharField(
         help_text='门店编号', max_length=50, write_only=True)
     coupon = CouponSerializer(
         read_only=True)
@@ -469,14 +471,14 @@ class SendCouponSerializer(AssignUserStoreSerializer):
 
     def create(self, validated_data):
         mobile_user = validated_data.pop('mobile_user')
-        store_code = validated_data.pop('store_code')
+        company_id = validated_data.pop('company_id')
 
         if not self.context['request'].user.is_authenticated:
             raise serializers.ValidationError(
                 {'detail': "请登录"})
         b_user = self.context['request'].user
 
-        user = get_or_create_user(mobile_user, store_code)
+        user = get_or_create_user(mobile_user, company_id)
 
         ModelClass = self.Meta.model
         try:
@@ -494,25 +496,25 @@ class SendCouponSerializer(AssignUserStoreSerializer):
             'mobile_user',
             'user',
             'backenduser',
-            'store_code',
+            'company_id',
             'coupon',
             'coupon_id',
         )
 
 
-class UserBehaviorSerializer(AssignUserStoreSerializer):
+class UserBehaviorSerializer(AssignUserCompanySerializer):
 
     mobile = serializers.CharField(
         help_text='用户手机号', max_length=20)
-    store_code = serializers.CharField(
-        help_text='门店编号', max_length=50, write_only=True)
+    company_id = serializers.CharField(
+        help_text='公司编号', max_length=50, write_only=True)
 
     def create(self, validated_data):
         mobile = validated_data.pop('mobile')
-        store_code = validated_data.pop('store_code')
+        company_id = validated_data.pop('company_id')
 
         user = BaseUser.objects.origin_all().filter(
-            mobile=mobile, store_code=store_code).first()
+            mobile=mobile, company_id=company_id).first()
         if not user:
             raise serializers.ValidationError(
                 {'detail': "用户不存在"})
@@ -531,7 +533,7 @@ class UserBehaviorSerializer(AssignUserStoreSerializer):
         fields = (
             'id',
             'mobile',
-            'store_code',
+            'company_id',
             'category',
             'location',
             'created',

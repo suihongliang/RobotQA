@@ -27,7 +27,7 @@ class UserCoinRecordAdmin():
 class CouponAdmin():
     '''
     '''
-    list_display = ('id', 'description', 'discount', 'store_code', 'created')
+    list_display = ('id', 'description', 'discount', 'company_id', 'created')
 
 
 @xadmin.sites.register(SendCoupon)

@@ -2,29 +2,29 @@ from rest_framework import permissions
 from rest_framework import viewsets
 
 
-class StoreFilterViewSet(viewsets.GenericViewSet):
+class CompanyFilterViewSet(viewsets.GenericViewSet):
     '''
     通过用户过滤门店编号
     '''
 
-    storefilter_field = 'store_code'
+    companyfilter_field = 'company_id'
 
-    def get_param_store_code(self):
+    def get_param_company_id(self):
         if self.request.user.is_authenticated:
-            store_code = self.request.user.store_code
+            company_id = self.request.user.company_id
         else:
-            store_code = self.request.query_params.get('store_code')
-        return store_code
+            company_id = self.request.query_params.get('company_id')
+        return company_id
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        store_code = self.get_param_store_code()
+        company_id = self.get_param_company_id()
         queryset = queryset.filter(
-            **{self.storefilter_field: store_code})
+            **{self.companyfilter_field: company_id})
         return queryset
 
 
-class SellerFilterViewSet(StoreFilterViewSet):
+class SellerFilterViewSet(CompanyFilterViewSet):
     '''
     销售员权限只能查看自己资源过滤
     '''
