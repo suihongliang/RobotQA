@@ -18,4 +18,4 @@
 
 创建默认积分规则
 
-    python manage.py createcoinrole {company_id}
+    python manage.py createcoinrule {company_id}
