@@ -1,0 +1,1 @@
+default_app_config = 'crm.sale.apps.SaleConfig'
