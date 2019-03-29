@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 from ..user.models import (
     BaseUser,
@@ -433,6 +434,8 @@ class UserCoinRecordSerializer(AssignUserCompanySerializer):
         help_text='积分规则', write_only=True, required=False)
     coin = serializers.IntegerField(
         help_text='积分', required=False)
+    code = serializers.CharField(
+        max_length=50, help_text='二维码编码', write_only=True, required=False)
     extra_data = serializers.CharField(
         help_text='其他参数, 默认不传', required=False, write_only=True,
         max_length=500)
@@ -445,7 +448,11 @@ class UserCoinRecordSerializer(AssignUserCompanySerializer):
             category = validated_data.pop('category')
         except KeyError:
             category = None
-        if not validated_data.get('coin') and category is None:
+        try:
+            code = validated_data.pop('code')
+        except KeyError:
+            code = None
+        if not validated_data.get('coin') and category is None and code is None:
             raise serializers.ValidationError({
                 'detail': "参数错误"})
         user = UserInfo.objects.filter(
@@ -453,11 +460,11 @@ class UserCoinRecordSerializer(AssignUserCompanySerializer):
         if not user:
             raise serializers.ValidationError({
                 'detail': "用户不存在"})
-        if category is None:
+        if (category, code) == (None, None):
             rule = None
         else:
-            rule = CoinRule.objects.filter(
-                category=category, company_id=company_id).first()
+            rule = CoinRule.objects.filter((Q(category=category) | Q(qrcode__code=code)),
+                                           company_id=company_id).first()
             if not rule:
                 raise serializers.ValidationError({
                     'detail': "规则不存在"})
@@ -476,6 +483,7 @@ class UserCoinRecordSerializer(AssignUserCompanySerializer):
             'created',
             'coin',
             'rule',
+            'code',
             'company_id',
             'category',
             'user_mobile',
