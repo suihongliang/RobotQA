@@ -209,6 +209,7 @@ class BackendUserViewSet(CompanyFilterViewSet,
     queryset = BackendUser.objects.filter(
         is_superuser=False, is_active=True, is_staff=False).order_by('created')
     serializer_class = BackendUserSerializer
+    filterset_fields = ('role__is_seller', )
     lookup_url_kwarg = 'mobile'
     lookup_field = 'mobile'
 
