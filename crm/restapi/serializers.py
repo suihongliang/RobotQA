@@ -20,6 +20,7 @@ from ..discount.models import (
     SendCoupon,
     CoinQRCode,
     )
+from ..user.utils import get_or_create_user
 # from ..discount.tasks import (
 #     SyncCoinTask,
 #     )
@@ -28,15 +29,6 @@ from rest_framework.utils import model_meta
 import traceback
 import django
 # import json
-
-
-def get_or_create_user(mobile, company_id):
-    user = BaseUser.objects.origin_all().filter(
-        mobile=mobile, company_id=company_id).first()
-    if not user:
-        user = BaseUser.objects.create(
-            mobile=mobile, company_id=company_id)
-    return user
 
 
 class AssignUserCompanySerializer(serializers.ModelSerializer):
@@ -91,6 +83,7 @@ class BackendRoleSerializer(AssignUserCompanySerializer):
             'permissions',
             'company_id',
             'w_permissions',
+            'is_seller',
         )
         read_only_fields = ('created',)
 
@@ -102,7 +95,7 @@ class BackendUserSerializer(serializers.ModelSerializer):
     role = BackendRoleSerializer(
         read_only=True)
     role_id = serializers.PrimaryKeyRelatedField(
-        write_only=True,
+        write_only=True, allow_null=True,
         queryset=BackendRole.objects.all(), source='role')
     is_active = serializers.BooleanField(
         required=False, default=True)
@@ -129,6 +122,7 @@ class BackendUserSerializer(serializers.ModelSerializer):
             'role',
             'role_id',
             'is_active',
+            'name',
         )
         read_only_fields = ('created',)
 
@@ -234,7 +228,7 @@ class SellerSerializer(AssignUserCompanySerializer):
             'created',
             'mobile',
             'qrcode',
-            'name',
+            # 'name',
             'is_active',
         )
         read_only_fields = (

@@ -12,9 +12,12 @@ from ..user.models import (
 
 class CoinQRCode(models.Model):
 
-    code = models.CharField(verbose_name="qrcode编码", max_length=50, unique=True)
-    qr_code_url = models.URLField(verbose_name="二维码图片链接", max_length=500)
-    company_id = models.CharField(max_length=20, verbose_name="公司id", null=True, blank=True)
+    code = models.CharField(
+        verbose_name="qrcode编码", max_length=50, unique=True)
+    qr_code_url = models.URLField(
+        verbose_name="二维码图片链接", max_length=500)
+    company_id = models.CharField(
+        max_length=20, verbose_name="公司id", null=True, blank=True)
 
     def __str__(self):
         return self.code

@@ -89,7 +89,9 @@ class BackendRole(models.Model):
     permissions = models.ManyToManyField(
         BackendPermission)
     only_myself = models.BooleanField(
-        verbose_name='', default=False)
+        verbose_name='查看自己数据', default=False)
+    is_seller = models.BooleanField(
+        verbose_name='是否销售', default=False)
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     # store_code = models.CharField(
@@ -124,6 +126,8 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
     #     verbose_name='门店编码', max_length=255)
     company_id = models.CharField(
         max_length=20, verbose_name="公司id")
+    name = models.CharField(
+        max_length=25, verbose_name='昵称', default='')
 
     objects = BackendUserManager()
 

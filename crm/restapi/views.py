@@ -171,6 +171,7 @@ class BackendRoleViewSet(CompanyFilterViewSet,
 
     queryset = BackendRole.objects.order_by('created')
     serializer_class = BackendRoleSerializer
+    filterset_fields = ('is_seller',)
 
 
 class BackendUserViewSet(CompanyFilterViewSet,
@@ -406,9 +407,9 @@ class UserOnlineOrderViewSet(CompanyFilterViewSet,
 
 class SellerViewSet(CompanyFilterViewSet,
                     mixins.RetrieveModelMixin,
-                    mixins.ListModelMixin,
-                    mixins.CreateModelMixin,
-                    mixins.UpdateModelMixin):
+                    # mixins.UpdateModelMixin,
+                    # mixins.CreateModelMixin,
+                    mixins.ListModelMixin,):
     '''
     retrieve:
         获取销售详情
@@ -459,7 +460,7 @@ class SellerViewSet(CompanyFilterViewSet,
 
     queryset = Seller.objects.order_by('created')
     serializer_class = SellerSerializer
-    filterset_fields = ('name',)
+    # filterset_fields = ('name',)
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
 
@@ -470,14 +471,14 @@ class SellerViewSet(CompanyFilterViewSet,
             return UpdateSellerSerializer
         return SellerSerializer
 
-    @action(methods=['patch'], url_path='seller-config', detail=True)
-    def update_seller(self, request, *args, **kwargs):
-        instance = self.get_object()
-        is_seller = request.data.get('is_seller', True)
-        instance.user.userinfo.is_seller = is_seller
-        instance.user.userinfo.save()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+    # @action(methods=['patch'], url_path='seller-config', detail=True)
+    # def update_seller(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     is_seller = request.data.get('is_seller', True)
+    #     instance.user.userinfo.is_seller = is_seller
+    #     instance.user.userinfo.save()
+    #     serializer = self.get_serializer(instance)
+    #     return Response(serializer.data)
 
 
 class CustomerRelationViewSet(SellerFilterViewSet,
