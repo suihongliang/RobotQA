@@ -215,8 +215,7 @@ class UserInfo(models.Model, UserMobileMixin):
 
     def get_extra_data_json(self):
         try:
-            json.loads(self.extra_data)
-            return {}
+            return json.loads(self.extra_data)
         except json.JSONDecodeError:
             return {}
 
