@@ -49,6 +49,7 @@ urlpatterns = [
     path(r'api/1.0/sale/', include('crm.sale.urls')),
     path(r'api/1.0/crmuser/', include('crm.user.urls')),
     path(r'api/1.0/product/', include('crm.product.urls')),
+    path(r'api/1.0/report/', include('crm.report.urls')),
 ]
 
 # if settings.DEBUG:

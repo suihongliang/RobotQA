@@ -510,6 +510,7 @@ class CustomerRelationViewSet(SellerFilterViewSet,
     filterset_fields = (
         'user__user__mobile',
         'seller__user__mobile',
+        'mark_name',
     )
     userfilter_field = 'seller__user__mobile'
     ordering = ('created',)
