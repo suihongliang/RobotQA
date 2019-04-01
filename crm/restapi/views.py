@@ -37,7 +37,7 @@ from rest_framework.response import Response
 # from django.http import Http404
 from .serializers import (
     BackendPermissionSerializer,
-    UserInfoSerializer,
+    BackendUserInfoSerializer,
     UserInfoDetailSerializer,
     UserOnlineOrderSerializer,
     SellerSerializer,
@@ -318,8 +318,9 @@ class UserInfoViewSet(CompanyFilterViewSet,
     #     'age')
     ordering = ('created', 'gender', 'name',)
 
-    queryset = UserInfo.objects.order_by('created')
-    serializer_class = UserInfoSerializer
+    queryset = UserInfo.objects.prefetch_related(
+        'customerrelation', 'user').order_by('created')
+    # serializer_class = UserInfoSerializer
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
     companyfilter_field = 'user__company_id'
@@ -327,7 +328,7 @@ class UserInfoViewSet(CompanyFilterViewSet,
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return UserInfoDetailSerializer
-        return UserInfoSerializer
+        return BackendUserInfoSerializer
 
     @action(methods=['get'], url_path='list/gender', detail=False)
     def gender_list(self, request, *args, **kwargs):

@@ -186,8 +186,17 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     def get_seller(self, instance):
         seller = instance.customerrelation.seller
-        if seller:
-            return SellerSerializer(seller).data
+        if not seller:
+            return None
+        mobile = seller.user.mobile
+        b_user = BackendUser.objects.filter(mobile=mobile).first()
+        if b_user:
+            return {
+                'seller_name': b_user.name,
+                'seller_mobile': mobile,
+            }
+        # if seller:
+        #     return SellerSerializer(seller).data
         return None
 
     class Meta:
@@ -233,6 +242,19 @@ class UserInfoDetailSerializer(UserInfoSerializer):
         model = UserInfo
         fields = UserInfoSerializer.Meta.fields + (
             'seller_info',)
+
+
+class BackendUserInfoSerializer(UserInfoSerializer):
+
+    coupon_count = serializers.SerializerMethodField()
+
+    def get_coupon_count(self, instance):
+        return instance.sendcoupon_set.count()
+
+    class Meta:
+        model = UserInfo
+        fields = UserInfoSerializer.Meta.fields + (
+            'coupon_count',)
 
 
 class UserOnlineOrderSerializer(serializers.ModelSerializer):
