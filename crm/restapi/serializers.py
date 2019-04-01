@@ -305,8 +305,17 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
         help_text='销售手机号', max_length=20, write_only=True)
     company_id = serializers.CharField(
         help_text='公司编号', max_length=50, write_only=True)
+    mobile_customer = serializers.SerializerMethodField(
+        help_text='客户手机')
+
+    def get_mobile_customer(self, instance):
+        mobile_customer = instance.user.mobile
+        return mobile_customer
 
     def update(self, instance, validated_data):
+        if instance.seller:
+            raise serializers.ValidationError(
+                    {'detail': "客户已绑定销售"})
         company_id = validated_data.pop('company_id')
 
         try:
@@ -328,7 +337,7 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
                 field.set(value)
             else:
                 setattr(instance, attr, value)
-        if seller is None:
+        if seller is not None:
             instance.seller = seller
         instance.save()
 
@@ -341,8 +350,10 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             'mobile_seller',
             'mark_name',
             'company_id',
+            'created',
+            'mobile_customer',
         )
-        read_only_fields = ('user',)
+        read_only_fields = ('user', 'created')
 
 
 class UpdateSellerSerializer(serializers.ModelSerializer):

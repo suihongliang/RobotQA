@@ -2,9 +2,10 @@ import logging
 import requests
 from django.conf import settings
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
+from crm.core.views import custom_permission
+from crm.user.utils import generate_sign
 
 logger = logging.getLogger('product_logger')
 
@@ -19,8 +20,26 @@ class StoreProductViewSet(ViewSet):
     update:
         商品编辑
     """
-
-    permission_classes = (AllowAny,)
+    c_perms = {
+        'list': [
+            'product_m',
+        ],
+        'retrieve': [
+            'product_m',
+        ],
+        'create': [
+            'product_m',
+        ],
+        'update': [
+            'product_m',
+        ],
+        'partial_update': [
+            'product_m',
+        ],
+    }
+    permission_classes = (
+        custom_permission(c_perms, ),
+    )
 
     def list(self, request):
         """
@@ -28,8 +47,9 @@ class StoreProductViewSet(ViewSet):
             store=C0001&name= &barcode=
         """
         params = request.query_params.dict()
-        # params['store'] = request.user.store
-        params['store'] = 'C0001'
+        params['company_id'] = request.user.company_id
+        sign = generate_sign(params)
+        params['sign'] = sign
         res = requests.get(settings.ERP_JIAN24_URL + '/crm/product/', params=params)
         return Response(res.json())
 
@@ -46,7 +66,12 @@ class StoreProductViewSet(ViewSet):
         """
 
         data = request.data
-        res = requests.post(settings.ERP_JIAN24_URL + '/crm/product/', json=data)
+        sign = generate_sign(data, 'POST')
+        params = dict(
+            sign=sign,
+            company_id=request.user.company_id,
+        )
+        res = requests.post(settings.ERP_JIAN24_URL + '/crm/product/', json=data, params=params)
         return Response(res.json())
 
     def update(self, request, pk):
@@ -58,7 +83,12 @@ class StoreProductViewSet(ViewSet):
             }
         """
         data = request.data
-        res = requests.put(settings.ERP_JIAN24_URL + '/crm/product/{0}/'.format(pk), json=data)
+        sign = generate_sign(data, 'PUT')
+        params = dict(
+            sign=sign,
+            company_id=request.user.company_id,
+        )
+        res = requests.put(settings.ERP_JIAN24_URL + '/crm/product/{0}/'.format(pk), json=data, params=params)
         return Response(res.json())
 
     @action(detail=False)
@@ -68,5 +98,15 @@ class StoreProductViewSet(ViewSet):
             barcode=6920152400777
         """
         params = request.query_params.dict()
+        sign = generate_sign(params)
+        params['sign'] = sign
         res = requests.get(settings.ERP_JIAN24_URL + '/crm/product/check_barcode/', params=params)
+        return Response(res.json())
+
+    @action(detail=False)
+    def get_company_store(self, request):
+        params = request.query_params.dict()
+        sign = generate_sign(params)
+        params['sign'] = sign
+        res = requests.get(settings.ERP_JIAN24_URL + '/crm/get-company-store/', params=params)
         return Response(res.json())
