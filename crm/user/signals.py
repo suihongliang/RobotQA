@@ -5,12 +5,36 @@ from .models import (
     UserInfo,
     BackendUser,
     UserBehavior,
+    BackendRole,
     )
 from ..sale.models import (
     CustomerRelation,
     Seller,
     )
 from .utils import get_or_create_user
+
+
+def update_seller_info(b_user):
+    if b_user.role:
+        user = get_or_create_user(b_user.mobile, b_user.company_id)
+        if user.userinfo:
+            is_seller = b_user.role.is_seller and b_user.is_active
+            user.userinfo.is_seller = is_seller
+            user.userinfo.save()
+        if not hasattr(user, 'seller') and b_user.role.is_seller:
+            Seller.objects.create(user=user)
+    else:
+        user = get_or_create_user(b_user.mobile, b_user.company_id)
+        if user.userinfo:
+            user.userinfo.is_seller = False
+            user.userinfo.save()
+
+
+@receiver(post_save, sender=BackendRole)
+def sync_backendrole_info(sender, **kwargs):
+    instance = kwargs['instance']
+    for b_user in instance.backenduser_set.all():
+        update_seller_info(b_user)
 
 
 @receiver(post_save, sender=BaseUser)
@@ -32,21 +56,7 @@ def sync_backenduser_info(sender, **kwargs):
     b_user = kwargs['instance']
     if not b_user.id:
         b_user.username = b_user.mobile
-    if b_user.role:
-        # 同步销售信息
-        if b_user.role.is_seller:
-            user = get_or_create_user(b_user.mobile, b_user.company_id)
-            if user.userinfo:
-                is_seller = b_user.role.is_seller and b_user.is_active
-                user.userinfo.is_seller = is_seller
-                user.userinfo.save()
-            if not hasattr(user, 'seller'):
-                Seller.objects.create(user=user)
-    else:
-        user = get_or_create_user(b_user.mobile, b_user.company_id)
-        if user.userinfo:
-            user.userinfo.is_seller = False
-            user.userinfo.save()
+    update_seller_info(b_user)
 
 
 @receiver(pre_save, sender=UserBehavior)
