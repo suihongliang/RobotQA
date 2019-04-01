@@ -40,4 +40,11 @@ class SendCouponAdmin():
 
 @xadmin.sites.register(CoinQRCode)
 class CoinQRCodeAdmin():
-    list_display = ('code',)
+    list_display = ('code', 'coin_rule_name')
+
+    readonly_fields = ('coin_rule_name',)
+
+    def coin_rule_name(self, obj):
+        return obj.coin_rule.get_category_display()
+
+    coin_rule_name.short_description = '积分规则名称'

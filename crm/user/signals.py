@@ -1,5 +1,9 @@
+import json
+
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+
+from crm.discount.models import UserCoinRecord, CoinRule
 from .models import (
     BaseUser,
     UserInfo,
@@ -71,5 +75,14 @@ def update_user_access_times(sender, **kwargs):
                     category=instance.category,
                     created__date=instance.created.date(),
                     user=instance.user).exists():
+                # 某天第一次到访
+                rule = CoinRule.objects.filter(category=1).first()
+                if rule:
+                    UserCoinRecord.objects.create(
+                        user_id=instance.user_id,
+                        rule=rule,
+                        coin=rule.coin,
+                        update_status=True,
+                        extra_data=json.dumps({'mobile': instance.user.mobile}))
                 instance.user.userinfo.access_times += 1
                 instance.user.userinfo.save()

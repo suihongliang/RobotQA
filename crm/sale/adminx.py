@@ -22,5 +22,10 @@ class CustomerRelationAdmin():
 
 @xadmin.sites.register(QRCode)
 class QRCodeAdmin():
-    list_display = ('code',)
+    list_display = ('code', 'seller_mobile')
+    readonly_fields = ('seller_mobile',)
 
+    def seller_mobile(self, obj):
+        return obj.seller.user.mobile
+
+    seller_mobile.short_description = '销售'
