@@ -105,7 +105,7 @@ class BackendPermissionViewSet(viewsets.GenericViewSet,
     def myself_perms(self, request, *args, **kwargs):
         if self.request.user:
             user = self.request.user
-            if user.role:
+            if self.request.user.is_authenticated and user.role:
                 queryset = user.role.permissions.all()
 
                 page = self.paginate_queryset(queryset)
