@@ -42,6 +42,10 @@ class Seller(models.Model, UserMobileMixin):
     def is_active(self):
         return self.user.userinfo.is_seller
 
+    @property
+    def mobile(self):
+        return self.user.mobile
+
     def __str__(self):
         return str(self.user)
 
