@@ -63,26 +63,42 @@ def sync_backenduser_info(sender, **kwargs):
     update_seller_info(b_user)
 
 
+def create_user_coin_record(instance, rule):
+    UserCoinRecord.objects.create(
+        user_id=instance.user_id,
+        rule=rule,
+        coin=rule.coin,
+        update_status=True,
+        extra_data=json.dumps({'mobile': instance.user.mobile}))
+
+
 @receiver(pre_save, sender=UserBehavior)
-def update_user_access_times(sender, **kwargs):
+def user_behavior_event(sender, **kwargs):
     '''
     到访更新, 按天计算
     '''
     instance = kwargs['instance']
-    if not instance.id:
-        if instance.category == 'access':
-            if not UserBehavior.objects.filter(
-                    category=instance.category,
-                    created__date=instance.created.date(),
-                    user=instance.user).exists():
-                # 某天第一次到访
-                rule = CoinRule.objects.filter(category=1).first()
-                if rule:
-                    UserCoinRecord.objects.create(
-                        user_id=instance.user_id,
-                        rule=rule,
-                        coin=rule.coin,
-                        update_status=True,
-                        extra_data=json.dumps({'mobile': instance.user.mobile}))
-                instance.user.userinfo.access_times += 1
-                instance.user.userinfo.save()
+    category = instance.category
+    user_behavior_record = UserBehavior.objects.filter(
+        category=category, created__date=instance.created.date(),
+        user=instance.user).exists()
+
+    if user_behavior_record:
+        return
+    if category == 'access':
+        # 某天第一次到访
+        rule = CoinRule.objects.filter(category=1).first()
+        if rule:
+            create_user_coin_record(instance, rule)
+        instance.user.userinfo.access_times += 1
+        instance.user.userinfo.save()
+    elif category == '3dvr':
+        # 第一次3D看房
+        rule = CoinRule.objects.filter(category=3).first()
+        if rule:
+            create_user_coin_record(instance, rule)
+    elif category == 'view_model_house':
+        # 看样板房
+        rule = CoinRule.objects.filter(category=5).first()
+        if rule:
+            create_user_coin_record(instance, rule)
