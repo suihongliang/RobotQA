@@ -181,22 +181,31 @@ class UserInfoSerializer(serializers.ModelSerializer):
     bind_relation_time = serializers.SerializerMethodField()
 
     def get_mark_name(self, instance):
-        return instance.customerrelation.mark_name
+        try:
+            return instance.customerrelation.mark_name
+        except CustomerRelation.DoesNotExist:
+            CustomerRelation.objects.create(user=instance)
+            return None
 
     def get_extra_data(self, instance):
         return instance.get_extra_data_json()
 
     def get_seller(self, instance):
-        seller = instance.customerrelation.seller
-        if not seller:
-            return None
-        mobile = seller.user.mobile
-        b_user = BackendUser.objects.filter(mobile=mobile).first()
-        if b_user:
-            return {
-                'seller_name': b_user.name,
-                'seller_mobile': mobile,
-            }
+        try:
+            seller = instance.customerrelation.seller
+            if not seller:
+                return None
+            mobile = seller.user.mobile
+            b_user = BackendUser.objects.filter(mobile=mobile).first()
+            if b_user:
+                return {
+                    'seller_name': b_user.name,
+                    'seller_mobile': mobile,
+                }
+        except CustomerRelation.DoesNotExist:
+            CustomerRelation.objects.create(user=instance)
+        except Seller.DoesNotExist:
+            pass
         # if seller:
         #     return SellerSerializer(seller).data
         return None
@@ -458,6 +467,7 @@ class CoinRuleSerializer(serializers.ModelSerializer):
             'category',
             'category_display',
             'qrcode',
+            'coin',
         )
         read_only_fields = ('category', 'qrcode',
                             'company_id',)

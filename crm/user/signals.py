@@ -63,15 +63,6 @@ def sync_backenduser_info(sender, **kwargs):
     update_seller_info(b_user)
 
 
-def create_user_coin_record(instance, rule):
-    UserCoinRecord.objects.create(
-        user_id=instance.user_id,
-        rule=rule,
-        coin=rule.coin,
-        update_status=True,
-        extra_data=json.dumps({'mobile': instance.user.mobile}))
-
-
 @receiver(pre_save, sender=UserBehavior)
 def user_behavior_event(sender, **kwargs):
     '''
@@ -79,26 +70,41 @@ def user_behavior_event(sender, **kwargs):
     '''
     instance = kwargs['instance']
     category = instance.category
-    user_behavior_record = UserBehavior.objects.filter(
-        category=category, created__date=instance.created.date(),
-        user=instance.user).exists()
+    filter_query = {'category': category, 'user': instance.user}
+    if category not in ('signup', 'sellerbind'):  # 注册 绑定销售
+        filter_query.update({'created__date': instance.created.date()})
+    user_behavior_record = UserBehavior.objects.filter(**filter_query).exists()
 
     if user_behavior_record:
         return
+    category_flag = None
     if category == 'access':
         # 某天第一次到访
-        rule = CoinRule.objects.filter(category=1).first()
-        if rule:
-            create_user_coin_record(instance, rule)
+        category_flag = 1
         instance.user.userinfo.access_times += 1
         instance.user.userinfo.save()
     elif category == '3dvr':
-        # 第一次3D看房
-        rule = CoinRule.objects.filter(category=3).first()
-        if rule:
-            create_user_coin_record(instance, rule)
-    elif category == 'view_model_house':
+        # 3D看房
+        category_flag = 3
+    elif category == 'sampleroom':
         # 看样板房
-        rule = CoinRule.objects.filter(category=5).first()
-        if rule:
-            create_user_coin_record(instance, rule)
+        category_flag = 5
+    elif category == 'signup':
+        # 注册
+        category_flag = 0
+    elif category == 'sellerbind':
+        # 绑定销售
+        category_flag = 6
+    elif category == 'microstore':
+        # 门店到访
+        category_flag = 7
+
+    rule = CoinRule.objects.filter(category=category_flag).first()
+    if not rule:
+        return
+    UserCoinRecord.objects.create(
+        user_id=instance.user_id,
+        rule=rule,
+        coin=rule.coin,
+        update_status=True,
+        extra_data=json.dumps({'mobile': instance.user.mobile}))
