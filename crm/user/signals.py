@@ -50,6 +50,12 @@ def sync_create_userinfo(sender, **kwargs):
     if kwargs['created']:
         userinfo = UserInfo.objects.create(user=user)
         CustomerRelation.objects.create(user=userinfo)
+        rule = CoinRule.objects.get(category=0)
+        UserBehavior.objects.create(user=user, category='signup', location='')
+        UserCoinRecord.objects.create(user_id=user.id,
+                                      rule=rule, coin=rule.coin,
+                                      update_status=True,
+                                      extra_data={})
 
 
 @receiver(pre_save, sender=BackendUser)
@@ -83,18 +89,9 @@ def user_behavior_event(sender, **kwargs):
         category_flag = 1
         instance.user.userinfo.access_times += 1
         instance.user.userinfo.save()
-    elif category == '3dvr':
-        # 3D看房
-        category_flag = 3
     elif category == 'sampleroom':
         # 看样板房
         category_flag = 5
-    elif category == 'signup':
-        # 注册
-        category_flag = 0
-    elif category == 'sellerbind':
-        # 绑定销售
-        category_flag = 6
     elif category == 'microstore':
         # 门店到访
         category_flag = 7
