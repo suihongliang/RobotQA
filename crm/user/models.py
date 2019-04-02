@@ -253,6 +253,14 @@ class UserBehavior(models.Model, UserMobileMixin):
         BaseUser, on_delete=models.CASCADE, verbose_name="用户")
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
+    """
+    access: 到访(摄像头)
+    signup: 注册
+    sampleroom: 样板房
+    sellerbind: 绑定销售
+    3dvr: 3d看房
+    microstore: 门店到访
+    """
     category = models.CharField(
         verbose_name='类别', max_length=20)
     location = models.CharField(
