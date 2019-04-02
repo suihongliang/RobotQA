@@ -181,7 +181,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
     def get_mark_name(self, instance):
         try:
             return instance.customerrelation.mark_name
-        except CustomerRelation.DoseNotExist:
+        except CustomerRelation.DoesNotExist:
             CustomerRelation.objects.create(user=instance)
             return None
 
@@ -200,9 +200,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
                     'seller_name': b_user.name,
                     'seller_mobile': mobile,
                 }
-        except CustomerRelation.DoseNotExist:
+        except CustomerRelation.DoesNotExist:
             CustomerRelation.objects.create(user=instance)
-        except Seller.DoseNotExist:
+        except Seller.DoesNotExist:
             pass
         # if seller:
         #     return SellerSerializer(seller).data
