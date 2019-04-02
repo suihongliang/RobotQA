@@ -452,6 +452,7 @@ class CoinRuleSerializer(serializers.ModelSerializer):
             'category',
             'category_display',
             'qrcode',
+            'coin',
         )
         read_only_fields = ('category', 'qrcode',
                             'company_id',)
