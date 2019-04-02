@@ -179,22 +179,31 @@ class UserInfoSerializer(serializers.ModelSerializer):
     mark_name = serializers.SerializerMethodField()
 
     def get_mark_name(self, instance):
-        return instance.customerrelation.mark_name
+        try:
+            return instance.customerrelation.mark_name
+        except CustomerRelation.DoseNotExist:
+            CustomerRelation.objects.create(user=instance)
+            return None
 
     def get_extra_data(self, instance):
         return instance.get_extra_data_json()
 
     def get_seller(self, instance):
-        seller = instance.customerrelation.seller
-        if not seller:
-            return None
-        mobile = seller.user.mobile
-        b_user = BackendUser.objects.filter(mobile=mobile).first()
-        if b_user:
-            return {
-                'seller_name': b_user.name,
-                'seller_mobile': mobile,
-            }
+        try:
+            seller = instance.customerrelation.seller
+            if not seller:
+                return None
+            mobile = seller.user.mobile
+            b_user = BackendUser.objects.filter(mobile=mobile).first()
+            if b_user:
+                return {
+                    'seller_name': b_user.name,
+                    'seller_mobile': mobile,
+                }
+        except CustomerRelation.DoseNotExist:
+            CustomerRelation.objects.create(user=instance)
+        except Seller.DoseNotExist:
+            pass
         # if seller:
         #     return SellerSerializer(seller).data
         return None
