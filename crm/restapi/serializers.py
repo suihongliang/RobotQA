@@ -354,6 +354,10 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
                 setattr(instance, attr, value)
         if seller is not None:
             instance.seller = seller
+            UserBehavior.objects.create(user_id=instance.user_id, category='sellerbind', location='')
+            rule = CoinRule.objects.filter(category=6).first()
+            UserCoinRecord.objects.create(
+                user_id=instance.user_id, rule=rule, coin=rule.coin, update_status=True, extra_data={})
         instance.save()
 
         return instance
