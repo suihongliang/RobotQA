@@ -30,6 +30,7 @@ from rest_framework.utils import model_meta
 import traceback
 import django
 # import json
+from django.utils import timezone
 
 
 class AssignUserCompanySerializer(serializers.ModelSerializer):
@@ -177,6 +178,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
     seller = serializers.SerializerMethodField()
     extra_data = serializers.SerializerMethodField()
     mark_name = serializers.SerializerMethodField()
+    bind_relation_time = serializers.SerializerMethodField()
 
     def get_mark_name(self, instance):
         try:
@@ -208,6 +210,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
         #     return SellerSerializer(seller).data
         return None
 
+    def get_bind_relation_time(self, instance):
+        return instance.customerrelation.created\
+            .astimezone(timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
     class Meta:
         model = UserInfo
         fields = (
@@ -231,6 +236,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'spend_coin',
             'extra_data',
             'mark_name',
+            'bind_relation_time',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',

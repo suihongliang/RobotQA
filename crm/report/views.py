@@ -30,7 +30,7 @@ class SellerReport(UserInfoViewSet):
         custom_permission(c_perms),
     )
 
-    ordering = ('customerrelation__seller__name', 'created', 'gender', 'name',)
+    ordering = ('customerrelation__seller', 'created', 'gender', 'name',)
 
     @action(detail=False)
     def seller_report_export(self, request):
@@ -39,14 +39,16 @@ class SellerReport(UserInfoViewSet):
         data = serializer.data
         content = []
         for row in data:
-            seller = row['seller']['name'] if row['seller'] else ''
+            seller = row['seller']['seller_name'] if row['seller'] else ''
             customer_name = row['name']
             mobile = row['mobile']
-            bind_time = row['seller']['created'] if row['seller'] else ''
+            bind_time = row['bind_relation_time']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
-            # todo 样板房
-            model_houses = ''
+            if row['extra_data']:
+                model_houses = '已看' if row['extra_data'].get('is_sampleroom') else '未看'
+            else:
+                model_houses = '未看'
             willingness = row['willingness']
             net_worth = row['net_worth']
             status_display = row['status_display']
@@ -93,17 +95,20 @@ class CustomerReport(UserInfoViewSet):
             mobile = row['mobile']
             gender_display = row['gender_display']
             age = row['age']
-            seller = row['seller']['name'] if row['seller'] else ''
+            seller = row['seller']['seller_name'] if row['seller'] else ''
             net_worth = row['net_worth']
             willingness = row['willingness']
             status_display = row['status_display']
             created = row['created']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
-            # todo 样板房 3D看房 优惠券
-            model_houses = ''
-            look_3d = ''
-            coupon = ''
+            if row['extra_data']:
+                model_houses = '已看' if row['extra_data'].get('is_sampleroom') else '未看'
+                look_3d = '已看' if row['extra_data'].get('is_3dvr') else '未看'
+            else:
+                model_houses = '未看'
+                look_3d = '未看'
+            coupon = row['coupon_count']
             coin = row['coin']
             spend_coin = row['spend_coin']
             note = row['note']
