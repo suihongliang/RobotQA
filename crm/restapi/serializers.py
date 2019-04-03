@@ -212,7 +212,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     def get_bind_relation_time(self, instance):
         return instance.customerrelation.created\
-            .astimezone(timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
+            .astimezone(
+                timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
+
     class Meta:
         model = UserInfo
         fields = (
@@ -354,10 +356,12 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
                 setattr(instance, attr, value)
         if seller is not None:
             instance.seller = seller
-            UserBehavior.objects.create(user_id=instance.user_id, category='sellerbind', location='')
+            UserBehavior.objects.create(
+                user_id=instance.user_id, category='sellerbind', location='')
             rule = CoinRule.objects.filter(category=6).first()
             UserCoinRecord.objects.create(
-                user_id=instance.user_id, rule=rule, coin=rule.coin, update_status=True, extra_data={})
+                user_id=instance.user_id, rule=rule, coin=rule.coin,
+                update_status=True, extra_data={})
         instance.save()
 
         return instance
@@ -505,7 +509,8 @@ class UserCoinRecordSerializer(AssignUserCompanySerializer):
             code = validated_data.pop('code')
         except KeyError:
             code = None
-        if not validated_data.get('coin') and category is None and code is None:
+        if not validated_data.get('coin') and category is None and \
+                code is None:
             raise serializers.ValidationError({
                 'detail': "参数错误"})
         user = UserInfo.objects.filter(
@@ -516,8 +521,9 @@ class UserCoinRecordSerializer(AssignUserCompanySerializer):
         if (category, code) == (None, None):
             rule = None
         else:
-            rule = CoinRule.objects.filter((Q(category=category) | Q(qrcode__code=code)),
-                                           company_id=company_id).first()
+            rule = CoinRule.objects.filter(
+                (Q(category=category) | Q(qrcode__code=code)),
+                company_id=company_id).first()
             if not rule:
                 raise serializers.ValidationError({
                     'detail': "规则不存在"})
