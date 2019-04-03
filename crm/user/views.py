@@ -42,5 +42,3 @@ class LogoutView(View):
             logout(request)
         return JsonResponse(
             {'results': {}})
-
-

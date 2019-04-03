@@ -8,6 +8,7 @@ import hashlib
 from crm.core.middleware import AESCipher
 import json
 
+
 class ResInfo(Response):
 
     def __init__(self, msg='', data='', code=200, *arg, **kwargs):
@@ -37,5 +38,6 @@ def generate_sign(query_string, method="GET"):
         json_str = urllib.parse.urlencode(ordered_query_dict)
     else:
         json_str = json.dumps(query_string)
-    sign = hashlib.md5(aes.encrypt(settings.INTERNAL_SALT + json_str)).hexdigest()
+    sign = hashlib.md5(
+        aes.encrypt(settings.INTERNAL_SALT + json_str)).hexdigest()
     return sign
