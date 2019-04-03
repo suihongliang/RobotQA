@@ -122,9 +122,6 @@ class CustomerReport(UserInfoViewSet):
             coin = row['coin']
             spend_coin = row['spend_coin']
             note = row['note']
-            content.append(
-                [customer_name, mobile, gender_display, age, seller, net_worth, willingness, status_display, created,
-                 last_active_time, access_times, model_houses, look_3d, coupon, coin, spend_coin, note])
             content.append([
                 customer_name, mobile, gender_display, age, seller, net_worth,
                 willingness, status_display, created, last_active_time,
