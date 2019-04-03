@@ -817,4 +817,5 @@ def sdvr(request):
             rule=rule,
             created__date=date.today(), defaults={
                 'coin': rule.coin, 'update_status': True, 'extra_data': {}})
-    return HttpResponseRedirect("https://beyond.3dnest.cn/house/?m=shhzhb_xykjly_62&from=groupmessage/")
+    return HttpResponseRedirect(
+        "https://beyond.3dnest.cn/house/?m=shhzhb_xykjly_62&from=groupmessage/")  # noqa
