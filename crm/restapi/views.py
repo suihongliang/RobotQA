@@ -56,7 +56,8 @@ from .serializers import (
     CoinQRCodeSerializer,
 )
 from django_filters import rest_framework as filters
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
+
 
 # Create your views here.
 
@@ -816,4 +817,4 @@ def sdvr(request):
             rule=rule,
             created__date=date.today(), defaults={
                 'coin': rule.coin, 'update_status': True, 'extra_data': {}})
-    return Response({'code': 'success'})
+    return HttpResponseRedirect("https://beyond.3dnest.cn/house/?m=shhzhb_xykjly_62&from=groupmessage/")

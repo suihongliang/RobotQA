@@ -48,13 +48,13 @@ urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
     path(r'user/login/', user_views.LoginView.as_view()),
     path(r'user/logout/', user_views.LogoutView.as_view()),
+    path(r'3dvr/', sdvr),
     path(r'api/1.0/', include(router.urls)),
     path(r'api/1.0/sale/', include('crm.sale.urls')),
     path(r'api/1.0/crmuser/', include('crm.user.urls')),
     path(r'api/1.0/product/', include('crm.product.urls')),
     path(r'api/1.0/order/', include('crm.order.urls')),
     path(r'api/1.0/report/', include('crm.report.urls')),
-    path(r'api/1.0/sdvr/', sdvr),
 ]
 
 # if settings.DEBUG:
