@@ -10,7 +10,8 @@ from crm.discount.models import UserCoinRecord, CoinRule
 def scan_bind_seller(request):
     code = request.GET.get('code', '')
     mobile_customer = request.GET.get('mobile_customer')
-    customer_relation = CustomerRelation.objects.get(user__user__mobile=mobile_customer)
+    customer_relation = CustomerRelation.objects.get(
+        user__user__mobile=mobile_customer)
     if customer_relation.seller:
         msg = dict(msg='已绑定销售', code=400)
         return Response(msg)

@@ -34,7 +34,8 @@ class SellerReport(UserInfoViewSet):
 
     @action(detail=False)
     def seller_report_export(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).filter(customerrelation__seller__isnull=False)
+        queryset = self.filter_queryset(
+            self.get_queryset()).filter(customerrelation__seller__isnull=False)
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
@@ -46,20 +47,26 @@ class SellerReport(UserInfoViewSet):
             last_active_time = row['last_active_time']
             access_times = row['access_times']
             if row['extra_data']:
-                model_houses = '已看' if row['extra_data'].get('is_sampleroom') else '未看'
+                model_houses = '已看' if row['extra_data'].get('is_sampleroom')\
+                    else '未看'
             else:
                 model_houses = '未看'
             willingness = row['willingness']
             net_worth = row['net_worth']
             status_display = row['status_display']
-            content.append([seller, customer_name, mobile, bind_time, last_active_time,
-                            model_houses, access_times, willingness, net_worth, status_display])
-        fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看', '到访次数', '意愿度', '净值度', '状态']
+            content.append([
+                seller, customer_name, mobile, bind_time, last_active_time,
+                model_houses, access_times, willingness, net_worth,
+                status_display])
+        fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
+                  '到访次数', '意愿度', '净值度', '状态']
         table_name = '销售报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
         response = HttpResponse(content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('销售报表'))
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(
+                urllib.parse.quote_plus('销售报表'))
         response.write(binary_data)
         return response
 
@@ -87,7 +94,8 @@ class CustomerReport(UserInfoViewSet):
 
     @action(detail=False)
     def customer_report_export(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).filter(is_seller=False)
+        queryset = self.filter_queryset(
+            self.get_queryset()).filter(is_seller=False)
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
@@ -104,7 +112,8 @@ class CustomerReport(UserInfoViewSet):
             last_active_time = row['last_active_time']
             access_times = row['access_times']
             if row['extra_data']:
-                model_houses = '已看' if row['extra_data'].get('is_sampleroom') else '未看'
+                model_houses = '已看' if row['extra_data'].get('is_sampleroom')\
+                    else '未看'
                 look_3d = '已看' if row['extra_data'].get('is_3dvr') else '未看'
             else:
                 model_houses = '未看'
@@ -116,14 +125,21 @@ class CustomerReport(UserInfoViewSet):
             content.append(
                 [customer_name, mobile, gender_display, age, seller, net_worth, willingness, status_display, created,
                  last_active_time, access_times, model_houses, look_3d, coupon, coin, spend_coin, note])
+            content.append([
+                customer_name, mobile, gender_display, age, seller, net_worth,
+                willingness, status_display, created, last_active_time,
+                access_times, model_houses, look_3d, coupon, coin, spend_coin,
+                note])
         fields = ['姓名', '手机号', '性别', '年龄', '销售人员', '净值度', '意愿度',
-                  '状态', '注册日期', '最近来访日', '到访次数', '样板房', '3D看房', '优惠券', '积分', '已消费积分', '备注']
+                  '状态', '注册日期', '最近来访日', '到访次数', '样板房', '3D看房',
+                  '优惠券', '积分', '已消费积分', '备注']
         table_name = '用户信息报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
         response = HttpResponse(content_type='application/octet-stream')
         response['Content-Disposition'] = \
-            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户信息报表'))
+            'attachment; filename="{0}.xls"'.format(
+                urllib.parse.quote_plus('用户信息报表'))
         response.write(binary_data)
         return response
 

@@ -50,7 +50,8 @@ class StoreProductViewSet(ViewSet):
         params['company_id'] = request.user.company_id
         sign = generate_sign(params)
         params['sign'] = sign
-        res = requests.get(settings.ERP_JIAN24_URL + '/crm/product/', params=params)
+        res = requests.get(
+            settings.ERP_JIAN24_URL + '/crm/product/', params=params)
         return Response(res.json())
 
     def create(self, request):
@@ -71,7 +72,9 @@ class StoreProductViewSet(ViewSet):
             sign=sign,
             company_id=request.user.company_id,
         )
-        res = requests.post(settings.ERP_JIAN24_URL + '/crm/product/', json=data, params=params)
+        res = requests.post(
+            settings.ERP_JIAN24_URL + '/crm/product/',
+            json=data, params=params)
         return Response(res.json())
 
     def update(self, request, pk):
@@ -88,7 +91,9 @@ class StoreProductViewSet(ViewSet):
             sign=sign,
             company_id=request.user.company_id,
         )
-        res = requests.put(settings.ERP_JIAN24_URL + '/crm/product/{0}/'.format(pk), json=data, params=params)
+        res = requests.put(
+            settings.ERP_JIAN24_URL + '/crm/product/{0}/'.format(pk),
+            json=data, params=params)
         return Response(res.json())
 
     @action(detail=False)
@@ -100,7 +105,9 @@ class StoreProductViewSet(ViewSet):
         params = request.query_params.dict()
         sign = generate_sign(params)
         params['sign'] = sign
-        res = requests.get(settings.ERP_JIAN24_URL + '/crm/product/check_barcode/', params=params)
+        res = requests.get(
+            settings.ERP_JIAN24_URL + '/crm/product/check_barcode/',
+            params=params)
         return Response(res.json())
 
     @action(detail=False)
@@ -108,5 +115,6 @@ class StoreProductViewSet(ViewSet):
         params = request.query_params.dict()
         sign = generate_sign(params)
         params['sign'] = sign
-        res = requests.get(settings.ERP_JIAN24_URL + '/crm/get-company-store/', params=params)
+        res = requests.get(
+            settings.ERP_JIAN24_URL + '/crm/get-company-store/', params=params)
         return Response(res.json())

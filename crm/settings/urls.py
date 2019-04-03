@@ -17,6 +17,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
+from crm.restapi.views import sdvr
 from ..restapi import views as rest_views
 from ..user import views as user_views
 import xadmin
@@ -47,6 +48,7 @@ urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
     path(r'user/login/', user_views.LoginView.as_view()),
     path(r'user/logout/', user_views.LogoutView.as_view()),
+    path(r'3dvr/', sdvr),
     path(r'api/1.0/', include(router.urls)),
     path(r'api/1.0/sale/', include('crm.sale.urls')),
     path(r'api/1.0/crmuser/', include('crm.user.urls')),
