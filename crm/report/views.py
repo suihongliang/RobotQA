@@ -2,7 +2,7 @@ from ..core.views import (
     custom_permission,
     )
 from rest_framework.decorators import action
-from crm.restapi.views import UserInfoViewSet
+from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet
 import urllib
 from django.http import HttpResponse
 from crm.report.utils import ExcelHelper
@@ -66,6 +66,7 @@ class SellerReport(UserInfoViewSet):
 
 class CustomerReport(UserInfoViewSet):
     """用户信息报表"""
+
     c_perms = {
         'list': [
             'report_m',
@@ -112,14 +113,171 @@ class CustomerReport(UserInfoViewSet):
             coin = row['coin']
             spend_coin = row['spend_coin']
             note = row['note']
-            content.append([customer_name, mobile, gender_display, age, seller, net_worth, willingness, status_display, created,
-                            last_active_time, access_times, model_houses, look_3d, coupon, coin, spend_coin, note])
+            content.append(
+                [customer_name, mobile, gender_display, age, seller, net_worth, willingness, status_display, created,
+                 last_active_time, access_times, model_houses, look_3d, coupon, coin, spend_coin, note])
         fields = ['姓名', '手机号', '性别', '年龄', '销售人员', '净值度', '意愿度',
                   '状态', '注册日期', '最近来访日', '到访次数', '样板房', '3D看房', '优惠券', '积分', '已消费积分', '备注']
         table_name = '用户信息报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
         response = HttpResponse(content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户信息报表'))
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户信息报表'))
         response.write(binary_data)
         return response
+
+    @action(detail=False)
+    def storespend_report_export(self, request):
+        """无人店消费额"""
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+        for row in data:
+            name = row.get('name', '')
+            mobile = row.get('mobile', '')
+            spend_coin = row.get('spend_coin', '')
+            content.append([name, mobile, spend_coin])
+        fields = ['客户名', '手机号', '小店消费']
+        table_name = '小店消费报表'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('小店消费报表'))
+        response.write(binary_data)
+        return response
+
+
+class UserBehaviorReport(UserBehaviorViewSet):
+    """用户行为"""
+
+    c_perms = {
+        'list': [
+            'report_m',
+        ],
+        'retrieve': [
+            'report_m',
+        ],
+        'gender_list': [
+            'report_m',
+        ],
+        'status_list': [
+            'report_m',
+        ],
+    }
+    permission_classes = (
+        custom_permission(c_perms),
+    )
+
+    @action(detail=False)
+    def signup_report_export(self, request):
+        """用户注册"""
+        queryset = self.filter_queryset(self.get_queryset()).filter(category='signup')
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+        for row in data:
+            name = row.get('name', '')
+            mobile = row.get('mobile', '')
+            created = row.get('created', '')
+            content.append([name, mobile, created])
+        fields = ['客户名', '手机号', '注册日期']
+        table_name = '用户行为注册报表'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户行为注册报表'))
+        response.write(binary_data)
+        return response
+
+    @action(detail=False)
+    def sampleroom_report_export(self, request):
+        """样板房"""
+        queryset = self.filter_queryset(self.get_queryset()).filter(category='sampleroom')
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+        for row in data:
+            name = row.get('name', '')
+            mobile = row.get('mobile', '')
+            created = row.get('created', '')
+            content.append([name, mobile, created])
+        fields = ['客户名', '手机号', '看样板房日期']
+        table_name = '用户行为看样板房报表'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户行为看样板房报表'))
+        response.write(binary_data)
+        return response
+
+    @action(detail=False)
+    def sellerbind_report_export(self, request):
+        """绑定销售"""
+        queryset = self.filter_queryset(self.get_queryset()).filter(category='sellerbind')
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+        for row in data:
+            name = row.get('name', '')
+            mobile = row.get('mobile', '')
+            created = row.get('created', '')
+            content.append([name, mobile, created])
+        fields = ['客户名', '手机号', '绑定日期']
+        table_name = '用户行为绑定销售报表'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户行为绑定销售报表'))
+        response.write(binary_data)
+        return response
+
+    @action(detail=False)
+    def look3d_report_export(self, request):
+        """3d看房"""
+        queryset = self.filter_queryset(self.get_queryset()).filter(category='3dvr')
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+        for row in data:
+            name = row.get('name', '')
+            mobile = row.get('mobile', '')
+            created = row.get('created', '')
+            content.append([name, mobile, created])
+        fields = ['客户名', '手机号', '3D看房日期']
+        table_name = '用户行为3D看房报表'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户行为3D看房报表'))
+        response.write(binary_data)
+        return response
+
+    @action(detail=False)
+    def store_report_export(self, request):
+        """到访记录"""
+        queryset = self.filter_queryset(self.get_queryset()).filter(category='access')
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+        for row in data:
+            name = row.get('name', '')
+            mobile = row.get('mobile', '')
+            created = row.get('created', '')
+            content.append([name, mobile, created])
+        fields = ['客户名', '手机号', '到访日期']
+        table_name = '用户行为到访报表'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(urllib.parse.quote_plus('用户行为到访报表'))
+        response.write(binary_data)
+        return response
+

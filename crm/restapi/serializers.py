@@ -615,6 +615,13 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
         help_text='用户手机号', max_length=20)
     company_id = serializers.CharField(
         help_text='公司编号', max_length=50, write_only=True)
+    name = serializers.SerializerMethodField(
+        help_text='用户姓名'
+    )
+
+    def get_name(self, instance):
+        name = instance.user.userinfo.name
+        return name
 
     def create(self, validated_data):
         mobile = validated_data.pop('mobile')
@@ -644,6 +651,7 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
             'category',
             'location',
             'created',
+            'name',
         )
         read_only_fields = ('created',)
 

@@ -730,9 +730,21 @@ class UserBehaviorViewSet(CompanyFilterViewSet,
         custom_permission(c_perms),
     )
 
+    class UserBehaviorFilter(filters.FilterSet):
+        min_created_time = filters.DateTimeFilter(
+            field_name="created", lookup_expr='gte',
+            help_text='创建时间')
+        max_created_time = filters.DateTimeFilter(
+            field_name="created", lookup_expr='lte')
+
+        class Meta:
+            model = UserBehavior
+            fields = ['user__mobile', 'min_created_time', 'max_created_time']
+
     queryset = UserBehavior.objects.order_by('id')
     serializer_class = UserBehaviorSerializer
     companyfilter_field = 'user__company_id'
+    filter_class = UserBehaviorFilter
 
 
 class QRCodeViewSet(CompanyFilterViewSet,
