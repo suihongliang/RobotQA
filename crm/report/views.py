@@ -33,7 +33,7 @@ class SellerReport(UserInfoViewSet):
     ordering = ('customerrelation__seller', 'created', 'gender', 'name',)
 
     @action(detail=False)
-    def seller_report_export(self, request):
+    def seller(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(customerrelation__seller__isnull=False)
         serializer = self.get_serializer(queryset, many=True)
@@ -93,7 +93,7 @@ class CustomerReport(UserInfoViewSet):
     )
 
     @action(detail=False)
-    def customer_report_export(self, request):
+    def customer(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(is_seller=False)
         serializer = self.get_serializer(queryset, many=True)
@@ -141,7 +141,7 @@ class CustomerReport(UserInfoViewSet):
         return response
 
     @action(detail=False)
-    def storespend_report_export(self, request):
+    def storespend(self, request):
         """无人店消费额"""
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
@@ -185,7 +185,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
     )
 
     @action(detail=False)
-    def signup_report_export(self, request):
+    def signup(self, request):
         """用户注册"""
         queryset = self.filter_queryset(self.get_queryset()).filter(category='signup')
         serializer = self.get_serializer(queryset, many=True)
@@ -207,7 +207,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
         return response
 
     @action(detail=False)
-    def sampleroom_report_export(self, request):
+    def sampleroom(self, request):
         """样板房"""
         queryset = self.filter_queryset(self.get_queryset()).filter(category='sampleroom')
         serializer = self.get_serializer(queryset, many=True)
@@ -229,7 +229,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
         return response
 
     @action(detail=False)
-    def sellerbind_report_export(self, request):
+    def sellerbind(self, request):
         """绑定销售"""
         queryset = self.filter_queryset(self.get_queryset()).filter(category='sellerbind')
         serializer = self.get_serializer(queryset, many=True)
@@ -251,7 +251,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
         return response
 
     @action(detail=False)
-    def look3d_report_export(self, request):
+    def look3d(self, request):
         """3d看房"""
         queryset = self.filter_queryset(self.get_queryset()).filter(category='3dvr')
         serializer = self.get_serializer(queryset, many=True)
@@ -273,7 +273,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
         return response
 
     @action(detail=False)
-    def store_report_export(self, request):
+    def access(self, request):
         """到访记录"""
         queryset = self.filter_queryset(self.get_queryset()).filter(category='access')
         serializer = self.get_serializer(queryset, many=True)
