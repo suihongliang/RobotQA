@@ -741,7 +741,7 @@ class UserBehaviorViewSet(CompanyFilterViewSet,
 
         class Meta:
             model = UserBehavior
-            fields = ['user__mobile', 'min_created_time', 'max_created_time']
+            fields = ['user__mobile', 'min_created_time', 'max_created_time', 'category']
 
     queryset = UserBehavior.objects.order_by('id')
     serializer_class = UserBehaviorSerializer
