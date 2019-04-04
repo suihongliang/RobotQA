@@ -260,7 +260,8 @@ class UserInfoFilter(filters.FilterSet):
             'max_spend_coin', 'min_spend_coin',
             'min_last_active_time', 'max_last_active_time',
             'min_access_times', 'max_access_times',
-            'min_coin', 'max_coin', 'customerrelation__seller')
+            'min_coin', 'max_coin', 'customerrelation__seller',
+            'user__mobile')
 
 
 class UserInfoViewSet(CompanyFilterViewSet,
