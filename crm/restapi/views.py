@@ -35,7 +35,7 @@ from ..core.views import (
     custom_permission,
     )
 # from django.http import Http404
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 # from django.http import Http404
 from .serializers import (
@@ -830,23 +830,19 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 
 
 @api_view(['GET'])
-class SDVR(APIView):
-    permission_classes = (
-        AllowAny,
-    )
-
-    def get(self, request):
-        mobile = request.GET.get('mobile')
-        user = BaseUser.objects.filter(mobile=mobile).first()
-        if user:
-            UserBehavior.objects.create(user_id=user.id,
-                                        category='3dvr',
-                                        location='')
-            rule = CoinRule.objects.filter(category=3).first()
-            UserCoinRecord.objects.get_or_create(
-                user_id=user.id,
-                rule=rule,
-                created__date=date.today(), defaults={
-                    'coin': rule.coin, 'update_status': True, 'extra_data': {}})
-        return HttpResponseRedirect(
-            "https://beyond.3dnest.cn/house/?m=shhzhb_xykjly_62&from=groupmessage/")  # noqa
+@permission_classes((AllowAny, ))
+def sdvr(request):
+    mobile = request.GET.get('mobile')
+    user = BaseUser.objects.filter(mobile=mobile).first()
+    if user:
+        UserBehavior.objects.create(user_id=user.id,
+                                    category='3dvr',
+                                    location='')
+        rule = CoinRule.objects.filter(category=3).first()
+        UserCoinRecord.objects.get_or_create(
+            user_id=user.id,
+            rule=rule,
+            created__date=date.today(), defaults={
+                'coin': rule.coin, 'update_status': True, 'extra_data': {}})
+    return HttpResponseRedirect(
+        "https://beyond.3dnest.cn/house/?m=shhzhb_xykjly_62&from=groupmessage/")  # noqa
