@@ -29,7 +29,7 @@ from ..user.utils import get_or_create_user
 from rest_framework.utils import model_meta
 import traceback
 import django
-# import json
+import json
 from django.utils import timezone
 
 
@@ -218,11 +218,14 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
 
     def update(self, instance, validated_data):
-        extra_info = validated_data.pop('extra_info')
+        extra_info = validated_data.pop('extra_info', '')
         if extra_info:
-            extra_data = instance.extra_data
+            try:
+                extra_data = json.loads(instance.extra_data)
+            except Exception:
+                extra_data = {}
             extra_data.update(extra_info)
-            validated_data['extra_data'] = extra_data
+            validated_data['extra_data'] = json.dumps(extra_data)
 
         info = model_meta.get_field_info(instance)
         for attr, value in validated_data.items():
