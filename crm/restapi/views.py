@@ -330,9 +330,12 @@ class UserInfoViewSet(CompanyFilterViewSet,
     def get_queryset(self):
         queryset = super().get_queryset()
         is_sampleroom = self.request.GET.get('is_sampleroom')
-        if is_sampleroom:
-            extra_data = '"is_sampleroom": {}'.format(is_sampleroom)
+        if is_sampleroom == 'true':
+            extra_data = '"is_sampleroom": true'
             queryset = queryset.filter(extra_data__icontains=extra_data)
+        elif is_sampleroom == 'false':
+            extra_data = '"is_sampleroom": true'
+            queryset = queryset.exclude(extra_data__icontains=extra_data)
         return queryset
 
     def get_serializer_class(self):
