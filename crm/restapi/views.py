@@ -1,6 +1,8 @@
 from rest_framework.permissions import AllowAny
 from datetime import date
 
+from rest_framework.views import APIView
+
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -33,7 +35,7 @@ from ..core.views import (
     custom_permission,
     )
 # from django.http import Http404
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 # from django.http import Http404
 from .serializers import (
@@ -828,6 +830,7 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 
 
 @api_view(['GET'])
+@permission_classes((AllowAny, ))
 def sdvr(request):
     mobile = request.GET.get('mobile')
     user = BaseUser.objects.filter(mobile=mobile).first()
