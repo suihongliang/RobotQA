@@ -175,6 +175,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
         source='get_gender_display', read_only=True)
     status_display = serializers.CharField(
         source='get_status_display', read_only=True)
+    extra_info = serializers.JSONField(
+        help_text='额外参数', required=False, write_only=True)
     seller = serializers.SerializerMethodField()
     extra_data = serializers.SerializerMethodField()
     mark_name = serializers.SerializerMethodField()
@@ -215,6 +217,24 @@ class UserInfoSerializer(serializers.ModelSerializer):
             .astimezone(
                 timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
 
+    def update(self, instance, validated_data):
+        extra_info = validated_data.pop('extra_info')
+        if extra_info:
+            extra_data = instance.extra_data
+            extra_data.update(extra_info)
+            validated_data['extra_data'] = extra_data
+
+        info = model_meta.get_field_info(instance)
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                field = getattr(instance, attr)
+                field.set(value)
+            else:
+                setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
     class Meta:
         model = UserInfo
         fields = (
@@ -239,6 +259,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'extra_data',
             'mark_name',
             'bind_relation_time',
+            'extra_info',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
@@ -272,6 +293,7 @@ class BackendUserInfoSerializer(UserInfoSerializer):
         model = UserInfo
         fields = UserInfoSerializer.Meta.fields + (
             'coupon_count',)
+        read_only_fields = UserInfoSerializer.Meta.read_only_fields
 
 
 class UserOnlineOrderSerializer(serializers.ModelSerializer):

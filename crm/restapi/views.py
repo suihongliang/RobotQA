@@ -327,6 +327,14 @@ class UserInfoViewSet(CompanyFilterViewSet,
     lookup_field = 'user__mobile'
     companyfilter_field = 'user__company_id'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        is_sampleroom = self.request.GET.get('is_sampleroom')
+        if is_sampleroom:
+            extra_data = '"is_sampleroom": {}'.format(is_sampleroom)
+            queryset = queryset.filter(extra_data__icontains=extra_data)
+        return queryset
+
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return UserInfoDetailSerializer
