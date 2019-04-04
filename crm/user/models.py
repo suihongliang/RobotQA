@@ -6,7 +6,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 import json
-from jsonfield import JSONField
 
 #
 # class Store(models.Model):
@@ -212,12 +211,12 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='积分', default=0)
     spend_coin = models.IntegerField(
         verbose_name='花费积分', default=0)
-    extra_data = JSONField(
+    extra_data = models.TextField(
         verbose_name='额外参数', default={})
 
     def get_extra_data_json(self):
         try:
-            return self.extra_data
+            return json.loads(self.extra_data)
         except json.JSONDecodeError:
             return {}
 
