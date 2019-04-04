@@ -30,7 +30,7 @@ class LoginView(View):
             if user.is_active:
                 login(request, user)
                 return JsonResponse(
-                    {'results': {'mobile': mobile}})
+                    {'results': {'mobile': mobile, 'company_id': user.company_id}})
         return JsonResponse(
             {'detail': '用户名或密码错误'}, status=400)
 
