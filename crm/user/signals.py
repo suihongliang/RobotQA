@@ -95,6 +95,15 @@ def user_behavior_event(sender, **kwargs):
     elif category == 'microstore':
         # 门店到访
         category_flag = 7
+    elif category == 'activity1':
+        # 活动扫码送积分3
+        category_flag = 8
+    elif category == 'activity2':
+        # 活动扫码送积分4
+        category_flag = 9
+    elif category == 'activity3':
+        # 活动扫码送积分5
+        category_flag = 10
 
     rule = CoinRule.objects.filter(category=category_flag).first()
     if not rule:

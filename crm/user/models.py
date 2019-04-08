@@ -186,7 +186,7 @@ class UserInfo(models.Model, UserMobileMixin):
     name = models.CharField(
         max_length=25, verbose_name='用户昵称', default='')
     age = models.IntegerField(
-        verbose_name='年龄', default=-1)
+        verbose_name='年龄', default=0)
     gender = models.IntegerField(
         choices=[
             (1, '男'),

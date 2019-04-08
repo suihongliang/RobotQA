@@ -253,6 +253,11 @@ class UserInfoFilter(filters.FilterSet):
         field_name="customerrelation__seller", lookup_expr='isnull',
         help_text='未绑定销售'
     )
+    min_bind_time = filters.DateTimeFilter(
+        field_name="customerrelation__created", lookup_expr='gte',
+        help_text='绑定时间')
+    max_bind_time = filters.DateTimeFilter(
+        field_name="customerrelation__created", lookup_expr='lte',)
 
     class Meta:
         model = UserInfo
@@ -265,7 +270,8 @@ class UserInfoFilter(filters.FilterSet):
             'min_last_active_time', 'max_last_active_time',
             'min_access_times', 'max_access_times',
             'min_coin', 'max_coin', 'customerrelation__seller',
-            'user__mobile', 'unbind_seller')
+            'user__mobile', 'unbind_seller', 'min_bind_time',
+            'max_bind_time', )
 
 
 class UserInfoViewSet(SellerFilterViewSet,
@@ -778,7 +784,9 @@ class UserBehaviorViewSet(CompanyFilterViewSet,
 
         class Meta:
             model = UserBehavior
-            fields = ['user__mobile', 'min_created_time', 'max_created_time', 'category']
+            fields = ['user__mobile', 'min_created_time', 'max_created_time', 'category',
+                      'user__userinfo__is_seller',
+                      ]
 
     queryset = UserBehavior.objects.order_by('id')
     serializer_class = UserBehaviorSerializer

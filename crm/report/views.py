@@ -187,7 +187,8 @@ class UserBehaviorReport(UserBehaviorViewSet):
     @action(detail=False)
     def signup(self, request):
         """用户注册"""
-        queryset = self.filter_queryset(self.get_queryset()).filter(category='signup')
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            category='signup', user__userinfo__is_seller=False)
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
@@ -209,7 +210,8 @@ class UserBehaviorReport(UserBehaviorViewSet):
     @action(detail=False)
     def sampleroom(self, request):
         """样板房"""
-        queryset = self.filter_queryset(self.get_queryset()).filter(category='sampleroom')
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            category='sampleroom', user__userinfo__is_seller=False)
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
@@ -231,7 +233,8 @@ class UserBehaviorReport(UserBehaviorViewSet):
     @action(detail=False)
     def sellerbind(self, request):
         """绑定销售"""
-        queryset = self.filter_queryset(self.get_queryset()).filter(category='sellerbind')
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            category='sellerbind', user__userinfo__is_seller=False)
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
@@ -253,7 +256,8 @@ class UserBehaviorReport(UserBehaviorViewSet):
     @action(detail=False)
     def look3d(self, request):
         """3d看房"""
-        queryset = self.filter_queryset(self.get_queryset()).filter(category='3dvr')
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            category='3dvr', user__userinfo__is_seller=False)
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
@@ -275,7 +279,8 @@ class UserBehaviorReport(UserBehaviorViewSet):
     @action(detail=False)
     def access(self, request):
         """到访记录"""
-        queryset = self.filter_queryset(self.get_queryset()).filter(category='access')
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            category='access', user__userinfo__is_seller=False)
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
