@@ -29,7 +29,7 @@ from ..user.utils import get_or_create_user
 from rest_framework.utils import model_meta
 import traceback
 import django
-# import json
+import json
 from django.utils import timezone
 
 
@@ -101,6 +101,13 @@ class BackendUserSerializer(serializers.ModelSerializer):
         queryset=BackendRole.objects.all(), source='role')
     is_active = serializers.BooleanField(
         required=False, default=True)
+
+    def validate_mobile(self, mobile):
+        company_id = self.context['request'].user.company_id
+        user = BaseUser.objects.filter(mobile=mobile, company_id=company_id)
+        if not user.exists():
+            raise serializers.ValidationError('未注册手机号')
+        return mobile
 
     def get_fields(self):
         fields = super().get_fields()
@@ -175,6 +182,10 @@ class UserInfoSerializer(serializers.ModelSerializer):
         source='get_gender_display', read_only=True)
     status_display = serializers.CharField(
         source='get_status_display', read_only=True)
+    extra_info = serializers.JSONField(
+        help_text='额外参数', required=False, write_only=True)
+    customer_remark = serializers.CharField(
+        help_text='客户备注名', required=False, write_only=True)
     seller = serializers.SerializerMethodField()
     extra_data = serializers.SerializerMethodField()
     mark_name = serializers.SerializerMethodField()
@@ -215,6 +226,30 @@ class UserInfoSerializer(serializers.ModelSerializer):
             .astimezone(
                 timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
 
+    def update(self, instance, validated_data):
+        extra_info = validated_data.pop('extra_info', '')
+        customer_remark = validated_data.pop('customer_remark', '')
+        if extra_info:
+            try:
+                extra_data = json.loads(instance.extra_data)
+            except Exception:
+                extra_data = {}
+            extra_data.update(extra_info)
+            validated_data['extra_data'] = json.dumps(extra_data)
+        if customer_remark:
+            CustomerRelation.objects.filter(user=instance).update(mark_name=customer_remark)
+
+        info = model_meta.get_field_info(instance)
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                field = getattr(instance, attr)
+                field.set(value)
+            else:
+                setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
     class Meta:
         model = UserInfo
         fields = (
@@ -239,6 +274,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'extra_data',
             'mark_name',
             'bind_relation_time',
+            'extra_info',
+            'customer_remark',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
@@ -272,6 +309,7 @@ class BackendUserInfoSerializer(UserInfoSerializer):
         model = UserInfo
         fields = UserInfoSerializer.Meta.fields + (
             'coupon_count',)
+        read_only_fields = UserInfoSerializer.Meta.read_only_fields
 
 
 class UserOnlineOrderSerializer(serializers.ModelSerializer):
@@ -621,6 +659,13 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
         help_text='用户手机号', max_length=20)
     company_id = serializers.CharField(
         help_text='公司编号', max_length=50, write_only=True)
+    name = serializers.SerializerMethodField(
+        help_text='用户姓名'
+    )
+
+    def get_name(self, instance):
+        name = instance.user.userinfo.name
+        return name
 
     def create(self, validated_data):
         mobile = validated_data.pop('mobile')
@@ -650,6 +695,7 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
             'category',
             'location',
             'created',
+            'name',
         )
         read_only_fields = ('created',)
 

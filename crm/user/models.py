@@ -190,9 +190,10 @@ class UserInfo(models.Model, UserMobileMixin):
         ], default=0, verbose_name='性别')
     status = models.IntegerField(
         choices=[
-            (0, '接触中'),
+            (0, '未接触'),
             (1, '观望中'),
             (2, '购房成功'),
+            (3, '接触中'),
         ], default=0, verbose_name='购房状态')
     note = models.TextField(
         verbose_name='备注', default='')
@@ -211,7 +212,7 @@ class UserInfo(models.Model, UserMobileMixin):
     spend_coin = models.IntegerField(
         verbose_name='花费积分', default=0)
     extra_data = models.TextField(
-        verbose_name='额外参数', default='')
+        verbose_name='额外参数', default={})
 
     def get_extra_data_json(self):
         try:

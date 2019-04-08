@@ -1,6 +1,8 @@
 from rest_framework.permissions import AllowAny
 from datetime import date
 
+from rest_framework.views import APIView
+
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -33,7 +35,7 @@ from ..core.views import (
     custom_permission,
     )
 # from django.http import Http404
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 # from django.http import Http404
 from .serializers import (
@@ -243,10 +245,14 @@ class UserInfoFilter(filters.FilterSet):
     max_access_times = filters.NumberFilter(
         field_name="access_times", lookup_expr='lte')
     min_coin = filters.NumberFilter(
-        field_name="spend_coin", lookup_expr='gte',
+        field_name="coin", lookup_expr='gte',
         help_text='积分')
     max_coin = filters.NumberFilter(
         field_name="coin", lookup_expr='lte')
+    unbind_seller = filters.BooleanFilter(
+        field_name="customerrelation__seller", lookup_expr='isnull',
+        help_text='未绑定销售'
+    )
 
     class Meta:
         model = UserInfo
@@ -258,7 +264,8 @@ class UserInfoFilter(filters.FilterSet):
             'max_spend_coin', 'min_spend_coin',
             'min_last_active_time', 'max_last_active_time',
             'min_access_times', 'max_access_times',
-            'min_coin', 'max_coin', 'customerrelation__seller')
+            'min_coin', 'max_coin', 'customerrelation__seller',
+            'user__mobile', 'unbind_seller')
 
 
 class UserInfoViewSet(SellerFilterViewSet,
@@ -327,6 +334,17 @@ class UserInfoViewSet(SellerFilterViewSet,
     lookup_field = 'user__mobile'
     companyfilter_field = 'user__company_id'
     userfilter_field = 'customerrelation__seller__user__mobile'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        is_sampleroom = self.request.GET.get('is_sampleroom')
+        if is_sampleroom == 'true':
+            extra_data = '"is_sampleroom": true'
+            queryset = queryset.filter(extra_data__icontains=extra_data)
+        elif is_sampleroom == 'false':
+            extra_data = '"is_sampleroom": true'
+            queryset = queryset.exclude(extra_data__icontains=extra_data)
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -486,6 +504,23 @@ class SellerViewSet(CompanyFilterViewSet,
     #     return Response(serializer.data)
 
 
+class CustomerRelationFilter(filters.FilterSet):
+    mark_name = filters.CharFilter(
+        field_name="mark_name", lookup_expr='icontains',
+        help_text='备注名'
+    )
+    user__user__mobile = filters.CharFilter(
+        field_name="user__user__mobile", lookup_expr='icontains',
+        help_text='客户手机'
+    )
+
+    class Meta:
+        model = CustomerRelation
+        fields = (
+            'user__user__mobile', 'seller__user__mobile', 'mark_name',
+        )
+
+
 class CustomerRelationViewSet(CompanyFilterViewSet,
                               mixins.ListModelMixin,
                               mixins.UpdateModelMixin):
@@ -518,15 +553,16 @@ class CustomerRelationViewSet(CompanyFilterViewSet,
 
     queryset = CustomerRelation.objects.order_by('created')
     serializer_class = CustomerRelationSerializer
-    filterset_fields = (
-        'user__user__mobile',
-        'seller__user__mobile',
-        'mark_name',
-    )
+    # filterset_fields = (
+    #     'user__user__mobile',
+    #     'seller__user__mobile',
+    #     'mark_name',
+    # )
     userfilter_field = 'seller__user__mobile'
     ordering = ('created',)
     lookup_url_kwarg = 'user__user__mobile'
     lookup_field = 'user__user__mobile'
+    filterset_class = CustomerRelationFilter
 
 
 class CoinRuleViewSet(CompanyFilterViewSet,
@@ -733,9 +769,21 @@ class UserBehaviorViewSet(CompanyFilterViewSet,
         custom_permission(c_perms),
     )
 
+    class UserBehaviorFilter(filters.FilterSet):
+        min_created_time = filters.DateTimeFilter(
+            field_name="created", lookup_expr='gte',
+            help_text='创建时间')
+        max_created_time = filters.DateTimeFilter(
+            field_name="created", lookup_expr='lte')
+
+        class Meta:
+            model = UserBehavior
+            fields = ['user__mobile', 'min_created_time', 'max_created_time', 'category']
+
     queryset = UserBehavior.objects.order_by('id')
     serializer_class = UserBehaviorSerializer
     companyfilter_field = 'user__company_id'
+    filter_class = UserBehaviorFilter
 
 
 class QRCodeViewSet(CompanyFilterViewSet,
@@ -805,6 +853,7 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 
 
 @api_view(['GET'])
+@permission_classes((AllowAny, ))
 def sdvr(request):
     mobile = request.GET.get('mobile')
     user = BaseUser.objects.filter(mobile=mobile).first()
