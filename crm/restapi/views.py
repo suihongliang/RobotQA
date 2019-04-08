@@ -274,7 +274,7 @@ class UserInfoFilter(filters.FilterSet):
             'max_bind_time', )
 
 
-class UserInfoViewSet(CompanyFilterViewSet,
+class UserInfoViewSet(SellerFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin,
@@ -339,6 +339,7 @@ class UserInfoViewSet(CompanyFilterViewSet,
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
     companyfilter_field = 'user__company_id'
+    userfilter_field = 'customerrelation__seller__user__mobile'
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -526,7 +527,7 @@ class CustomerRelationFilter(filters.FilterSet):
         )
 
 
-class CustomerRelationViewSet(SellerFilterViewSet,
+class CustomerRelationViewSet(CompanyFilterViewSet,
                               mixins.ListModelMixin,
                               mixins.UpdateModelMixin):
     '''
