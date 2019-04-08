@@ -191,6 +191,16 @@ class UserInfoSerializer(serializers.ModelSerializer):
     mark_name = serializers.SerializerMethodField()
     bind_relation_time = serializers.SerializerMethodField()
 
+    new_message = serializers.SerializerMethodField()
+
+    def get_new_message(self, instance):
+        latest_record = UserCoinRecord.objects.latest('created')
+        if not latest_record:
+            return False
+        if latest_record.created <= instance.msg_last_at:
+            return False
+        return True
+
     def get_mark_name(self, instance):
         try:
             return instance.customerrelation.mark_name
@@ -273,6 +283,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'spend_coin',
             'extra_data',
             'mark_name',
+            'new_message',
             'bind_relation_time',
             'extra_info',
             'customer_remark',
