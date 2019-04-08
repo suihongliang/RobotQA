@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
+from .models import BackendUser
 
 logger = logging.getLogger('user_logger')
 
@@ -30,7 +31,17 @@ class LoginView(View):
             if user.is_active:
                 login(request, user)
                 return JsonResponse(
-                    {'results': {'mobile': mobile, 'company_id': user.company_id}})
+                    {
+                        'results': {
+                            'mobile': mobile,
+                            'company_id': user.company_id
+                        }
+                    })
+        else:
+            if BackendUser.objects.filter(
+                    username=mobile, is_active=False).exists():
+                return JsonResponse(
+                    {'detail': '此用户被禁用'}, status=403)
         return JsonResponse(
             {'detail': '用户名或密码错误'}, status=400)
 

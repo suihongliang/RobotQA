@@ -245,7 +245,7 @@ class UserInfoFilter(filters.FilterSet):
     max_access_times = filters.NumberFilter(
         field_name="access_times", lookup_expr='lte')
     min_coin = filters.NumberFilter(
-        field_name="spend_coin", lookup_expr='gte',
+        field_name="coin", lookup_expr='gte',
         help_text='积分')
     max_coin = filters.NumberFilter(
         field_name="coin", lookup_expr='lte')
@@ -253,6 +253,7 @@ class UserInfoFilter(filters.FilterSet):
         field_name="customerrelation__seller", lookup_expr='isnull',
         help_text='未绑定销售'
     )
+
     class Meta:
         model = UserInfo
         fields = (
@@ -267,7 +268,7 @@ class UserInfoFilter(filters.FilterSet):
             'user__mobile', 'unbind_seller')
 
 
-class UserInfoViewSet(CompanyFilterViewSet,
+class UserInfoViewSet(SellerFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin,
@@ -332,6 +333,7 @@ class UserInfoViewSet(CompanyFilterViewSet,
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
     companyfilter_field = 'user__company_id'
+    userfilter_field = 'customerrelation__seller__user__mobile'
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -502,7 +504,24 @@ class SellerViewSet(CompanyFilterViewSet,
     #     return Response(serializer.data)
 
 
-class CustomerRelationViewSet(SellerFilterViewSet,
+class CustomerRelationFilter(filters.FilterSet):
+    mark_name = filters.CharFilter(
+        field_name="mark_name", lookup_expr='icontains',
+        help_text='备注名'
+    )
+    user__user__mobile = filters.CharFilter(
+        field_name="user__user__mobile", lookup_expr='icontains',
+        help_text='客户手机'
+    )
+
+    class Meta:
+        model = CustomerRelation
+        fields = (
+            'user__user__mobile', 'seller__user__mobile', 'mark_name',
+        )
+
+
+class CustomerRelationViewSet(CompanyFilterViewSet,
                               mixins.ListModelMixin,
                               mixins.UpdateModelMixin):
     '''
@@ -534,15 +553,16 @@ class CustomerRelationViewSet(SellerFilterViewSet,
 
     queryset = CustomerRelation.objects.order_by('created')
     serializer_class = CustomerRelationSerializer
-    filterset_fields = (
-        'user__user__mobile',
-        'seller__user__mobile',
-        'mark_name',
-    )
+    # filterset_fields = (
+    #     'user__user__mobile',
+    #     'seller__user__mobile',
+    #     'mark_name',
+    # )
     userfilter_field = 'seller__user__mobile'
     ordering = ('created',)
     lookup_url_kwarg = 'user__user__mobile'
     lookup_field = 'user__user__mobile'
+    filterset_class = CustomerRelationFilter
 
 
 class CoinRuleViewSet(CompanyFilterViewSet,
