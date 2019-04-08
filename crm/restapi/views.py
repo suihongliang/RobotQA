@@ -261,7 +261,7 @@ class UserInfoFilter(filters.FilterSet):
             'min_coin', 'max_coin', 'customerrelation__seller')
 
 
-class UserInfoViewSet(CompanyFilterViewSet,
+class UserInfoViewSet(SellerFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin,
@@ -326,6 +326,7 @@ class UserInfoViewSet(CompanyFilterViewSet,
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
     companyfilter_field = 'user__company_id'
+    userfilter_field = 'customerrelation__seller__user__mobile'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -485,7 +486,7 @@ class SellerViewSet(CompanyFilterViewSet,
     #     return Response(serializer.data)
 
 
-class CustomerRelationViewSet(SellerFilterViewSet,
+class CustomerRelationViewSet(CompanyFilterViewSet,
                               mixins.ListModelMixin,
                               mixins.UpdateModelMixin):
     '''
