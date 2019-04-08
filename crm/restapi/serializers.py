@@ -106,7 +106,7 @@ class BackendUserSerializer(serializers.ModelSerializer):
         company_id = self.context['request'].user.company_id
         user = BaseUser.objects.filter(mobile=mobile, company_id=company_id)
         if not user.exists():
-            raise serializers.ValidationError({'detail': '未注册手机号'})
+            raise serializers.ValidationError('未注册手机号')
         return mobile
 
     def get_fields(self):
