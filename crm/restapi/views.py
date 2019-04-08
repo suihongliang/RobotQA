@@ -245,7 +245,7 @@ class UserInfoFilter(filters.FilterSet):
     max_access_times = filters.NumberFilter(
         field_name="access_times", lookup_expr='lte')
     min_coin = filters.NumberFilter(
-        field_name="spend_coin", lookup_expr='gte',
+        field_name="coin", lookup_expr='gte',
         help_text='积分')
     max_coin = filters.NumberFilter(
         field_name="coin", lookup_expr='lte')
@@ -502,6 +502,23 @@ class SellerViewSet(CompanyFilterViewSet,
     #     return Response(serializer.data)
 
 
+class CustomerRelationFilter(filters.FilterSet):
+    mark_name = filters.CharFilter(
+        field_name="mark_name", lookup_expr='icontains',
+        help_text='备注名'
+    )
+    user__user__mobile = filters.CharFilter(
+        field_name="user__user__mobile", lookup_expr='icontains',
+        help_text='客户手机'
+    )
+
+    class Meta:
+        model = CustomerRelation
+        fields = (
+            'user__user__mobile', 'seller__user__mobile', 'mark_name',
+        )
+
+
 class CustomerRelationViewSet(SellerFilterViewSet,
                               mixins.ListModelMixin,
                               mixins.UpdateModelMixin):
@@ -534,15 +551,16 @@ class CustomerRelationViewSet(SellerFilterViewSet,
 
     queryset = CustomerRelation.objects.order_by('created')
     serializer_class = CustomerRelationSerializer
-    filterset_fields = (
-        'user__user__mobile',
-        'seller__user__mobile',
-        'mark_name',
-    )
+    # filterset_fields = (
+    #     'user__user__mobile',
+    #     'seller__user__mobile',
+    #     'mark_name',
+    # )
     userfilter_field = 'seller__user__mobile'
     ordering = ('created',)
     lookup_url_kwarg = 'user__user__mobile'
     lookup_field = 'user__user__mobile'
+    filterset_class = CustomerRelationFilter
 
 
 class CoinRuleViewSet(CompanyFilterViewSet,
