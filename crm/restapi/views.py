@@ -249,7 +249,10 @@ class UserInfoFilter(filters.FilterSet):
         help_text='积分')
     max_coin = filters.NumberFilter(
         field_name="coin", lookup_expr='lte')
-
+    unbind_seller = filters.BooleanFilter(
+        field_name="customerrelation__seller", lookup_expr='isnull',
+        help_text='未绑定销售'
+    )
     class Meta:
         model = UserInfo
         fields = (
@@ -261,7 +264,7 @@ class UserInfoFilter(filters.FilterSet):
             'min_last_active_time', 'max_last_active_time',
             'min_access_times', 'max_access_times',
             'min_coin', 'max_coin', 'customerrelation__seller',
-            'user__mobile')
+            'user__mobile', 'unbind_seller')
 
 
 class UserInfoViewSet(CompanyFilterViewSet,

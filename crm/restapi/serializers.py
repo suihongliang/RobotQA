@@ -102,6 +102,13 @@ class BackendUserSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(
         required=False, default=True)
 
+    def validate_mobile(self, mobile):
+        company_id = self.context['request'].user.company_id
+        user = BaseUser.objects.filter(mobile=mobile, company_id=company_id)
+        if not user.exist():
+            raise serializers.ValidationError({'detail': '未注册手机号'})
+        return mobile
+
     def get_fields(self):
         fields = super().get_fields()
 
@@ -177,6 +184,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
         source='get_status_display', read_only=True)
     extra_info = serializers.JSONField(
         help_text='额外参数', required=False, write_only=True)
+    customer_remark = serializers.CharField(
+        help_text='客户备注名', required=False, write_only=True)
     seller = serializers.SerializerMethodField()
     extra_data = serializers.SerializerMethodField()
     mark_name = serializers.SerializerMethodField()
@@ -219,6 +228,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         extra_info = validated_data.pop('extra_info', '')
+        customer_remark = validated_data.pop('customer_remark', '')
         if extra_info:
             try:
                 extra_data = json.loads(instance.extra_data)
@@ -226,6 +236,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 extra_data = {}
             extra_data.update(extra_info)
             validated_data['extra_data'] = json.dumps(extra_data)
+        if customer_remark:
+            CustomerRelation.objects.filter(user=instance).update(mark_name=customer_remark)
 
         info = model_meta.get_field_info(instance)
         for attr, value in validated_data.items():
@@ -263,6 +275,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'mark_name',
             'bind_relation_time',
             'extra_info',
+            'customer_remark',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
