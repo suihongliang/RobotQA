@@ -47,7 +47,7 @@ class BaseUserAdmin():
 class UserInfoAdmin():
     '''
     '''
-    list_display = ('user', 'mobile', 'created')
+    list_display = ('user', 'mobile', 'created', 'msg_last_at')
     ordering = ('created',)
 
 

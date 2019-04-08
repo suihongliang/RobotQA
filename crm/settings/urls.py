@@ -17,7 +17,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
-from crm.restapi.views import sdvr
+from crm.restapi.views import sdvr, message
 from ..restapi import views as rest_views
 from ..user import views as user_views
 import xadmin
@@ -55,6 +55,7 @@ urlpatterns = [
     path(r'api/1.0/product/', include('crm.product.urls')),
     path(r'api/1.0/order/', include('crm.order.urls')),
     path(r'api/1.0/report/', include('crm.report.urls')),
+    path(r'api/1.0/message/', message),
 ]
 
 # if settings.DEBUG:

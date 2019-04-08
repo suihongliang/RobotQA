@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import (
@@ -167,6 +169,9 @@ class BaseUser(models.Model):
         verbose_name = '用户'
         unique_together = (("mobile", "company_id"),)
 
+def before_day():
+    return timezone.now() - timedelta(days=1)
+
 
 class UserInfo(models.Model, UserMobileMixin):
     '''
@@ -213,6 +218,9 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='花费积分', default=0)
     extra_data = models.TextField(
         verbose_name='额外参数', default={})
+    msg_last_at = models.DateTimeField(
+        verbose_name="上次读取消息时间",
+        default=before_day)
 
     def get_extra_data_json(self):
         try:

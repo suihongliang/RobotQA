@@ -1,5 +1,5 @@
 from rest_framework.permissions import AllowAny
-from datetime import date
+from datetime import date, datetime
 
 from rest_framework.views import APIView
 
@@ -869,3 +869,18 @@ def sdvr(request):
                 'coin': rule.coin, 'update_status': True, 'extra_data': {}})
     return HttpResponseRedirect(
         "https://beyond.3dnest.cn/house/?m=shhzhb_xykjly_62&from=groupmessage/")  # noqa
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny, ))
+def message(request):
+    mobile = request.GET.get('mobile')
+    user = BaseUser.objects.filter(mobile=mobile).first()
+    record_list = UserCoinRecord.objects.filter(user_id=user.id).order_by('-id')
+    ret = []
+    for record in record_list:
+        ret.append({'coin': record.coin,
+                    'created': str(record.created),
+                    'rule': record.rule.get_category_display() if record.rule else None})
+    UserInfo.objects.filter(user_id=user.id).update(**{'msg_last_at': datetime.now()})
+    return Response(ret)
