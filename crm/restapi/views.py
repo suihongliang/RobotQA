@@ -345,11 +345,9 @@ class UserInfoViewSet(SellerFilterViewSet,
         queryset = super().get_queryset()
         is_sampleroom = self.request.GET.get('is_sampleroom')
         if is_sampleroom == 'true':
-            extra_data = '"is_sampleroom": true'
-            queryset = queryset.filter(extra_data__icontains=extra_data)
+            queryset = queryset.select_related('user').filter(user__userbehavior__category='sampleroom').distinct()
         elif is_sampleroom == 'false':
-            extra_data = '"is_sampleroom": true'
-            queryset = queryset.exclude(extra_data__icontains=extra_data)
+            queryset = queryset.select_related('user').exclude(user__userbehavior__category='sampleroom')
         return queryset
 
     def get_serializer_class(self):

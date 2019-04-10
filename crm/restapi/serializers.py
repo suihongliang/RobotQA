@@ -190,8 +190,23 @@ class UserInfoSerializer(serializers.ModelSerializer):
     extra_data = serializers.SerializerMethodField()
     mark_name = serializers.SerializerMethodField()
     bind_relation_time = serializers.SerializerMethodField()
-
+    is_sampleroom = serializers.SerializerMethodField()
+    is_3dvr = serializers.SerializerMethodField()
     new_message = serializers.SerializerMethodField()
+
+    def get_is_3dvr(self, instance):
+        behavior = UserBehavior.objects.filter(user=instance.user, category='3dvr')
+        if behavior.exists():
+            return True
+        else:
+            return False
+
+    def get_is_sampleroom(self, instance):
+        behavior = UserBehavior.objects.filter(user=instance.user, category='sampleroom')
+        if behavior.exists():
+            return True
+        else:
+            return False
 
     def get_new_message(self, instance):
         latest_record = UserCoinRecord.objects.latest('created')
@@ -287,6 +302,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'bind_relation_time',
             'extra_info',
             'customer_remark',
+            'is_sampleroom',
+            'is_3dvr',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
