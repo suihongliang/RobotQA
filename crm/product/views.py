@@ -22,10 +22,10 @@ class StoreProductViewSet(ViewSet):
     """
     c_perms = {
         'list': [
-            'product_m',
+            'product_m', 'product_m_read',
         ],
         'retrieve': [
-            'product_m',
+            'product_m', 'product_m_read',
         ],
         'create': [
             'product_m',

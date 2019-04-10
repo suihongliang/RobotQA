@@ -678,22 +678,22 @@ class CouponViewSet(CompanyFilterViewSet,
 
     c_perms = {
         'list': [
-            'system_m',
+            'system_m', 'coin_m',
         ],
         'create': [
-            'system_m',
+            'system_m', 'coin_m',
         ],
         'retrieve': [
-            'system_m',
+            'system_m', 'coin_m',
         ],
         'destroy': [
-            'system_m',
+            'system_m', 'coin_m',
         ],
         'update': [
-            'system_m',
+            'system_m', 'coin_m',
         ],
         'partial_update': [
-            'system_m',
+            'system_m', 'coin_m',
         ],
     }
     permission_classes = (

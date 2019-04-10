@@ -6,7 +6,6 @@ class Command(BaseCommand):
     help = 'Create Backend Permission'
 
     def handle(self, *args, **options):
-        print(args, options)
         permissions = (
             ('customer_m', '客户管理',),
             ('product_m', '商品管理',),
