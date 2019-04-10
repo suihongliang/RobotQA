@@ -11,9 +11,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='userinfo',
-            name='msg_last_at',
-            field=models.DateTimeField(default=crm.user.models.before_day, verbose_name='上次读取消息时间'),
-        ),
+
     ]
