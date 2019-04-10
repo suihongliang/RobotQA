@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.permissions import AllowAny
 from datetime import date, datetime
+from django.conf import settings
 
 from rest_framework.views import APIView
 
@@ -876,8 +877,7 @@ def sdvr(request):
             rule=rule,
             created__date=date.today(), defaults={
                 'coin': rule.coin, 'update_status': True, 'extra_data': {}})
-    return HttpResponseRedirect(
-        "https://beyond.3dnest.cn/house/?m=shhzhb_xykjly_62&from=groupmessage/")  # noqa
+    return HttpResponseRedirect(settings.SD_URL)
 
 
 @api_view(['GET'])
