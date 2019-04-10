@@ -3,13 +3,15 @@ from crm.sale.models import Seller, CustomerRelation
 from crm.user.models import UserBehavior
 from rest_framework.response import Response
 from crm.discount.models import UserCoinRecord, CoinRule
-
+from crm.user.models import BaseUser
 
 @api_view()
 @permission_classes([])
 def scan_bind_seller(request):
     code = request.GET.get('code', '')
     mobile_customer = request.GET.get('mobile_customer')
+    company_id = request.GET.get('company_id')
+    user = BaseUser.objects.get_or_create(mobile=mobile_customer, defaults={'company_id': company_id})
     customer_relation = CustomerRelation.objects.get(
         user__user__mobile=mobile_customer)
     if customer_relation.seller:
