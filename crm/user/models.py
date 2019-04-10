@@ -217,7 +217,7 @@ class UserInfo(models.Model, UserMobileMixin):
     spend_coin = models.IntegerField(
         verbose_name='花费积分', default=0)
     extra_data = models.TextField(
-        verbose_name='额外参数', default={})
+        verbose_name='额外参数', default=json.dumps({}))
     msg_last_at = models.DateTimeField(
         verbose_name="上次读取消息时间",
         default=before_day)
