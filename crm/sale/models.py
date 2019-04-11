@@ -64,7 +64,7 @@ class CustomerRelation(models.Model):
     mark_name = models.CharField(
         max_length=25, verbose_name='备注昵称', default='')
     created = models.DateTimeField(
-        verbose_name='创建时间', auto_now=True)
+        verbose_name='创建时间', auto_now_add=True)
 
     def __str__(self):
         return str(self.seller)
