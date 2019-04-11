@@ -289,7 +289,7 @@ class UserBehavior(models.Model, UserMobileMixin):
     user = models.ForeignKey(
         BaseUser, on_delete=models.CASCADE, verbose_name="用户")
     created = models.DateTimeField(
-        verbose_name='创建时间', default=timezone.now)
+        verbose_name='创建时间', auto_now_add=True)
     """
     access: 到访(摄像头)
     signup: 注册

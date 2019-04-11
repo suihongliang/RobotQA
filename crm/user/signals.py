@@ -4,6 +4,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
+
 from crm.discount.models import UserCoinRecord, CoinRule
 from .models import (
     BaseUser,
@@ -79,7 +80,7 @@ def user_behavior_event(sender, **kwargs):
     category = instance.category
     filter_query = {'category': category, 'user': instance.user}
     if category not in ('signup', 'sellerbind'):  # 注册 绑定销售
-        filter_query.update({'created__date': instance.created.date()})
+        filter_query.update({'created__date': timezone.now().date()})
     user_behavior_record = UserBehavior.objects.filter(**filter_query).exists()
 
     category_flag = None
@@ -101,9 +102,9 @@ def user_behavior_event(sender, **kwargs):
             ub = UserBehavior.objects.filter(
                 user_id=instance.user_id,
                 category=category,
-                created__date=instance.created.date()).order_by('-created').first()
-            if ub and instance.location == 'in':
-                stay_seconds = (instance.created - ub.created).seconds
+                created__date=timezone.now().date()).order_by('-created').first()
+            if ub and ub.location == 'in':
+                stay_seconds = (timezone.now() - ub.created).seconds
                 instance.user.userinfo.sampleroom_seconds += stay_seconds
         else:
             instance.user.userinfo.sampleroom_times += 1
