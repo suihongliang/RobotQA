@@ -60,6 +60,7 @@ from .serializers import (
     QRCodeSerializer,
     CoinQRCodeSerializer,
     BackendGroupSerializer,
+    BackendGroupDetailSerializer,
 )
 from django_filters import rest_framework as filters
 from django.http import Http404, HttpResponseRedirect
@@ -186,6 +187,7 @@ class BackendGroupViewSet(mixins.RetrieveModelMixin,
                           mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           mixins.UpdateModelMixin,
+                          mixins.DestroyModelMixin,
                           viewsets.GenericViewSet,):
     '''
     list:
@@ -228,6 +230,11 @@ class BackendGroupViewSet(mixins.RetrieveModelMixin,
 
     queryset = BackendGroup.objects.order_by('id')
     serializer_class = BackendGroupSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return BackendGroupDetailSerializer
+        return BackendGroupSerializer
 
 
 class BackendUserViewSet(SellerFilterViewSet,

@@ -46,11 +46,7 @@ class SellerReport(UserInfoViewSet):
             bind_time = row['bind_relation_time']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
-            if row['extra_data']:
-                model_houses = '已看' if row['extra_data'].get('is_sampleroom')\
-                    else '未看'
-            else:
-                model_houses = '未看'
+            model_houses = '已看' if row['is_sampleroom'] else '未看'
             willingness = row['willingness']
             net_worth = row['net_worth']
             status_display = row['status_display']
@@ -111,13 +107,8 @@ class CustomerReport(UserInfoViewSet):
             created = row['created']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
-            if row['extra_data']:
-                model_houses = '已看' if row['extra_data'].get('is_sampleroom')\
-                    else '未看'
-                look_3d = '已看' if row['extra_data'].get('is_3dvr') else '未看'
-            else:
-                model_houses = '未看'
-                look_3d = '未看'
+            model_houses = '已看' if row['is_sampleroom'] else '未看'
+            look_3d = '已看' if row['is_3dvr'] else '未看'
             coupon = row['coupon_count']
             coin = row['coin']
             spend_coin = row['spend_coin']

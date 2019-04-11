@@ -95,6 +95,70 @@ class BackendGroupSerializer(serializers.ModelSerializer):
 
     manager_name = serializers.CharField(
         source='manager.name', allow_null=True, read_only=True)
+    add_num = serializers.ListField(
+        help_text='添加', write_only=True, required=False)
+    remove_num = serializers.ListField(
+        help_text='移除', write_only=True, required=False)
+
+    def create(self, validated_data):
+        add_num = validated_data.pop('add_num', [])
+
+        ModelClass = self.Meta.model
+
+        info = model_meta.get_field_info(ModelClass)
+        many_to_many = {}
+        for field_name, relation_info in info.relations.items():
+            if relation_info.to_many and (field_name in validated_data):
+                many_to_many[field_name] = validated_data.pop(field_name)
+
+        try:
+            instance = ModelClass.objects.create(**validated_data)
+        except TypeError:
+            tb = traceback.format_exc()
+            msg = (
+                    'Got a `TypeError` when calling `%s.objects.create()`. '
+                    'This may be because you have a writable field on the '
+                    'serializer class that is not a valid argument to '
+                    '`%s.objects.create()`. You may need to make the field '
+                    'read-only, or override the %s.create() method to handle '
+                    'this correctly.\nOriginal exception was:\n %s' %
+                    (
+                        ModelClass.__name__,
+                        ModelClass.__name__,
+                        self.__class__.__name__,
+                        tb
+                    )
+            )
+            raise TypeError(msg)
+
+        # Save many-to-many relationships after the instance is created.
+        if many_to_many:
+            for field_name, value in many_to_many.items():
+                field = getattr(instance, field_name)
+                field.set(value)
+        if add_num:
+            BackendUser.objects.filter(id__in=add_num).update(group=instance)
+        return instance
+
+    def update(self, instance, validated_data):
+        add_num = validated_data.pop('add_num', [])
+        remove_num = validated_data.pop('remove_num', [])
+        if add_num:
+            BackendUser.objects.filter(id__in=add_num).update(group=instance)
+        if remove_num:
+            BackendUser.objects.filter(id__in=remove_num).update(group=None)
+
+        info = model_meta.get_field_info(instance)
+
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                field = getattr(instance, attr)
+                field.set(value)
+            else:
+                setattr(instance, attr, value)
+        instance.save()
+
+        return instance
 
     class Meta:
         model = BackendGroup
@@ -103,8 +167,23 @@ class BackendGroupSerializer(serializers.ModelSerializer):
             'name',
             'created',
             'manager',
-            'manager_name'
+            'manager_name',
+            'add_num',
+            'remove_num',
         )
+
+
+class BackendGroupDetailSerializer(BackendGroupSerializer):
+    member = serializers.SerializerMethodField()
+
+    def get_member(self, instance):
+        member = BackendUser.objects.filter(
+            group=instance).values('id', 'name', 'mobile')
+        return list(member)
+
+    class Meta:
+        model = BackendGroup
+        fields = BackendGroupSerializer.Meta.fields + ('member',)
 
 
 class BackendUserSerializer(serializers.ModelSerializer):
