@@ -1,5 +1,6 @@
 from rest_framework import permissions
 from rest_framework import viewsets
+from crm.user.models import BackendUser
 
 
 class CompanyFilterViewSet(viewsets.GenericViewSet):
@@ -37,8 +38,13 @@ class SellerFilterViewSet(CompanyFilterViewSet):
             if self.request.user.role:
                 if self.request.user.role.only_myself:
                     mobile = self.request.user.mobile
+                    mobiles = BackendUser.objects.filter(
+                        group__manager=self.request.user)\
+                        .values_list('mobile', flat=True)
+                    mobiles_list = list(mobiles)
+                    mobiles_list.append(mobile)
                     queryset = queryset.filter(
-                        **{self.userfilter_field: mobile})
+                        **{self.userfilter_field+'__in': mobiles_list})
             else:
                 queryset = queryset.filter(**{self.userfilter_field: ''})
         return queryset

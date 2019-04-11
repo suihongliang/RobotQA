@@ -43,6 +43,7 @@ router.register(r'sendcoupon', rest_views.SendCouponViewSet)
 router.register(r'userbehavior', rest_views.UserBehaviorViewSet)
 router.register(r'qrcode', rest_views.QRCodeViewSet)
 router.register(r'coin_qrcode', rest_views.CoinQRCodeViewSet)
+router.register(r'backendgroup', rest_views.BackendGroupViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),

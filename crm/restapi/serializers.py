@@ -8,6 +8,7 @@ from ..user.models import (
     BackendRole,
     BackendUser,
     UserBehavior,
+    BackendGroup,
     )
 from ..sale.models import (
     Seller,
@@ -90,6 +91,22 @@ class BackendRoleSerializer(AssignUserCompanySerializer):
         read_only_fields = ('created',)
 
 
+class BackendGroupSerializer(serializers.ModelSerializer):
+
+    manager_name = serializers.CharField(
+        source='manager.name', allow_null=True, read_only=True)
+
+    class Meta:
+        model = BackendGroup
+        fields = (
+            'id',
+            'name',
+            'created',
+            'manager',
+            'manager_name'
+        )
+
+
 class BackendUserSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(
@@ -101,6 +118,11 @@ class BackendUserSerializer(serializers.ModelSerializer):
         queryset=BackendRole.objects.all(), source='role')
     is_active = serializers.BooleanField(
         required=False, default=True)
+    group = BackendGroupSerializer(
+        read_only=True)
+    group_id = serializers.PrimaryKeyRelatedField(
+        write_only=True, allow_null=True,
+        queryset=BackendGroup.objects.all(), source='group')
 
     def validate_mobile(self, mobile):
         company_id = self.context['request'].user.company_id
@@ -172,6 +194,8 @@ class BackendUserSerializer(serializers.ModelSerializer):
             'role_id',
             'is_active',
             'name',
+            'group',
+            'group_id',
         )
         read_only_fields = ('created',)
 
@@ -209,7 +233,10 @@ class UserInfoSerializer(serializers.ModelSerializer):
             return False
 
     def get_new_message(self, instance):
-        latest_record = UserCoinRecord.objects.latest('created')
+        try:
+            latest_record = UserCoinRecord.objects.latest('created')
+        except Exception:
+            latest_record = None
         if not latest_record:
             return False
         if latest_record.created <= instance.msg_last_at:

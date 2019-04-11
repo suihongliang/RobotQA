@@ -8,6 +8,7 @@ from .models import (
     BackendPermission,
     BackendRole,
     BackendUser,
+    BackendGroup,
     )
 # from django.utils import timezone
 
@@ -33,7 +34,7 @@ class BackendRoleAdmin():
 class BackendUserAdmin():
     '''
     '''
-    list_display = ('id', 'mobile', 'created')
+    list_display = ('id', 'mobile', 'created', 'group')
 
 
 @xadmin.sites.register(BaseUser)
@@ -64,3 +65,10 @@ class UserBehaviorAdmin():
     '''
     '''
     list_display = ('user', 'mobile', 'created')
+
+
+@xadmin.sites.register(BackendGroup)
+class BackendGroupAdmin():
+    '''
+    '''
+    list_display = ('name', 'manager', 'created')

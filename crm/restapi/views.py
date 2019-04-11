@@ -13,6 +13,7 @@ from ..user.models import (
     BackendRole,
     BackendUser,
     UserBehavior,
+    BackendGroup,
     )
 from ..sale.models import (
     Seller,
@@ -58,6 +59,7 @@ from .serializers import (
     UserBehaviorSerializer,
     QRCodeSerializer,
     CoinQRCodeSerializer,
+    BackendGroupSerializer,
 )
 from django_filters import rest_framework as filters
 from django.http import Http404, HttpResponseRedirect
@@ -180,7 +182,55 @@ class BackendRoleViewSet(CompanyFilterViewSet,
     filterset_fields = ('is_seller',)
 
 
-class BackendUserViewSet(CompanyFilterViewSet,
+class BackendGroupViewSet(mixins.RetrieveModelMixin,
+                          mixins.ListModelMixin,
+                          mixins.CreateModelMixin,
+                          mixins.UpdateModelMixin,
+                          viewsets.GenericViewSet,):
+    '''
+    list:
+        获取后台组列表
+        ---
+
+    create:
+        创建后台组
+        ---
+
+    retrieve:
+        获取后台组详情
+        ---
+
+    update:
+        更新后台组
+        ---
+    '''
+    c_perms = {
+        'list': [
+            'system_m',
+        ],
+        'retrieve': [
+            'system_m',
+        ],
+        'create': [
+            'system_m',
+        ],
+        'update': [
+            'system_m',
+        ],
+        'partial_update': [
+            'system_m',
+        ],
+    }
+    permission_classes = (
+        # AllowAny,
+        custom_permission(c_perms),
+    )
+
+    queryset = BackendGroup.objects.order_by('id')
+    serializer_class = BackendGroupSerializer
+
+
+class BackendUserViewSet(SellerFilterViewSet,
                          mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          mixins.CreateModelMixin,
@@ -192,7 +242,7 @@ class BackendUserViewSet(CompanyFilterViewSet,
     '''
     c_perms = {
         'list': [
-            'system_m',
+            'system_m', 'system_m_read'
         ],
         'retrieve': [
             'system_m',
@@ -253,8 +303,7 @@ class UserInfoFilter(filters.FilterSet):
         field_name="coin", lookup_expr='lte')
     unbind_seller = filters.BooleanFilter(
         field_name="customerrelation__seller", lookup_expr='isnull',
-        help_text='未绑定销售'
-    )
+        help_text='未绑定销售')
     min_bind_time = filters.DateTimeFilter(
         field_name="customerrelation__created", lookup_expr='gte',
         help_text='绑定时间')
@@ -347,9 +396,11 @@ class UserInfoViewSet(SellerFilterViewSet,
         queryset = super().get_queryset()
         is_sampleroom = self.request.GET.get('is_sampleroom')
         if is_sampleroom == 'true':
-            queryset = queryset.select_related('user').filter(user__userbehavior__category='sampleroom').distinct()
+            queryset = queryset.select_related('user').filter(
+                user__userbehavior__category='sampleroom').distinct()
         elif is_sampleroom == 'false':
-            queryset = queryset.select_related('user').exclude(user__userbehavior__category='sampleroom')
+            queryset = queryset.select_related('user').exclude(
+                user__userbehavior__category='sampleroom')
         return queryset
 
     def get_serializer_class(self):
@@ -565,7 +616,7 @@ class CustomerRelationViewSet(CompanyFilterViewSet,
     #     'mark_name',
     # )
     userfilter_field = 'seller__user__mobile'
-    ordering = ('created',)
+    ordering = ('-created',)
     lookup_url_kwarg = 'user__user__mobile'
     lookup_field = 'user__user__mobile'
     filterset_class = CustomerRelationFilter

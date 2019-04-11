@@ -109,6 +109,24 @@ class BackendRole(models.Model):
         unique_together = (("name", "company_id"),)
 
 
+class BackendGroup(models.Model):
+
+    name = models.CharField(
+        max_length=20, unique=True,
+        verbose_name="备注名称")
+    created = models.DateTimeField(
+        verbose_name='创建时间', default=timezone.now)
+    manager = models.ForeignKey(
+        "user.BackendUser", null=True, blank=True,
+        on_delete=models.SET_NULL, verbose_name="管理员")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = '用户组'
+
+
 class BackendUser(AbstractBaseUser, PermissionsMixin):
 
     mobile = models.CharField(
@@ -130,6 +148,9 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
         max_length=20, verbose_name="公司id")
     name = models.CharField(
         max_length=25, verbose_name='昵称', default='')
+    group = models.ForeignKey(
+        BackendGroup, null=True, blank=True, on_delete=models.SET_NULL,
+        verbose_name="用户组")
 
     objects = BackendUserManager()
 
@@ -168,6 +189,7 @@ class BaseUser(models.Model):
     class Meta:
         verbose_name = '用户'
         unique_together = (("mobile", "company_id"),)
+
 
 def before_day():
     return timezone.now() - timedelta(days=1)
