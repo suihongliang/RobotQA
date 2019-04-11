@@ -2,6 +2,7 @@ import json
 
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from crm.discount.models import UserCoinRecord, CoinRule
 from .models import (
@@ -81,12 +82,11 @@ def user_behavior_event(sender, **kwargs):
         filter_query.update({'created__date': instance.created.date()})
     user_behavior_record = UserBehavior.objects.filter(**filter_query).exists()
 
-    if user_behavior_record:
-        return
     category_flag = None
     if category == 'access':
         # 某天第一次到访
         category_flag = 1
+        instance.user.userinfo.last_active_time = timezone.now()
         instance.user.userinfo.access_times += 1
         if instance.user.userinfo.access_times == 1:
             instance.user.userinfo.willingness = '低'
@@ -97,6 +97,17 @@ def user_behavior_event(sender, **kwargs):
         instance.user.userinfo.save()
     elif category == 'sampleroom':
         # 看样板房
+        if instance.location == 'out':
+            ub = UserBehavior.objects.filter(
+                user_id=instance.user_id,
+                category=category,
+                created__date=instance.created.date()).order_by('-created').first()
+            if ub and instance.location == 'in':
+                stay_seconds = (instance.created - ub.created).seconds
+                instance.user.userinfo.sampleroom_seconds += stay_seconds
+        else:
+            instance.user.userinfo.sampleroom_times += 1
+        instance.user.userinfo.save()
         category_flag = 5
     elif category == 'microstore':
         # 门店到访
@@ -110,6 +121,9 @@ def user_behavior_event(sender, **kwargs):
     elif category == 'activity3':
         # 活动扫码送积分5
         category_flag = 10
+
+    if user_behavior_record:  # 记录存在则不加积分
+        return
 
     rule = CoinRule.objects.filter(category=category_flag).first()
     if not rule:
