@@ -269,10 +269,22 @@ class BackendUserViewSet(SellerFilterViewSet,
         custom_permission(c_perms),
     )
 
+    class BackendUserFilter(filters.FilterSet):
+        has_group = filters.BooleanFilter(
+            field_name="group", lookup_expr='isnull')
+        group_in = filters.BaseInFilter(
+            field_name="group_id", lookup_expr='in')
+
+        class Meta:
+            model = BackendUser
+            fields = ['role__is_seller', 'mobile', 'has_group',
+                      'group_id', 'group_in', ]
+
     queryset = BackendUser.objects.filter(
         is_superuser=False, is_staff=False).order_by('created')
     serializer_class = BackendUserSerializer
-    filterset_fields = ('role__is_seller', 'mobile',)
+    # filterset_fields = ('role__is_seller', 'mobile',)
+    filterset_class = BackendUserFilter
     lookup_url_kwarg = 'mobile'
     lookup_field = 'mobile'
 
