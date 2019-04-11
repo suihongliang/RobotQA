@@ -4,6 +4,8 @@ from crm.user.models import UserBehavior
 from rest_framework.response import Response
 from crm.discount.models import UserCoinRecord, CoinRule
 from crm.user.models import BaseUser
+from django.utils import timezone
+
 
 @api_view()
 @permission_classes([])
@@ -26,7 +28,8 @@ def scan_bind_seller(request):
         return Response(msg)
     customer_relation.seller = seller[0]
     customer_relation.mark_name = mobile_customer
-    customer_relation.save(update_fields=['seller', 'mark_name'])
+    customer_relation.created = timezone.now()
+    customer_relation.save(update_fields=['seller', 'mark_name', 'created'])
     msg = dict(msg='绑定成功', code=200)
 
     UserBehavior.objects.create(user_id=customer_relation.user_id,

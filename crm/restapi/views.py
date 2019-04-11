@@ -36,6 +36,7 @@ from ..core.views import (
     CompanyFilterViewSet,
     SellerFilterViewSet,
     custom_permission,
+    IsOwnerOrReadOnly,
     )
 # from django.http import Http404
 from rest_framework.decorators import action, api_view, permission_classes
@@ -393,7 +394,7 @@ class UserInfoViewSet(SellerFilterViewSet,
     }
     permission_classes = (
         # AllowAny,
-        custom_permission(c_perms),
+        custom_permission(c_perms), IsOwnerOrReadOnly
     )
 
     filterset_class = UserInfoFilter

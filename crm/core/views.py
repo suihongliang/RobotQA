@@ -76,3 +76,26 @@ def custom_permission(backend_perms):
                 return True
 
     return BackendPermission
+
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if request.user.is_authenticated:
+            if request.user.role:
+                if request.user.role.only_myself:
+                    try:
+                        return obj.customerrelation.seller.mobile == request.user.mobile
+                    except Exception:
+                        return True
+                else:
+                    return True
+            else:
+                return False
+        else:
+            return True
