@@ -935,14 +935,16 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 @permission_classes((AllowAny, ))
 def sdvr(request):
     mobile = request.GET.get('mobile')
-    user = BaseUser.objects.filter(mobile=mobile).first()
+    user = UserInfo.objects.filter(user__mobile=mobile).first()
     if user:
-        UserBehavior.objects.create(user_id=user.id,
+        UserBehavior.objects.create(user_id=user.user_id,
                                     category='3dvr',
                                     location='')
+        user.sdver_times += 1
+        user.save()
         rule = CoinRule.objects.filter(category=3).first()
         UserCoinRecord.objects.get_or_create(
-            user_id=user.id,
+            user_id=user.user_id,
             rule=rule,
             created__date=date.today(), defaults={
                 'coin': rule.coin, 'update_status': True, 'extra_data': {}})

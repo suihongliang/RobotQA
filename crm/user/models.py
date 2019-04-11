@@ -234,6 +234,12 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='活跃时间', default=timezone.now)
     access_times = models.IntegerField(
         verbose_name='到访次数', default=0)
+    sampleroom_times = models.IntegerField(
+        verbose_name='看样板房次数', default=0)
+    sampleroom_seconds = models.IntegerField(
+        verbose_name="看样板房总停留秒数", default=0)
+    sdver_times = models.IntegerField(
+        verbose_name='3DVR看房次数', default=0)
     coin = models.IntegerField(
         verbose_name='积分', default=0)
     spend_coin = models.IntegerField(
