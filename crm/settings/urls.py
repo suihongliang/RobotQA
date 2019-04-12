@@ -30,6 +30,7 @@ xversion.register_models()
 router = DefaultRouter()
 
 router.register(r'user', rest_views.UserInfoViewSet)
+router.register(r'user_report', rest_views.UserInfoReportViewSet)
 router.register(r'useronlineorder', rest_views.UserOnlineOrderViewSet)
 router.register(r'seller', rest_views.SellerViewSet)
 router.register(r'coinrule', rest_views.CoinRuleViewSet)

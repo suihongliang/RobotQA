@@ -6,6 +6,7 @@ router = routers.SimpleRouter()
 router.register(r'seller', views.SellerReport)
 router.register(r'customer', views.CustomerReport)
 router.register(r'userbehavior', views.UserBehaviorReport)
+router.register(r'user_analysis', views.UserAnalysisReport)
 
 urlpatterns = [
     url(r'^', include(router.urls)),

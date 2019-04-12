@@ -1,3 +1,5 @@
+import urllib
+
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.permissions import AllowAny
 from datetime import date, datetime
@@ -5,6 +7,7 @@ from django.conf import settings
 
 from rest_framework.views import APIView
 
+from crm.report.utils import ExcelHelper
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -62,9 +65,9 @@ from .serializers import (
     CoinQRCodeSerializer,
     BackendGroupSerializer,
     BackendGroupDetailSerializer,
-)
+    UserInfoReportSerializer)
 from django_filters import rest_framework as filters
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 
 
 # Create your views here.
@@ -329,6 +332,24 @@ class UserInfoFilter(filters.FilterSet):
         help_text='绑定时间')
     max_bind_time = filters.DateTimeFilter(
         field_name="customerrelation__created", lookup_expr='lte',)
+    min_sampleroom_times = filters.NumberFilter(
+        field_name="sampleroom_times", lookup_expr='gte',
+        help_text='最少看样板房次数')
+    max_sampleroom_times = filters.NumberFilter(
+        field_name="sampleroom_times", lookup_expr='lte',
+        help_text="最大看样板房次数")
+    min_sampleroom_seconds = filters.NumberFilter(
+        field_name="sampleroom_seconds", lookup_expr='gte',
+        help_text='最少看样板房总停留秒数')
+    max_sampleroom_seconds = filters.NumberFilter(
+        field_name="sampleroom_seconds", lookup_expr='lte',
+        help_text="最大看样板房总停留秒数")
+    min_sdver_times = filters.NumberFilter(
+        field_name="sdver_times", lookup_expr='gte',
+        help_text='最少3DVR看房次数')
+    max_sdver_times = filters.NumberFilter(
+        field_name="sdver_times", lookup_expr='lte',
+        help_text="最多3DVR看房次数")
 
     class Meta:
         model = UserInfo
@@ -342,7 +363,8 @@ class UserInfoFilter(filters.FilterSet):
             'min_access_times', 'max_access_times',
             'min_coin', 'max_coin', 'customerrelation__seller',
             'user__mobile', 'unbind_seller', 'min_bind_time',
-            'max_bind_time', )
+            'max_bind_time', 'min_sampleroom_times', 'max_sampleroom_times',
+            'min_sampleroom_seconds', 'max_sampleroom_seconds', 'min_sdver_times', 'max_sdver_times')
 
 
 class UserInfoViewSet(SellerFilterViewSet,
@@ -469,6 +491,10 @@ class UserInfoViewSet(SellerFilterViewSet,
         self.check_object_permissions(self.request, obj)
 
         return obj
+
+class UserInfoReportViewSet(UserInfoViewSet):
+    def get_serializer_class(self):
+        return UserInfoReportSerializer
 
 
 class UserOnlineOrderViewSet(CompanyFilterViewSet,

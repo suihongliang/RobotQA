@@ -2,7 +2,7 @@ from ..core.views import (
     custom_permission,
     )
 from rest_framework.decorators import action
-from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet
+from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet, UserInfoReportViewSet
 import urllib
 from django.http import HttpResponse
 from crm.report.utils import ExcelHelper
@@ -36,6 +36,65 @@ class SellerReport(UserInfoViewSet):
     def seller(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(customerrelation__seller__isnull=False)
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+        for row in data:
+            seller = row['seller']['seller_name'] if row['seller'] else ''
+            customer_name = row['name']
+            mobile = row['mobile']
+            bind_time = row['bind_relation_time']
+            last_active_time = row['last_active_time']
+            access_times = row['access_times']
+            model_houses = '已看' if row['is_sampleroom'] else '未看'
+            willingness = row['willingness']
+            net_worth = row['net_worth']
+            status_display = row['status_display']
+            content.append([
+                seller, customer_name, mobile, bind_time, last_active_time,
+                model_houses, access_times, willingness, net_worth,
+                status_display])
+        fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
+                  '到访次数', '意愿度', '净值度', '状态']
+        table_name = '销售报表'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(
+                urllib.parse.quote_plus('销售报表'))
+        response.write(binary_data)
+        return response
+
+
+class UserAnalysisReport(UserInfoReportViewSet):
+    """用户分析报表"""
+
+    c_perms = {
+        'list': [
+            'report_m',
+        ],
+        'retrieve': [
+            'report_m',
+        ],
+        'gender_list': [
+            'report_m',
+        ],
+        'status_list': [
+            'report_m',
+        ],
+
+    }
+    permission_classes = (
+        custom_permission(c_perms),
+    )
+
+    ordering = ('customerrelation__seller', 'created', 'gender', 'name',)
+
+    @action(detail=False)
+    def user_analysis(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []

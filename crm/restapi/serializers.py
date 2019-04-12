@@ -297,6 +297,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
     is_3dvr = serializers.SerializerMethodField()
     new_message = serializers.SerializerMethodField()
 
+
     def get_is_3dvr(self, instance):
         behavior = UserBehavior.objects.filter(user=instance.user, category='3dvr')
         if behavior.exists():
@@ -417,7 +418,151 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'spend_coin', 'coin',)
 
 
+class UserInfoReportSerializer(serializers.ModelSerializer):
+
+    gender_display = serializers.CharField(
+        source='get_gender_display', read_only=True)
+    status_display = serializers.CharField(
+        source='get_status_display', read_only=True)
+    extra_info = serializers.JSONField(
+        help_text='额外参数', required=False, write_only=True)
+    customer_remark = serializers.CharField(
+        help_text='客户备注名', required=False, write_only=True)
+    seller = serializers.SerializerMethodField()
+    extra_data = serializers.SerializerMethodField()
+    mark_name = serializers.SerializerMethodField()
+    bind_relation_time = serializers.SerializerMethodField()
+    is_sampleroom = serializers.SerializerMethodField()
+    is_3dvr = serializers.SerializerMethodField()
+    new_message = serializers.SerializerMethodField()
+    coupon_count = serializers.SerializerMethodField()
+    avg_sampleroom_seconds = serializers.SerializerMethodField()
+
+    def get_avg_sampleroom_seconds(self, instance):
+        return instance.sampleroom_seconds / instance.sampleroom_times if instance.sampleroom_times > 0 else 0
+
+    def get_coupon_count(self, instance):
+        coupon_num = SendCoupon.objects.filter(user=instance).count()
+        return coupon_num
+
+    def get_is_3dvr(self, instance):
+        behavior = UserBehavior.objects.filter(user=instance.user, category='3dvr')
+        if behavior.exists():
+            return True
+        else:
+            return False
+
+    def get_is_sampleroom(self, instance):
+        behavior = UserBehavior.objects.filter(user=instance.user, category='sampleroom')
+        if behavior.exists():
+            return True
+        else:
+            return False
+
+    def get_new_message(self, instance):
+        try:
+            latest_record = UserCoinRecord.objects.latest('created')
+        except Exception:
+            latest_record = None
+        if not latest_record:
+            return False
+        if latest_record.created <= instance.msg_last_at:
+            return False
+        return True
+
+    def get_mark_name(self, instance):
+        try:
+            return instance.customerrelation.mark_name
+        except CustomerRelation.DoesNotExist:
+            CustomerRelation.objects.create(user=instance)
+            return None
+
+    def get_extra_data(self, instance):
+        return instance.get_extra_data_json()
+
+    def get_seller(self, instance):
+        try:
+            seller = instance.customerrelation.seller
+            if not seller:
+                return None
+            mobile = seller.user.mobile
+            b_user = BackendUser.objects.filter(mobile=mobile).first()
+            if b_user:
+                return {
+                    'seller_name': b_user.name,
+                    'seller_mobile': mobile,
+                }
+        except CustomerRelation.DoesNotExist:
+            CustomerRelation.objects.create(user=instance)
+        except Seller.DoesNotExist:
+            pass
+        # if seller:
+        #     return SellerSerializer(seller).data
+        return None
+
+    def get_bind_relation_time(self, instance):
+        return instance.customerrelation.created\
+            .astimezone(
+                timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = UserInfo
+        fields = (
+            'user',
+            'mobile',
+            'name',
+            'age',
+            'gender',
+            'status',
+            'note',
+            'willingness',
+            'net_worth',
+            'created',
+            'is_seller',
+            'gender_display',
+            'status_display',
+            'seller',
+            'last_active_time',
+            'access_times',
+            'coin',
+            'spend_coin',
+            'extra_data',
+            'mark_name',
+            'new_message',
+            'bind_relation_time',
+            'extra_info',
+            'customer_remark',
+            'is_sampleroom',
+            'is_3dvr',
+            'sampleroom_times',
+            'sampleroom_seconds',
+            'sdver_times',
+            'coupon_count',
+            'avg_sampleroom_seconds'
+        )
+        read_only_fields = (
+            'user', 'created', 'mobile', 'is_seller',
+            'last_active_time', 'access_times', 'sampleroom_times',
+            'sampleroom_seconds', 'sdver_times', 'coupon_count',
+            'spend_coin', 'coin',)
+
+
 class UserInfoDetailSerializer(UserInfoSerializer):
+
+    seller_info = serializers.SerializerMethodField()
+
+    def get_seller_info(self, instance):
+        if hasattr(instance.user, 'seller'):
+            return SellerSerializer(instance.user.seller).data
+        return {}
+
+    class Meta:
+        model = UserInfo
+        fields = UserInfoSerializer.Meta.fields + (
+            'seller_info',)
+
+
+class UserInfoDetailReportSerializer(UserInfoReportSerializer):
 
     seller_info = serializers.SerializerMethodField()
 
