@@ -38,9 +38,9 @@ class CoinRule(models.Model):
             (5, '看样板房送积分'),
             (6, '绑定销售'),
             (7, '门店到访'),
-            (8, '活动扫码送积分3'),
-            (9, '活动扫码送积分4'),
-            (10, '活动扫码送积分5'),
+            (8, '活动扫码送积分三'),
+            (9, '活动扫码送积分四'),
+            (10, '活动扫码送积分五'),
         ], verbose_name='积分规则')
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
