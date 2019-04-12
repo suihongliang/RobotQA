@@ -279,7 +279,7 @@ class BackendUserViewSet(SellerFilterViewSet,
         class Meta:
             model = BackendUser
             fields = ['role__is_seller', 'mobile', 'has_group',
-                      'group_id', 'group_in', ]
+                      'group_id', 'group_in', 'role__name']
 
     queryset = BackendUser.objects.filter(
         is_superuser=False, is_staff=False).order_by('created')
