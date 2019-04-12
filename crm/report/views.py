@@ -98,23 +98,48 @@ class UserAnalysisReport(UserInfoReportViewSet):
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         content = []
+        gender_name_dic = dict([(1, '男'), (2, '女'), (0, '未知')])
         for row in data:
             seller = row['seller']['seller_name'] if row['seller'] else ''
             customer_name = row['name']
             mobile = row['mobile']
-            bind_time = row['bind_relation_time']
+            willingness = row['willingness']
+            gender = gender_name_dic[row['gender']]
+            age = row['age']
+            note = row['note']
+            avg_sampleroom_seconds = row['avg_sampleroom_seconds']
+            created = row['created']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
-            model_houses = '已看' if row['is_sampleroom'] else '未看'
-            willingness = row['willingness']
-            net_worth = row['net_worth']
-            status_display = row['status_display']
+            sampleroom_times = row['sampleroom_times']
+            sampleroom_seconds = row['sampleroom_seconds']
+            sdver_times = row['sdver_times']
+            spend_coin = row['spend_coin']
+            coupon_count = row['coupon_count']
+            coin = row['coin']
             content.append([
-                seller, customer_name, mobile, bind_time, last_active_time,
-                model_houses, access_times, willingness, net_worth,
-                status_display])
-        fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
-                  '到访次数', '意愿度', '净值度', '状态']
+                customer_name,
+                seller,
+                mobile,
+                gender,
+                age,
+                note,
+                willingness,
+                avg_sampleroom_seconds,
+                created,
+                last_active_time,
+                access_times,
+                sampleroom_times,
+                sampleroom_seconds,
+                sdver_times,
+                spend_coin,
+                coupon_count,
+                coin])
+        # fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
+        #           '到访次数', '意愿度', '净值度', '状态']
+        fields = ['姓名', '专属销售人员', '手机号', '性别', '年龄', '备注', '意向度',
+                  '平均停留时间', '用户注册日期', '最近到访时间', '到访次数', '样板房看房次数',
+                  '样板房总停留时间', 'VR看房次数', '已消费积分', '优惠券', '积分']
         table_name = '销售报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
