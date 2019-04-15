@@ -421,6 +421,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'is_3dvr',
             'product_intention',
             'purchase_purpose',
+            'industry',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
