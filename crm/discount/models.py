@@ -1,3 +1,5 @@
+import json
+
 from django.db import models
 from django.utils import timezone
 from ..user.models import (
@@ -81,7 +83,7 @@ class UserCoinRecord(models.Model, UserMobileMixin):
     update_status = models.BooleanField(
         default=False, verbose_name='更新状态')
     extra_data = models.TextField(
-        verbose_name='额外参数', default='')
+        verbose_name='额外参数', default=json.dumps({}))
 
     def __str__(self):
         return str(self.user)

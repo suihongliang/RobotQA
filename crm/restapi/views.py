@@ -1,3 +1,4 @@
+import json
 import urllib
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -1000,9 +1001,16 @@ def message(request):
         limit_values = paginator.page(paginator.num_pages)
     ret = []
     for record in limit_values:
+        if record.rule:
+            rule = record.rule.get_category_display()
+        else:
+            try:
+                rule = json.loads(record.extra_data).get('msg')
+            except:
+                rule = ""
         ret.append({'coin': record.coin,
                     'created': str(record.created),
-                    'rule': record.rule.get_category_display() if record.rule else None})
+                    'rule': rule})
 
     UserInfo.objects.filter(user_id=user.id).update(**{'msg_last_at': datetime.now()})
 
