@@ -407,7 +407,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'is_seller',
             'gender_display',
             'status_display',
-            'get_industry_display',
+            'industry_display',
             'seller',
             'last_active_time',
             'access_times',
@@ -421,6 +421,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'customer_remark',
             'is_sampleroom',
             'is_3dvr',
+            'product_intention',
+            'purchase_purpose',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',

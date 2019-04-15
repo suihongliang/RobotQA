@@ -48,14 +48,13 @@ class SellerReport(UserInfoViewSet):
             access_times = row['access_times']
             model_houses = '已看' if row['is_sampleroom'] else '未看'
             willingness = row['willingness']
-            net_worth = row['net_worth']
             status_display = row['status_display']
             content.append([
                 seller, customer_name, mobile, bind_time, last_active_time,
-                model_houses, access_times, willingness, net_worth,
+                model_houses, access_times, willingness,
                 status_display])
         fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
-                  '到访次数', '意愿度', '净值度', '状态']
+                  '到访次数', '意愿度', '状态']
         table_name = '销售报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
@@ -185,7 +184,6 @@ class CustomerReport(UserInfoViewSet):
             gender_display = row['gender_display']
             age = row['age']
             seller = row['seller']['seller_name'] if row['seller'] else ''
-            net_worth = row['net_worth']
             willingness = row['willingness']
             status_display = row['status_display']
             created = row['created']
@@ -198,11 +196,11 @@ class CustomerReport(UserInfoViewSet):
             spend_coin = row['spend_coin']
             note = row['note']
             content.append([
-                customer_name, mobile, gender_display, age, seller, net_worth,
+                customer_name, mobile, gender_display, age, seller,
                 willingness, status_display, created, last_active_time,
                 access_times, model_houses, look_3d, coupon, coin, spend_coin,
                 note])
-        fields = ['姓名', '手机号', '性别', '年龄', '销售人员', '净值度', '意愿度',
+        fields = ['姓名', '手机号', '性别', '年龄', '销售人员', '意愿度',
                   '状态', '注册日期', '最近来访日', '到访次数', '样板房', '3D看房',
                   '优惠券', '积分', '已消费积分', '备注']
         table_name = '用户信息报表'
