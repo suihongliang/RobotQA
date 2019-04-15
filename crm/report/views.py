@@ -140,7 +140,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
         fields = ['姓名', '专属销售人员', '手机号', '性别', '年龄', '备注', '意向度',
                   '平均停留时间', '用户注册日期', '最近到访时间', '到访次数', '样板房看房次数',
                   '样板房总停留时间', 'VR看房次数', '已消费积分', '优惠券', '积分']
-        table_name = '销售报表'
+        table_name = '用户分析报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
         response = HttpResponse(content_type='application/octet-stream')
