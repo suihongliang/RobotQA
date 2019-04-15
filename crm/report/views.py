@@ -1,7 +1,14 @@
+from django.utils import timezone
+from rest_framework.permissions import AllowAny
+from datetime import datetime, date, timedelta
+
+from rest_framework.response import Response
+
+from crm.user.models import UserBehavior, UserInfo
 from ..core.views import (
     custom_permission,
     )
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet, UserInfoReportViewSet
 import urllib
 from django.http import HttpResponse
@@ -374,3 +381,31 @@ class UserBehaviorReport(UserBehaviorViewSet):
         response.write(binary_data)
         return response
 
+
+@api_view(['GET'])
+def echart_data(request):
+    create_at = request.GET.get('create_at')
+    if not create_at:
+        create_at = timezone.now().date()
+    else:
+        create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
+    access_total = UserBehavior.objects.filter(
+        category='access',
+        location='in',
+        created__date=create_at).values('user_id').distinct().count()
+    register_total = UserInfo.objects.filter(
+        created__date=create_at).count()
+    sample_room_total = UserBehavior.objects.filter(
+        category='sampleroom',
+        location='in',
+        created__date=create_at).values('user_id').distinct().count()
+    micro_store_total = UserBehavior.objects.filter(
+        category='microstore',
+        location='in',
+        created__date=create_at).values('user_id').distinct().count()
+
+    return Response({
+        'access_total': access_total,
+        'register_total': register_total,
+        'sample_room_total': sample_room_total,
+        'micro_store_total': micro_store_total})
