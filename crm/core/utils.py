@@ -1,3 +1,5 @@
+from datetime import datetime, date, timedelta
+
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -15,3 +17,11 @@ class CustomPagination(PageNumberPagination):
             'count': self.page.paginator.count,
             'results': data
         })
+
+
+def week_date_range():
+    now_at = date.today()
+    week_day = now_at.weekday()
+    one = now_at - timedelta(days=week_day)
+    next_one = now_at + timedelta(days=(6-week_day))
+    return one, next_one

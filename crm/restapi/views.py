@@ -7,6 +7,7 @@ from django.conf import settings
 
 from rest_framework.views import APIView
 
+from crm.core.utils import week_date_range
 from crm.report.utils import ExcelHelper
 from ..user.models import (
     BaseUser,
@@ -969,11 +970,15 @@ def sdvr(request):
         user.sdver_times += 1
         user.save()
         rule = CoinRule.objects.filter(category=3).first()
+        start_at, end_at = week_date_range()
         UserCoinRecord.objects.get_or_create(
             user_id=user.user_id,
             rule=rule,
-            created__date=date.today(), defaults={
+            created__date__gte=start_at,
+            created__date__lte=end_at,
+            defaults={
                 'coin': rule.coin, 'update_status': True, 'extra_data': {}})
+
     return HttpResponseRedirect(settings.SD_URL)
 
 
