@@ -199,6 +199,23 @@ class UserInfo(models.Model, UserMobileMixin):
     '''
     用户基本信息
     '''
+    INDUSTRY = [
+        (0, '其他'),
+        (1, '政府机关'),
+        (2, '事业单位'),
+        (3, '建筑建材'),
+        (4, '金融投资'),
+        (5, '外贸'),
+        (6, '消费零售'),
+        (7, '制造行业'),
+        (8, '广告传媒'),
+        (9, '医药行业'),
+        (10, '交通运输'),
+        (11, 'IT及互联网'),
+        (12, '教育行业'),
+        (13, '退休'),
+        (14, '商业服务'),
+    ]
 
     user = models.OneToOneField(
         BaseUser, on_delete=models.CASCADE, primary_key=True,
@@ -249,6 +266,12 @@ class UserInfo(models.Model, UserMobileMixin):
     msg_last_at = models.DateTimeField(
         verbose_name="上次读取消息时间",
         default=before_day)
+    industry = models.IntegerField(
+        verbose_name='工作行业', choices=INDUSTRY, default=0)
+    product_intention = models.CharField(
+        max_length=50, verbose_name='意向产品', default='')
+    purchase_purpose = models.CharField(
+        max_length=50, verbose_name='购买用途', default='')
 
     def get_extra_data_json(self):
         try:
