@@ -356,9 +356,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
         return None
 
     def get_bind_relation_time(self, instance):
-        return instance.customerrelation.created\
-            .astimezone(
-                timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
+        return instance.customerrelation.created.strftime("%Y-%m-%d %H:%M:%S")
 
     def update(self, instance, validated_data):
         extra_info = validated_data.pop('extra_info', '')
@@ -513,9 +511,7 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
         return None
 
     def get_bind_relation_time(self, instance):
-        return instance.customerrelation.created\
-            .astimezone(
-                timezone.get_current_timezone()).strftime("%Y-%m-%d %H:%M:%S")
+        return instance.customerrelation.created.strftime("%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = UserInfo
