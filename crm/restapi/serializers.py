@@ -285,6 +285,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
         source='get_gender_display', read_only=True)
     status_display = serializers.CharField(
         source='get_status_display', read_only=True)
+    industry_display = serializers.CharField(
+        source='get_industry_display', read_only=True)
     extra_info = serializers.JSONField(
         help_text='额外参数', required=False, write_only=True)
     customer_remark = serializers.CharField(
@@ -368,6 +370,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 extra_data = {}
             extra_data.update(extra_info)
             validated_data['extra_data'] = json.dumps(extra_data)
+            # 完善个人信息送积分
+            rule = CoinRule.objects.filter(category=2).first()
+            record = UserCoinRecord.objects.filter(user=instance, rule=rule)
+            if not record.exists():
+                UserCoinRecord.objects.create(
+                    user=instance, rule=rule, coin=rule.coin,
+                    update_status=True, extra_data={})
         if customer_remark:
             CustomerRelation.objects.filter(user=instance).update(mark_name=customer_remark)
 
@@ -398,6 +407,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'is_seller',
             'gender_display',
             'status_display',
+            'get_industry_display',
             'seller',
             'last_active_time',
             'access_times',
@@ -675,10 +685,10 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             instance.seller = seller
             UserBehavior.objects.create(
                 user_id=instance.user_id, category='sellerbind', location='')
-            rule = CoinRule.objects.filter(category=6).first()
-            UserCoinRecord.objects.create(
-                user_id=instance.user_id, rule=rule, coin=rule.coin,
-                update_status=True, extra_data={})
+            # rule = CoinRule.objects.filter(category=6).first()
+            # UserCoinRecord.objects.create(
+            #     user_id=instance.user_id, rule=rule, coin=rule.coin,
+            #     update_status=True, extra_data={})
         instance.save()
 
         return instance
