@@ -13,6 +13,7 @@ class Command(BaseCommand):
             ('order_m', '订单管理',),
             ('report_m', '报表管理',),
             ('system_m', '系统管理',),
+            ('app_m', '小程序管理'),
             ('system_m_read', '系统管理只读',),
             ('product_m_read', '商品管理只读',),
         )

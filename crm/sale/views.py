@@ -27,9 +27,8 @@ def scan_bind_seller(request):
         msg = dict(msg='不能绑定自己', code=400)
         return Response(msg)
     customer_relation.seller = seller[0]
-    customer_relation.mark_name = mobile_customer
     customer_relation.created = timezone.now()
-    customer_relation.save(update_fields=['seller', 'mark_name', 'created'])
+    customer_relation.save(update_fields=['seller', 'created'])
     msg = dict(msg='绑定成功', code=200)
 
     UserBehavior.objects.create(user_id=customer_relation.user_id,
