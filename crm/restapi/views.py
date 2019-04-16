@@ -745,7 +745,7 @@ class UserCoinRecordViewSet(CompanyFilterViewSet,
         'user__user__mobile',
         'change_type',
         'order_no',
-        'seller__user__mobile',
+        'seller__mobile',
         'rule__category'
     )
     companyfilter_field = 'user__user__company_id'

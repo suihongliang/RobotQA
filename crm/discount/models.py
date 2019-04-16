@@ -128,7 +128,7 @@ class PointRecord(models.Model, UserMobileMixin):
     return_order_no = models.CharField(
         verbose_name="退单编号", max_length=100, blank=True, null=True)
     seller = models.ForeignKey(
-        BaseUser, verbose_name="后台管理", on_delete=models.SET_NULL, null=True, blank=True)
+        BackendUser, verbose_name="后台管理", on_delete=models.SET_NULL, null=True, blank=True)
     rule = models.ForeignKey(
         CoinRule, verbose_name="积分规则", on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(verbose_name="创建于", auto_now_add=True)

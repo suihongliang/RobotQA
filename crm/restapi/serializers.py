@@ -859,7 +859,7 @@ class CreatePointRecordSerializer(AssignUserCompanySerializer):
                 raise serializers.ValidationError({'detail': "规则不存在"})
             kw.update({'coin': rule.coin, 'rule': rule})
         elif change_type == 'seller_send':
-            seller = BaseUser.objects.filter(mobile=change_by).first()
+            seller = BackendUser.objects.filter(mobile=change_by).first()
             if not seller:
                 raise serializers.ValidationError({'detail': "后台管理用户不存在"})
             kw.update({'coin': coin, 'seller': seller})
