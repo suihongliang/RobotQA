@@ -34,7 +34,8 @@ class LoginView(View):
                     {
                         'results': {
                             'mobile': mobile,
-                            'company_id': user.company_id
+                            'company_id': user.company_id,
+                            'role': user.role.name,
                         }
                     })
         else:
