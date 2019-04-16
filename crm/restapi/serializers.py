@@ -195,7 +195,7 @@ class BackendUserSerializer(serializers.ModelSerializer):
     group = BackendGroupSerializer(
         read_only=True)
     group_id = serializers.PrimaryKeyRelatedField(
-        write_only=True, allow_null=True,
+        write_only=True, allow_null=True, required=False,
         queryset=BackendGroup.objects.all(), source='group')
 
     def validate_mobile(self, mobile):
