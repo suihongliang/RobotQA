@@ -51,7 +51,7 @@ class PointRecordAdmin():
                    'created_at',
                    'order_no',
                    'return_order_no',
-                   'seller__user__mobile')
+                   'seller__mobile')
 
     readonly_fields = ('change_obj',)
 
