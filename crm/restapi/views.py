@@ -285,7 +285,6 @@ class BackendUserViewSet(SellerFilterViewSet,
     filterset_class = BackendUserFilter
     lookup_url_kwarg = 'mobile'
     lookup_field = 'mobile'
-    pagination_class = []
 
 
 class UserInfoFilter(filters.FilterSet):
