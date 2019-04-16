@@ -48,20 +48,19 @@ class SellerReport(UserInfoViewSet):
         content = []
         for row in data:
             seller = row['seller']['seller_name'] if row['seller'] else ''
-            customer_name = row['name']
+            customer_name = row['mark_name'] if row['mark_name'] else row['name']
             mobile = row['mobile']
             bind_time = row['bind_relation_time']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
             model_houses = '已看' if row['is_sampleroom'] else '未看'
             willingness = row['willingness']
-            status_display = row['status_display']
             content.append([
                 seller, customer_name, mobile, bind_time, last_active_time,
                 model_houses, access_times, willingness,
-                status_display])
+                ])
         fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
-                  '到访次数', '意愿度', '状态']
+                  '到访次数', '意愿度']
         table_name = '销售报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
@@ -107,7 +106,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
         gender_name_dic = dict([(1, '男'), (2, '女'), (0, '未知')])
         for row in data:
             seller = row['seller']['seller_name'] if row['seller'] else ''
-            customer_name = row['name']
+            customer_name = row['mark_name'] if row['mark_name'] else row['name']
             mobile = row['mobile']
             willingness = row['willingness']
             gender = gender_name_dic[row['gender']]
@@ -186,13 +185,12 @@ class CustomerReport(UserInfoViewSet):
         data = serializer.data
         content = []
         for row in data:
-            customer_name = row['name']
+            customer_name = row['mark_name'] if row['mark_name'] else row['name']
             mobile = row['mobile']
             gender_display = row['gender_display']
             age = row['age']
             seller = row['seller']['seller_name'] if row['seller'] else ''
             willingness = row['willingness']
-            status_display = row['status_display']
             created = row['created']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
@@ -204,11 +202,11 @@ class CustomerReport(UserInfoViewSet):
             note = row['note']
             content.append([
                 customer_name, mobile, gender_display, age, seller,
-                willingness, status_display, created, last_active_time,
+                willingness, created, last_active_time,
                 access_times, model_houses, look_3d, coupon, coin, spend_coin,
                 note])
         fields = ['姓名', '手机号', '性别', '年龄', '销售人员', '意愿度',
-                  '状态', '注册日期', '最近来访日', '到访次数', '样板房', '3D看房',
+                  '注册日期', '最近来访日', '到访次数', '样板房', '3D看房',
                   '优惠券', '积分', '已消费积分', '备注']
         table_name = '用户信息报表'
         with ExcelHelper(fields, content, table_name) as eh:
@@ -216,7 +214,7 @@ class CustomerReport(UserInfoViewSet):
         response = HttpResponse(content_type='application/octet-stream')
         response['Content-Disposition'] = \
             'attachment; filename="{0}.xls"'.format(
-                urllib.parse.quote_plus('用户信息报表'))
+                urllib.parse.quote_plus('客户列表报表'))
         response.write(binary_data)
         return response
 
