@@ -1,15 +1,9 @@
-import json
-import urllib
-
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.permissions import AllowAny
 from datetime import date, datetime
 from django.conf import settings
 
-from rest_framework.views import APIView
-
 from crm.core.utils import week_date_range
-from crm.report.utils import ExcelHelper
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -26,11 +20,10 @@ from ..sale.models import (
     QRCode)
 from ..discount.models import (
     CoinRule,
-    UserCoinRecord,
     Coupon,
     SendCoupon,
     CoinQRCode,
-    )
+    PointRecord)
 from rest_framework import mixins
 from rest_framework import viewsets
 # from rest_framework.permissions import (
@@ -56,7 +49,6 @@ from .serializers import (
     CreateSellerSerializer,
     UpdateSellerSerializer,
     CoinRuleSerializer,
-    UserCoinRecordSerializer,
     BackendRoleSerializer,
     BackendUserSerializer,
     CustomerRelationSerializer,
@@ -67,7 +59,7 @@ from .serializers import (
     CoinQRCodeSerializer,
     BackendGroupSerializer,
     BackendGroupDetailSerializer,
-    UserInfoReportSerializer)
+    UserInfoReportSerializer, PointRecordSerializer, CreatePointRecordSerializer)
 from django_filters import rest_framework as filters
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 
@@ -713,9 +705,9 @@ class CoinRuleViewSet(CompanyFilterViewSet,
 
 
 class UserCoinRecordViewSet(CompanyFilterViewSet,
-                            mixins.RetrieveModelMixin,
                             mixins.ListModelMixin,
-                            mixins.CreateModelMixin):
+                            mixins.CreateModelMixin,
+                            mixins.RetrieveModelMixin):
     '''
     retrieve:
         获取积分规则详情
@@ -746,13 +738,19 @@ class UserCoinRecordViewSet(CompanyFilterViewSet,
         custom_permission(c_perms),
     )
 
-    queryset = UserCoinRecord.objects.order_by('id')
-    serializer_class = UserCoinRecordSerializer
+    queryset = PointRecord.objects.order_by('id')
+    serializer_class = PointRecordSerializer
     filterset_fields = ('rule',)
     filterset_fields = (
         'user__user__mobile',
     )
     companyfilter_field = 'user__user__company_id'
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreatePointRecordSerializer
+
+        return PointRecordSerializer
 
 
 class CouponViewSet(CompanyFilterViewSet,
@@ -972,13 +970,12 @@ def sdvr(request):
         user.save()
         rule = CoinRule.objects.filter(category=3).first()
         start_at, end_at = week_date_range()
-        UserCoinRecord.objects.get_or_create(
+        PointRecord.objects.get_or_create(
             user_id=user.user_id,
             rule=rule,
-            created__date__gte=start_at,
-            created__date__lte=end_at,
-            defaults={
-                'coin': rule.coin, 'update_status': True, 'extra_data': {}})
+            created_at__date__gte=start_at,
+            created_at__date__lte=end_at,
+            defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
 
     return HttpResponseRedirect(settings.SD_URL)
 
@@ -990,7 +987,7 @@ def message(request):
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 20))
     user = BaseUser.objects.filter(mobile=mobile).first()
-    record_list = UserCoinRecord.objects.filter(user_id=user.id).order_by('-id')
+    record_list = PointRecord.objects.filter(user_id=user.id if user else None).order_by('-id')
 
     paginator = Paginator(record_list.all(), limit)
     try:
@@ -1001,18 +998,14 @@ def message(request):
         limit_values = paginator.page(paginator.num_pages)
     ret = []
     for record in limit_values:
-        if record.rule:
-            rule = record.rule.get_category_display()
-        else:
-            try:
-                rule = json.loads(record.extra_data).get('msg')
-            except:
-                rule = ""
+        change_name = record.get_change_type_display()
+        change_by = record.change_by
         ret.append({'coin': record.coin,
-                    'created': str(record.created),
-                    'rule': rule})
-
-    UserInfo.objects.filter(user_id=user.id).update(**{'msg_last_at': datetime.now()})
+                    'created': str(record.created_at),
+                    'change_name': change_name,
+                    'change_by': change_by})
+    if user:
+        UserInfo.objects.filter(user_id=user.id).update(**{'msg_last_at': datetime.now()})
 
     return Response({
         'data': ret,

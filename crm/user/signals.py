@@ -1,11 +1,9 @@
-import json
-
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
 
-from crm.discount.models import UserCoinRecord, CoinRule
+from crm.discount.models import CoinRule, PointRecord
 from .models import (
     BaseUser,
     UserInfo,
@@ -54,10 +52,10 @@ def sync_create_userinfo(sender, **kwargs):
         CustomerRelation.objects.create(user=userinfo)
         rule = CoinRule.objects.get(category=0)
         UserBehavior.objects.create(user=user, category='signup', location='')
-        UserCoinRecord.objects.create(user_id=user.id,
-                                      rule=rule, coin=rule.coin,
-                                      update_status=True,
-                                      extra_data={})
+        PointRecord.objects.create(user_id=user.id,
+                                   rule=rule,
+                                   coin=rule.coin,
+                                   change_type='rule_reward')
 
 
 @receiver(pre_save, sender=BackendUser)
@@ -129,9 +127,8 @@ def user_behavior_event(sender, **kwargs):
     rule = CoinRule.objects.filter(category=category_flag).first()
     if not rule:
         return
-    UserCoinRecord.objects.create(
+    PointRecord.objects.create(
         user_id=instance.user_id,
         rule=rule,
         coin=rule.coin,
-        update_status=True,
-        extra_data=json.dumps({'mobile': instance.user.mobile}))
+        change_type='rule_reward')

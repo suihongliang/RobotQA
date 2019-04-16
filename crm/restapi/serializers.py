@@ -17,21 +17,16 @@ from ..sale.models import (
     )
 from ..discount.models import (
     CoinRule,
-    UserCoinRecord,
     Coupon,
     SendCoupon,
     CoinQRCode,
-    )
+    PointRecord)
 from ..user.utils import get_or_create_user
-# from ..discount.tasks import (
-#     SyncCoinTask,
-#     )
-# import time
+
 from rest_framework.utils import model_meta
 import traceback
 import django
 import json
-from django.utils import timezone
 
 
 class AssignUserCompanySerializer(serializers.ModelSerializer):
@@ -316,12 +311,12 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     def get_new_message(self, instance):
         try:
-            latest_record = UserCoinRecord.objects.latest('created')
+            latest_record = PointRecord.objects.latest('created_at')
         except Exception:
             latest_record = None
         if not latest_record:
             return False
-        if latest_record.created <= instance.msg_last_at:
+        if latest_record.created_at <= instance.msg_last_at:
             return False
         return True
 
@@ -370,11 +365,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
             validated_data['extra_data'] = json.dumps(extra_data)
             # 完善个人信息送积分
             rule = CoinRule.objects.filter(category=2).first()
-            record = UserCoinRecord.objects.filter(user=instance, rule=rule)
-            if not record.exists():
-                UserCoinRecord.objects.create(
-                    user=instance, rule=rule, coin=rule.coin,
-                    update_status=True, extra_data={})
+            PointRecord.objects.get_or_create(
+                user=instance, rule=rule,
+                defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
         if customer_remark:
             CustomerRelation.objects.filter(user=instance).update(mark_name=customer_remark)
 
@@ -472,12 +465,12 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
 
     def get_new_message(self, instance):
         try:
-            latest_record = UserCoinRecord.objects.latest('created')
+            latest_record = PointRecord.objects.latest('created_at')
         except Exception:
             latest_record = None
         if not latest_record:
             return False
-        if latest_record.created <= instance.msg_last_at:
+        if latest_record.created_at <= instance.msg_last_at:
             return False
         return True
 
@@ -684,10 +677,6 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             instance.seller = seller
             UserBehavior.objects.create(
                 user_id=instance.user_id, category='sellerbind', location='')
-            # rule = CoinRule.objects.filter(category=6).first()
-            # UserCoinRecord.objects.create(
-            #     user_id=instance.user_id, rule=rule, coin=rule.coin,
-            #     update_status=True, extra_data={})
         instance.save()
 
         return instance
@@ -807,36 +796,53 @@ class CoinRuleSerializer(serializers.ModelSerializer):
                             'company_id',)
 
 
-class UserCoinRecordSerializer(AssignUserCompanySerializer):
+class PointRecordSerializer(AssignUserCompanySerializer):
+    change_type_name = serializers.SerializerMethodField()
+    change_by = serializers.SerializerMethodField()
+    user_mobile = serializers.SerializerMethodField()
 
+    def get_change_by(self, instance):
+        return instance.change_by
+
+    def get_change_type_name(self, instance):
+        return instance.get_change_type_display()
+
+    def get_user_mobile(self, instance):
+        return instance.user.mobile
+
+    class Meta:
+        model = PointRecord
+        fields = (
+            'id',
+            'change_type_name',
+            'change_type',
+            'change_by',
+            'user_mobile',
+            'coin',
+            'created_at')
+
+
+class CreatePointRecordSerializer(AssignUserCompanySerializer):
     user_mobile = serializers.CharField(
         max_length=50, write_only=True)
     company_id = serializers.CharField(
         max_length=50, write_only=True)
-    category = serializers.IntegerField(
-        help_text='积分规则', write_only=True, required=False)
+    change_type = serializers.CharField(max_length=20,
+                                        help_text='变更类型', write_only=True, required=True)
     coin = serializers.IntegerField(
         help_text='积分', required=False)
-    code = serializers.CharField(
-        max_length=50, help_text='二维码编码', write_only=True, required=False)
-    extra_data = serializers.CharField(
-        help_text='其他参数, 默认不传', required=False, write_only=True,
-        max_length=500)
+    change_by = serializers.CharField(
+        help_text='订单号|退单号|销售手机号|积分规则二维码编码之一', required=True, write_only=True,
+        max_length=100)
 
     def create(self, validated_data):
-        mobile = validated_data.pop('user_mobile')
-        company_id = validated_data.pop('company_id')
-        # user = get_or_create_user(mobile, company_id)
-        try:
-            category = validated_data.pop('category')
-        except KeyError:
-            category = None
-        try:
-            code = validated_data.pop('code')
-        except KeyError:
-            code = None
-        if not validated_data.get('coin') and category is None and \
-                code is None:
+        mobile = validated_data.get('user_mobile')
+        company_id = validated_data.get('company_id')
+        change_type = validated_data.get('change_type')
+        change_by = validated_data.get('change_by')
+        coin = validated_data.get('coin', 0)
+
+        if not coin and change_by != 'rule_reward':
             raise serializers.ValidationError({
                 'detail': "参数错误"})
         user = UserInfo.objects.filter(
@@ -844,37 +850,35 @@ class UserCoinRecordSerializer(AssignUserCompanySerializer):
         if not user:
             raise serializers.ValidationError({
                 'detail': "用户不存在"})
-        if (category, code) == (None, None):
-            rule = None
-        else:
-            rule = CoinRule.objects.filter(
-                (Q(category=category) | Q(qrcode__code=code)),
-                company_id=company_id).first()
-            if not rule:
-                raise serializers.ValidationError({
-                    'detail': "规则不存在"})
-            validated_data['coin'] = rule.coin
-
         ModelClass = self.Meta.model
-        instance = ModelClass._default_manager.create(
-            user=user, rule=rule, **validated_data)
+        kw = {'user': user, 'change_type': change_type}
+        if change_type == 'rule_reward':
+            rule = CoinRule.objects.filter(Q(qrcode__code=change_by),
+                                           company_id=company_id).first()
+            if not rule:
+                raise serializers.ValidationError({'detail': "规则不存在"})
+            kw.update({'coin': rule.coin, 'rule': rule})
+        elif change_type == 'seller_send':
+            seller = Seller.objects.filter(user__mobile=change_by).first()
+            if not seller:
+                raise serializers.ValidationError({'detail': "销售不存在"})
+            kw.update({'coin': coin, 'seller': seller})
+        elif change_type == 'order':
+            kw.update({'coin': coin, 'order_no': change_by})
+        else:
+            kw.update({'coin': coin, 'return_order_no': change_by})
+
+        instance = ModelClass._default_manager.create(**kw)
         return instance
 
     class Meta:
-        model = UserCoinRecord
+        model = PointRecord
         fields = (
-            'id',
-            'mobile',
-            'created',
-            'coin',
-            'rule',
-            'code',
-            'company_id',
-            'category',
             'user_mobile',
-            'extra_data',
-        )
-        read_only_fields = ('created', 'rule')
+            'company_id',
+            'change_type',
+            'change_by',
+            'coin')
 
 
 class CouponSerializer(AssignUserCompanySerializer):

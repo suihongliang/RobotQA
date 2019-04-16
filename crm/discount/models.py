@@ -2,6 +2,8 @@ import json
 
 from django.db import models
 from django.utils import timezone
+
+from crm.sale.models import Seller
 from ..user.models import (
     UserInfo,
     UserMobileMixin,
@@ -69,29 +71,6 @@ class CoinRule(models.Model):
         unique_together = (('category', 'company_id'),)
 
 
-class UserCoinRecord(models.Model, UserMobileMixin):
-
-    user = models.ForeignKey(
-        UserInfo, on_delete=models.CASCADE, verbose_name="用户")
-    rule = models.ForeignKey(
-        CoinRule, on_delete=models.CASCADE, verbose_name="类型",
-        null=True, blank=True)
-    created = models.DateTimeField(
-        verbose_name='创建时间', default=timezone.now)
-    coin = models.IntegerField(
-        verbose_name='赠送积分', default=0)
-    update_status = models.BooleanField(
-        default=False, verbose_name='更新状态')
-    extra_data = models.TextField(
-        verbose_name='额外参数', default=json.dumps({}))
-
-    def __str__(self):
-        return str(self.user)
-
-    class Meta:
-        verbose_name = '用户积分记录'
-
-
 class Coupon(models.Model):
 
     description = models.CharField(
@@ -129,3 +108,46 @@ class SendCoupon(models.Model):
 
     class Meta:
         verbose_name = '用户优惠券'
+
+
+class PointRecord(models.Model, UserMobileMixin):
+    CHANGE_TYPE = (
+        ('order', '订单'),
+        ('return_order', '退单'),
+        ('seller_send', '销售赠予'),
+        ('rule_reward', '积分奖励')
+    )
+
+    change_type = models.CharField(
+        verbose_name="变更类型", choices=CHANGE_TYPE, max_length=20, default='order')
+    user = models.ForeignKey(
+        UserInfo, verbose_name="用户", on_delete=models.CASCADE)
+    coin = models.IntegerField(verbose_name="积分变更值", default=0)
+    order_no = models.CharField(
+        verbose_name="订单编号", max_length=100, blank=True, null=True)
+    return_order_no = models.CharField(
+        verbose_name="退单编号", max_length=100, blank=True, null=True)
+    seller = models.ForeignKey(
+        Seller, verbose_name="销售", on_delete=models.SET_NULL, null=True, blank=True)
+    rule = models.ForeignKey(
+        CoinRule, verbose_name="积分规则", on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(verbose_name="创建于", auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name="更新于", auto_now=True)
+
+    def __str__(self):
+        return self.get_change_type_display()
+
+    class Meta:
+        verbose_name = verbose_name_plural = "积分变更记录"
+        ordering = ('-created_at',)
+
+    @property
+    def change_by(self):
+        if self.change_type == 'order':
+            return self.order_no
+        elif self.change_type == 'return_order':
+            return self.return_order_no
+        elif self.change_type == 'seller_send':
+            return self.seller.mobile
+        else:
+            return self.rule.get_category_display()
