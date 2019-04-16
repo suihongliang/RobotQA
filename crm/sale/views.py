@@ -2,7 +2,6 @@ from rest_framework.decorators import api_view, permission_classes
 from crm.sale.models import Seller, CustomerRelation
 from crm.user.models import UserBehavior
 from rest_framework.response import Response
-from crm.discount.models import UserCoinRecord, CoinRule
 from crm.user.models import BaseUser
 from django.utils import timezone
 
@@ -35,11 +34,4 @@ def scan_bind_seller(request):
     UserBehavior.objects.create(user_id=customer_relation.user_id,
                                 category='sellerbind',
                                 location='')
-    # rule = CoinRule.objects.filter(category=6).first()
-    # UserCoinRecord.objects.create(user_id=customer_relation.user_id,
-    #                               rule=rule,
-    #                               coin=rule.coin,
-    #                               update_status=True,
-    #                               extra_data={}
-    #                               )
     return Response(msg)
