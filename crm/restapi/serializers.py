@@ -832,7 +832,7 @@ class CreatePointRecordSerializer(AssignUserCompanySerializer):
     coin = serializers.IntegerField(
         help_text='积分', required=False)
     change_by = serializers.CharField(
-        help_text='订单号|退单号|销售手机号|积分规则二维码编码之一', required=True, write_only=True,
+        help_text='订单号|退单号|后台管理用户手机号|积分规则二维码编码之一', required=True, write_only=True,
         max_length=100)
 
     def create(self, validated_data):
@@ -859,9 +859,9 @@ class CreatePointRecordSerializer(AssignUserCompanySerializer):
                 raise serializers.ValidationError({'detail': "规则不存在"})
             kw.update({'coin': rule.coin, 'rule': rule})
         elif change_type == 'seller_send':
-            seller = Seller.objects.filter(user__mobile=change_by).first()
+            seller = BaseUser.objects.filter(mobile=change_by).first()
             if not seller:
-                raise serializers.ValidationError({'detail': "销售不存在"})
+                raise serializers.ValidationError({'detail': "后台管理用户不存在"})
             kw.update({'coin': coin, 'seller': seller})
         elif change_type == 'order':
             kw.update({'coin': coin, 'order_no': change_by})
