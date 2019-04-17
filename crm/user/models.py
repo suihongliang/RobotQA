@@ -240,7 +240,7 @@ class UserInfo(models.Model, UserMobileMixin):
             (3, '接触中'),
         ], default=0, verbose_name='购房状态')
     note = models.TextField(
-        verbose_name='备注', default='')
+        verbose_name='备注', default='', null=True, blank=True)
     willingness = models.CharField(
         choices=[
             ('1', '低'),

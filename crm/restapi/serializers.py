@@ -444,6 +444,10 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
     new_message = serializers.SerializerMethodField()
     coupon_count = serializers.SerializerMethodField()
     avg_sampleroom_seconds = serializers.SerializerMethodField()
+    willingness_display = serializers.CharField(
+        source='get_willingness_display', read_only=True)
+    self_willingness_display = serializers.CharField(
+        source='get_self_willingness_display', read_only=True)
 
     def get_avg_sampleroom_seconds(self, instance):
         return instance.sampleroom_seconds / instance.sampleroom_times if instance.sampleroom_times > 0 else 0
@@ -520,8 +524,8 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
             'gender',
             'status',
             'note',
-            'willingness',
-            'self_willingness',
+            'willingness_display',
+            'self_willingness_display',
             'net_worth',
             'created',
             'is_seller',
