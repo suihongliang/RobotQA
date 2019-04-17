@@ -86,13 +86,16 @@ def user_behavior_event(sender, **kwargs):
         # 某天第一次到访
         category_flag = 1
         instance.user.userinfo.last_active_time = timezone.now()
-        instance.user.userinfo.access_times += 1
-        if instance.user.userinfo.access_times == 1:
+        access_times = instance.user.userinfo.access_times
+        access_times += 1
+        if access_times == 1:
             instance.user.userinfo.willingness = '1'
-        elif instance.user.userinfo.access_times == 2:
+        elif access_times == 2:
             instance.user.userinfo.willingness = '2'
-        elif instance.user.userinfo.access_times == 3:
+        elif access_times == 3:
             instance.user.userinfo.willingness = '3'
+        elif access_times == 4:
+            instance.user.userinfo.willingness = '4'
         instance.user.userinfo.save()
     elif category == 'sampleroom':
         # 看样板房

@@ -686,6 +686,7 @@ class CustomerRelationViewSet(CompanyFilterViewSet,
     # )
     userfilter_field = 'seller__user__mobile'
     ordering = ('-created',)
+    ordering_fields = ('user__status', 'user__access_times', 'user__last_active_time')
     lookup_url_kwarg = 'user__user__mobile'
     lookup_field = 'user__user__mobile'
     filterset_class = CustomerRelationFilter

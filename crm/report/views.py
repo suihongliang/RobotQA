@@ -51,19 +51,21 @@ class SellerReport(UserInfoViewSet):
         content = []
         for row in data:
             seller = row['seller']['seller_name'] if row['seller'] else ''
+            group_name = row['seller']['group_name'] if row['seller'] else ''
             customer_name = row['mark_name'] if row['mark_name'] else row['name']
             mobile = row['mobile']
             bind_time = row['bind_relation_time']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
+            sampleroom_times = row['sampleroom_times']
             model_houses = '已看' if row['is_sampleroom'] else '未看'
             willingness = row['willingness_display']
             content.append([
-                seller, customer_name, mobile, bind_time, last_active_time,
-                model_houses, access_times, willingness,
+                seller, group_name, customer_name, mobile, bind_time, last_active_time,
+                model_houses, access_times, sampleroom_times, willingness,
                 ])
-        fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
-                  '到访次数', '意愿度']
+        fields = ['销售', '销售团队', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
+                  '到访次数', '样板房看房次数', '意愿度']
         table_name = '销售报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
@@ -100,7 +102,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
         custom_permission(c_perms),
     )
 
-    ordering = ('customerrelation__seller', 'created', 'gender', 'name',)
+    ordering = ('created', 'gender', 'name',)
 
     @action(detail=False)
     def user_analysis(self, request):
