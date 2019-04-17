@@ -60,8 +60,40 @@ class Command(BaseCommand):
         # 当天售楼大厅停留时间(s)
         calc_big_room(mobile_list, start_at, end_at)
 
+        # 计算意愿度
+
+        for mobile in mobile_list:
+            user_info = UserInfo.objects.get(user__mobile=mobile)
+            a = user_info.access_times * 0.3
+            b = user_info.sampleroom_times * 0.3
+            c = user_info.microstore_times * 0.1
+            d = user_info.sdver_times * 0.1
+
+            e = calc_will(user_info.big_room_seconds, user_info.access_times, user_info.access_times)
+            f = calc_will(user_info.sampleroom_seconds, user_info.sampleroom_times, user_info.access_times)
+            g = calc_will(user_info.microstore_seconds, user_info.microstore_times, user_info.access_times)
+            value = a + b + c + d + e + f + g
+
+            user_info.self_willingness = calc_will_flag(value)
+            print('-----------------[ ', value, user_info.self_willingness)
+            user_info.save()
+
         self.stdout.write(self.style.SUCCESS('Successfully'))
 
+
+def calc_will(seconds, times, access_times):
+    v = (((1.0 * seconds / times if times != 0 else 0) // times) + 1) * access_times * 0.1
+    return v if v < 0.9*access_times else 0.9*access_times
+
+def calc_will_flag(v):
+    if v < 1:
+        return '1'
+    elif 1 <= v < 2:
+        return '2'
+    elif 2 <= v < 3:
+        return '3'
+    else:
+        return '4'
 
 # def calc_stop(mobile_list, ub_type, start_at, end_at):
 #     for mobile in mobile_list:
@@ -113,4 +145,4 @@ def calc_big_room(mobile_list, start_at, end_at):
             start = end = None
         total = (end - start).seconds if start is not None else 0
         print("big room - - - -", total)
-        UserInfo.objects.filter(mobile=mobile).update(big_room_seconds=F('big_room_seconds')+total-F('microstore_seconds')-F('sampleroom_seconds'))
+        UserInfo.objects.filter(user__mobile=mobile).update(big_room_seconds=F('big_room_seconds')+total-F('microstore_seconds')-F('sampleroom_seconds'))
