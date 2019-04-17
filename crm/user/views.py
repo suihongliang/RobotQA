@@ -36,6 +36,7 @@ class LoginView(View):
                             'mobile': mobile,
                             'company_id': user.company_id,
                             'role': user.role.name,
+                            'username': user.username,
                         }
                     })
         else:
