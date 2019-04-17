@@ -247,7 +247,7 @@ class UserInfo(models.Model, UserMobileMixin):
             ('2', '中'),
             ('3', '高'),
             ('4', '极高'),
-        ],max_length=5, verbose_name='意愿度', default='1')
+        ], max_length=5, verbose_name='意愿度', default='1')
     net_worth = models.CharField(
         max_length=5, verbose_name='净值度', default='')
     is_seller = models.BooleanField(

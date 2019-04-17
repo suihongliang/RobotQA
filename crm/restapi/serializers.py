@@ -341,6 +341,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 return {
                     'seller_name': b_user.name,
                     'seller_mobile': mobile,
+                    'group_name': b_user.group.name if b_user.group else ''
                 }
         except CustomerRelation.DoesNotExist:
             CustomerRelation.objects.create(user=instance)
@@ -679,6 +680,8 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             instance.seller = seller
             UserBehavior.objects.create(
                 user_id=instance.user_id, category='sellerbind', location='')
+            instance.user.status = 3
+            instance.user.save()
         instance.save()
 
         return instance
