@@ -842,6 +842,9 @@ class CreatePointRecordSerializer(AssignUserCompanySerializer):
         change_by = validated_data.get('change_by')
         coin = validated_data.get('coin', 0)
 
+        if change_by not in dict(PointRecord.CHANGE_TYPE):
+            raise serializers.ValidationError({
+                'detail': "不存在相关积分变更类型"})
         if not coin and change_by != 'rule_reward':
             raise serializers.ValidationError({
                 'detail': "参数错误"})
