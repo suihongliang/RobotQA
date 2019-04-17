@@ -521,6 +521,7 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
             'status',
             'note',
             'willingness',
+            'self_willingness',
             'net_worth',
             'created',
             'is_seller',
@@ -541,6 +542,9 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
             'is_3dvr',
             'sampleroom_times',
             'sampleroom_seconds',
+            'microstore_times',
+            'microstore_seconds',
+            'big_room_seconds',
             'sdver_times',
             'coupon_count',
             'avg_sampleroom_seconds'
@@ -549,6 +553,7 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
             'user', 'created', 'mobile', 'is_seller',
             'last_active_time', 'access_times', 'sampleroom_times',
             'sampleroom_seconds', 'sdver_times', 'coupon_count',
+            'microstore_times', 'microstore_seconds', 'big_room_seconds',
             'spend_coin', 'coin',)
 
 

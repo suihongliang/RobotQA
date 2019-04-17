@@ -344,12 +344,31 @@ class UserInfoFilter(filters.FilterSet):
     max_sdver_times = filters.NumberFilter(
         field_name="sdver_times", lookup_expr='lte',
         help_text="最多3DVR看房次数")
+    min_microstore_times = filters.NumberFilter(
+        field_name="microstore_times", lookup_expr='gte',
+        help_text='最少小店次数')
+    max_microstore_times = filters.NumberFilter(
+        field_name="microstore_times", lookup_expr='lte',
+        help_text="最大小店次数")
+    min_microstore_seconds = filters.NumberFilter(
+        field_name="microstore_seconds", lookup_expr='gte',
+        help_text='最少小店总停留秒数')
+    max_microstore_seconds = filters.NumberFilter(
+        field_name="microstore_seconds", lookup_expr='lte',
+        help_text="最大小店总停留秒数")
+    min_big_room_seconds = filters.NumberFilter(
+        field_name="big_room_seconds", lookup_expr='gte',
+        help_text='最少大厅总停留秒数')
+    max_big_room_seconds = filters.NumberFilter(
+        field_name="big_room_seconds", lookup_expr='lte',
+        help_text="最大大厅总停留秒数")
+
 
     class Meta:
         model = UserInfo
         fields = (
             'min_age', 'max_age', 'name', 'gender',
-            'status', 'willingness', 'net_worth',
+            'status', 'willingness', 'self_willingness', 'net_worth',
             'is_seller', 'customerrelation__seller__user__mobile',
             'min_created', 'max_created',
             'max_spend_coin', 'min_spend_coin',
@@ -359,7 +378,9 @@ class UserInfoFilter(filters.FilterSet):
             'user__mobile', 'unbind_seller', 'min_bind_time',
             'max_bind_time', 'min_sampleroom_times', 'max_sampleroom_times',
             'min_sampleroom_seconds', 'max_sampleroom_seconds', 'min_sdver_times',
-            'max_sdver_times', 'customerrelation__mark_name')
+            'max_sdver_times', 'customerrelation__mark_name', 'microstore_times',
+            'big_room_seconds', 'microstore_seconds'
+        )
 
 
 class UserInfoViewSet(SellerFilterViewSet,

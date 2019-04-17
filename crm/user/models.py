@@ -247,7 +247,14 @@ class UserInfo(models.Model, UserMobileMixin):
             ('2', '中'),
             ('3', '高'),
             ('4', '极高'),
-        ], max_length=5, verbose_name='意愿度', default='1')
+        ], max_length=5, verbose_name='客观意愿度', default='1')
+    self_willingness = models.CharField(
+        choices=[
+            ('1', '低'),
+            ('2', '中'),
+            ('3', '高'),
+            ('4', '极高'),
+        ], max_length=5, verbose_name='主观意愿度', default='1')
     net_worth = models.CharField(
         max_length=5, verbose_name='净值度', default='')
     is_seller = models.BooleanField(
@@ -256,6 +263,10 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name='活跃时间', default=timezone.now)
     access_times = models.IntegerField(
         verbose_name='到访次数', default=0)
+    microstore_times = models.IntegerField(
+        verbose_name='小店次数', default=0)
+    microstore_seconds = models.IntegerField(
+        verbose_name="小店总停留秒数", default=0)
     sampleroom_times = models.IntegerField(
         verbose_name='看样板房次数', default=0)
     sampleroom_seconds = models.IntegerField(
@@ -277,6 +288,8 @@ class UserInfo(models.Model, UserMobileMixin):
         max_length=50, verbose_name='意向产品', default='')
     purchase_purpose = models.CharField(
         max_length=50, verbose_name='购买用途', default='')
+    big_room_seconds = models.IntegerField(
+        verbose_name="大厅总停留时间", default=0)
 
     def get_extra_data_json(self):
         try:

@@ -110,6 +110,17 @@ def user_behavior_event(sender, **kwargs):
         category_flag = 5
     elif category == 'microstore':
         # 门店到访
+        if instance.location == 'out':
+            ub = UserBehavior.objects.filter(
+                user_id=instance.user_id,
+                category=category,
+                created__date=timezone.now().date()).order_by('-created').first()
+            if ub and ub.location == 'in':
+                stay_seconds = (timezone.now() - ub.created).seconds
+                instance.user.userinfo.microstore_seconds += stay_seconds
+        else:
+            instance.user.userinfo.microstore_times += 1
+        instance.user.userinfo.save()
         category_flag = 7
     elif category == 'activity1':
         # 活动扫码送积分3
