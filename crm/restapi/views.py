@@ -358,7 +358,8 @@ class UserInfoFilter(filters.FilterSet):
             'min_coin', 'max_coin', 'customerrelation__seller',
             'user__mobile', 'unbind_seller', 'min_bind_time',
             'max_bind_time', 'min_sampleroom_times', 'max_sampleroom_times',
-            'min_sampleroom_seconds', 'max_sampleroom_seconds', 'min_sdver_times', 'max_sdver_times')
+            'min_sampleroom_seconds', 'max_sampleroom_seconds', 'min_sdver_times',
+            'max_sdver_times', 'customerrelation__mark_name')
 
 
 class UserInfoViewSet(SellerFilterViewSet,
@@ -399,6 +400,9 @@ class UserInfoViewSet(SellerFilterViewSet,
             'customer_m',
         ],
         'status_list': [
+            'customer_m',
+        ],
+        'willingness_list': [
             'customer_m',
         ],
         'update': [
@@ -451,6 +455,10 @@ class UserInfoViewSet(SellerFilterViewSet,
     @action(methods=['get'], url_path='list/status', detail=False)
     def status_list(self, request, *args, **kwargs):
         return Response(self.get_choice_data(UserInfo, 'status'))
+
+    @action(methods=['get'], url_path='list/willingness', detail=False)
+    def willingness_list(self, request, *args, **kwargs):
+        return Response(self.get_choice_data(UserInfo, 'willingness'))
 
     def get_object(self):
         '''

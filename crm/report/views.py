@@ -31,6 +31,9 @@ class SellerReport(UserInfoViewSet):
         'status_list': [
             'report_m',
         ],
+        'willingness_list': [
+            'report_m',
+        ],
 
     }
     permission_classes = (
@@ -54,7 +57,7 @@ class SellerReport(UserInfoViewSet):
             last_active_time = row['last_active_time']
             access_times = row['access_times']
             model_houses = '已看' if row['is_sampleroom'] else '未看'
-            willingness = row['willingness']
+            willingness = row['willingness_display']
             content.append([
                 seller, customer_name, mobile, bind_time, last_active_time,
                 model_houses, access_times, willingness,
@@ -88,6 +91,9 @@ class UserAnalysisReport(UserInfoReportViewSet):
         'status_list': [
             'report_m',
         ],
+        'willingness_list': [
+            'report_m',
+        ],
 
     }
     permission_classes = (
@@ -108,7 +114,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
             seller = row['seller']['seller_name'] if row['seller'] else ''
             customer_name = row['mark_name'] if row['mark_name'] else row['name']
             mobile = row['mobile']
-            willingness = row['willingness']
+            willingness = row['willingness_display']
             gender = gender_name_dic[row['gender']]
             bind_time = str(row['bind_relation_time'])
             age = row['age']
@@ -174,6 +180,9 @@ class CustomerReport(UserInfoViewSet):
         'status_list': [
             'report_m',
         ],
+        'willingness_list': [
+            'report_m',
+        ],
     }
     permission_classes = (
         custom_permission(c_perms),
@@ -192,7 +201,7 @@ class CustomerReport(UserInfoViewSet):
             gender_display = row['gender_display']
             age = row['age']
             seller = row['seller']['seller_name'] if row['seller'] else ''
-            willingness = row['willingness']
+            willingness = row['willingness_display']
             created = row['created']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
@@ -257,6 +266,9 @@ class UserBehaviorReport(UserBehaviorViewSet):
             'report_m',
         ],
         'status_list': [
+            'report_m',
+        ],
+        'willingness_list': [
             'report_m',
         ],
     }

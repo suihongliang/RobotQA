@@ -282,6 +282,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
         source='get_status_display', read_only=True)
     industry_display = serializers.CharField(
         source='get_industry_display', read_only=True)
+    willingness_display = serializers.CharField(
+        source='get_willingness_display', read_only=True)
     extra_info = serializers.JSONField(
         help_text='额外参数', required=False, write_only=True)
     customer_remark = serializers.CharField(
@@ -296,15 +298,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
 
     def get_is_3dvr(self, instance):
-        behavior = UserBehavior.objects.filter(user=instance.user, category='3dvr')
-        if behavior.exists():
+        if instance.sdver_times:
             return True
         else:
             return False
 
     def get_is_sampleroom(self, instance):
-        behavior = UserBehavior.objects.filter(user=instance.user, category='sampleroom')
-        if behavior.exists():
+        if instance.sampleroom_times:
             return True
         else:
             return False
@@ -399,6 +399,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'gender_display',
             'status_display',
             'industry_display',
+            'willingness_display',
             'seller',
             'last_active_time',
             'access_times',
@@ -415,6 +416,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'product_intention',
             'purchase_purpose',
             'industry',
+            'sampleroom_times',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
