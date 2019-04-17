@@ -738,6 +738,16 @@ class UserCoinRecordViewSet(CompanyFilterViewSet,
         custom_permission(c_perms),
     )
 
+    class UserCoinRecordFilter(filters.FilterSet):
+        min_created_at = filters.DateTimeFilter(
+            field_name="created_at", lookup_expr='gte',
+            help_text='创建时间')
+        max_created_at = filters.DateTimeFilter(
+            help_text='创建时间', field_name="created_at", lookup_expr='lte', )
+        class Meta:
+            model = PointRecord
+            fields = ['min_created_at', 'max_created_at']
+
     queryset = PointRecord.objects.order_by('id')
     serializer_class = PointRecordSerializer
     filterset_fields = ('rule',)
@@ -748,6 +758,7 @@ class UserCoinRecordViewSet(CompanyFilterViewSet,
         'seller__mobile',
         'rule__category'
     )
+    filterset_class = UserCoinRecordFilter
     companyfilter_field = 'user__user__company_id'
 
     def get_serializer_class(self):
