@@ -110,6 +110,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
             mobile = row['mobile']
             willingness = row['willingness']
             gender = gender_name_dic[row['gender']]
+            bind_time = str(row['bind_relation_time'])
             age = row['age']
             note = row['note']
             avg_sampleroom_seconds = row['avg_sampleroom_seconds']
@@ -128,6 +129,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
                 mobile,
                 gender,
                 age,
+                bind_time,
                 note,
                 willingness,
                 avg_sampleroom_seconds,
@@ -142,16 +144,16 @@ class UserAnalysisReport(UserInfoReportViewSet):
                 coin])
         # fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
         #           '到访次数', '意愿度', '净值度', '状态']
-        fields = ['姓名', '专属销售人员', '手机号', '性别', '年龄', '备注', '意向度',
+        fields = ['姓名', '专属销售人员', '手机号', '性别', '年龄', '销售绑定时间', '备注', '意向度',
                   '平均停留时间', '用户注册日期', '最近到访时间', '到访次数', '样板房看房次数',
                   '样板房总停留时间', 'VR看房次数', '已消费积分', '优惠券', '积分']
-        table_name = '用户行为报表'
+        table_name = '用户意愿报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
         response = HttpResponse(content_type='application/octet-stream')
         response['Content-Disposition'] = \
             'attachment; filename="{0}.xls"'.format(
-                urllib.parse.quote_plus('用户行为报表'))
+                urllib.parse.quote_plus('用户意愿报表'))
         response.write(binary_data)
         return response
 

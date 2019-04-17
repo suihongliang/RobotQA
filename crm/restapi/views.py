@@ -738,16 +738,28 @@ class UserCoinRecordViewSet(CompanyFilterViewSet,
         custom_permission(c_perms),
     )
 
+    class UserCoinRecordFilter(filters.FilterSet):
+        min_created_at = filters.DateTimeFilter(
+            field_name="created_at", lookup_expr='gte',
+            help_text='创建时间')
+        max_created_at = filters.DateTimeFilter(
+            help_text='创建时间', field_name="created_at", lookup_expr='lte', )
+        class Meta:
+            model = PointRecord
+            fields = [
+                'min_created_at',
+                'max_created_at',
+                'user__user__mobile',
+                'change_type',
+                'order_no',
+                'seller__mobile',
+                'rule__category',
+            ]
+
     queryset = PointRecord.objects.order_by('id')
     serializer_class = PointRecordSerializer
     filterset_fields = ('rule',)
-    filterset_fields = (
-        'user__user__mobile',
-        'change_type',
-        'order_no',
-        'seller__mobile',
-        'rule__category'
-    )
+    filterset_class = UserCoinRecordFilter
     companyfilter_field = 'user__user__company_id'
 
     def get_serializer_class(self):
@@ -1002,7 +1014,10 @@ def message(request):
         limit_values = paginator.page(paginator.num_pages)
     ret = []
     for record in limit_values:
-        change_name = record.get_change_type_display()
+        if record.change_type == "rule_reward":
+            change_name = record.rule.get_category_display()
+        else:
+            change_name = record.get_change_type_display()
         change_by = record.change_by
         ret.append({'coin': record.coin,
                     'created': str(record.created_at),
