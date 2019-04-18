@@ -148,6 +148,6 @@ class PointRecord(models.Model, UserMobileMixin):
         elif self.change_type == 'return_order':
             return self.return_order_no
         elif self.change_type == 'seller_send':
-            return self.seller.mobile
+            return self.seller.name
         else:
             return self.rule.get_category_display()
