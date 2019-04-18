@@ -402,6 +402,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
 
 
 @api_view(['GET'])
+@permission_classes((AllowAny, ))
 def echart_data(request):
     create_at = request.GET.get('create_at')
     if not create_at:
