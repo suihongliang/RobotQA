@@ -59,7 +59,7 @@ urlpatterns = [
     path(r'api/1.0/order/', include('crm.order.urls')),
     path(r'api/1.0/report/', include('crm.report.urls')),
     path(r'api/1.0/message/', message),
-    path(r'api/1.0/echart_data/', echart_data)
+    path(r'echart_data/', echart_data)
 ]
 
 # if settings.DEBUG:
