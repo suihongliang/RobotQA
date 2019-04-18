@@ -457,11 +457,9 @@ class UserInfoViewSet(SellerFilterViewSet,
         queryset = super().get_queryset()
         is_sampleroom = self.request.GET.get('is_sampleroom')
         if is_sampleroom == 'true':
-            queryset = queryset.select_related('user').filter(
-                user__userbehavior__category='sampleroom').distinct()
+            queryset = queryset.filter(sampleroom_times__gt=0)
         elif is_sampleroom == 'false':
-            queryset = queryset.select_related('user').exclude(
-                user__userbehavior__category='sampleroom')
+            queryset = queryset.filter(sampleroom_times=0)
         return queryset
 
     def get_serializer_class(self):
@@ -734,7 +732,7 @@ class CoinRuleViewSet(CompanyFilterViewSet,
     filterset_fields = ('company_id', 'category',)
 
 
-class UserCoinRecordViewSet(CompanyFilterViewSet,
+class UserCoinRecordViewSet(SellerFilterViewSet,
                             mixins.ListModelMixin,
                             mixins.CreateModelMixin,
                             mixins.RetrieveModelMixin):
@@ -786,11 +784,12 @@ class UserCoinRecordViewSet(CompanyFilterViewSet,
                 'rule__category',
             ]
 
-    queryset = PointRecord.objects.order_by('id')
+    queryset = PointRecord.objects.select_related('seller', 'user').order_by('id')
     serializer_class = PointRecordSerializer
     filterset_fields = ('rule',)
     filterset_class = UserCoinRecordFilter
     companyfilter_field = 'user__user__company_id'
+    userfilter_field = 'seller__mobile'
 
     def get_serializer_class(self):
         if self.action == 'create':

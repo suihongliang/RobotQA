@@ -41,6 +41,24 @@ class AssignUserCompanySerializer(serializers.ModelSerializer):
         return fields
 
 
+class SellerFilter:
+    """销售过滤"""
+    def seller_filter(self, seller, mobile_user):
+        if seller.role:
+            if seller.role.only_myself:
+                mobiles = BackendUser.objects.filter(
+                    group__manager=seller.mobile) \
+                    .values_list('mobile', flat=True)
+                mobiles_list = list(mobiles)
+                mobiles_list.append(seller.mobile)
+                queryset = CustomerRelation.objects.filter(
+                    seller__user__mobile__in=mobiles_list,
+                    user__user__mobile=mobile_user, )
+                if not queryset.exists():
+                    raise serializers.ValidationError(
+                        {'detail': "手机号无效"})
+
+
 class BaseUserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -284,6 +302,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
         source='get_industry_display', read_only=True)
     willingness_display = serializers.CharField(
         source='get_willingness_display', read_only=True)
+    self_willingness_display = serializers.CharField(
+        source='get_self_willingness_display', read_only=True)
     extra_info = serializers.JSONField(
         help_text='额外参数', required=False, write_only=True)
     customer_remark = serializers.CharField(
@@ -401,6 +421,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'status_display',
             'industry_display',
             'willingness_display',
+            'self_willingness_display',
             'seller',
             'last_active_time',
             'access_times',
@@ -836,7 +857,7 @@ class PointRecordSerializer(AssignUserCompanySerializer):
             'created_at')
 
 
-class CreatePointRecordSerializer(AssignUserCompanySerializer):
+class CreatePointRecordSerializer(AssignUserCompanySerializer, SellerFilter):
     user_mobile = serializers.CharField(
         max_length=50, write_only=True)
     company_id = serializers.CharField(
@@ -879,6 +900,9 @@ class CreatePointRecordSerializer(AssignUserCompanySerializer):
             seller = BackendUser.objects.filter(mobile=change_by).first()
             if not seller:
                 raise serializers.ValidationError({'detail': "后台管理用户不存在"})
+
+            self.seller_filter(seller, mobile)
+
             kw.update({'coin': coin, 'seller': seller})
         elif change_type == 'order':
             kw.update({'coin': coin, 'order_no': change_by})
@@ -913,7 +937,7 @@ class CouponSerializer(AssignUserCompanySerializer):
         read_only_fields = ('created',)
 
 
-class SendCouponSerializer(AssignUserCompanySerializer):
+class SendCouponSerializer(AssignUserCompanySerializer, SellerFilter):
 
     mobile_user = serializers.CharField(
         help_text='用户手机号', max_length=20, write_only=True)
@@ -937,6 +961,8 @@ class SendCouponSerializer(AssignUserCompanySerializer):
             raise serializers.ValidationError(
                 {'detail': "请登录"})
         b_user = self.context['request'].user
+
+        self.seller_filter(b_user, mobile_user)
 
         user = get_or_create_user(mobile_user, company_id)
 
