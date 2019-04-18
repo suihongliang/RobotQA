@@ -18,11 +18,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='sendcoupon',
-            name='backenduser',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='后台用户'),
-        ),
-        migrations.AddField(
-            model_name='sendcoupon',
             name='coupon',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='discount.Coupon', verbose_name='优惠券'),
         ),
