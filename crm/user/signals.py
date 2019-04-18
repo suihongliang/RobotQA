@@ -85,18 +85,11 @@ def user_behavior_event(sender, **kwargs):
     if category == 'access':
         # 某天第一次到访
         category_flag = 1
-        instance.user.userinfo.last_active_time = timezone.now()
-        access_times = instance.user.userinfo.access_times
-        access_times += 1
-        if access_times == 1:
-            instance.user.userinfo.willingness = '1'
-        elif access_times == 2:
-            instance.user.userinfo.willingness = '2'
-        elif access_times == 3:
-            instance.user.userinfo.willingness = '3'
-        elif access_times == 4:
-            instance.user.userinfo.willingness = '4'
-        instance.user.userinfo.save()
+        if not user_behavior_record:  # 每天一次
+            instance.user.userinfo.last_active_time = timezone.now()
+            access_times = instance.user.userinfo.access_times
+            access_times += 1
+            instance.user.userinfo.save()
     elif category == 'sampleroom':
         # 看样板房
         if instance.location == 'out':
@@ -122,7 +115,8 @@ def user_behavior_event(sender, **kwargs):
                 stay_seconds = (timezone.now() - ub.created).seconds
                 instance.user.userinfo.microstore_seconds += stay_seconds
         else:
-            instance.user.userinfo.microstore_times += 1
+            if not user_behavior_record:  # 每天一次
+                instance.user.userinfo.microstore_times += 1
         instance.user.userinfo.save()
         category_flag = 7
     elif category == 'activity1':

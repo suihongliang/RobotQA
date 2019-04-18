@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils import timezone
 from rest_framework.permissions import AllowAny
 from datetime import datetime, date, timedelta
@@ -401,6 +402,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
 
 
 @api_view(['GET'])
+@permission_classes((AllowAny, ))
 def echart_data(request):
     create_at = request.GET.get('create_at')
     if not create_at:
@@ -421,9 +423,16 @@ def echart_data(request):
         category='microstore',
         location='in',
         created__date=create_at).values('user_id').distinct().count()
-
-    return Response({
+    resp = Response({
         'access_total': access_total,
         'register_total': register_total,
         'sample_room_total': sample_room_total,
         'micro_store_total': micro_store_total})
+
+    if settings.DEBUG:
+        resp["Access-Control-Allow-Origin"] = "*"
+        resp["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+        resp[
+            "Access-Control-Allow-Headers"] = "Access-Control-Allow-Methods,Origin, Accept，Content-Type, Access-Control-Allow-Origin, access-control-allow-headers,Authorization, X-Requested-With"
+
+    return resp
