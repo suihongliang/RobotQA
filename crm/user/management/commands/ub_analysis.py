@@ -82,6 +82,8 @@ class Command(BaseCommand):
 
 
 def calc_will(seconds, times, access_times):
+    if times == 0:
+        return 0
     v = (((1.0 * seconds / times if times != 0 else 0) // times) + 1) * access_times * 0.1
     return v if v < 0.9*access_times else 0.9*access_times
 
