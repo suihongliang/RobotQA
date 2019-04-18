@@ -117,7 +117,7 @@ class BackendGroup(models.Model):
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     manager = models.ForeignKey(
-        "user.BackendUser", null=True, blank=True,
+        "user.BackendUser", null=True, blank=True, unique=True,
         on_delete=models.SET_NULL, verbose_name="管理员")
 
     def __str__(self):
