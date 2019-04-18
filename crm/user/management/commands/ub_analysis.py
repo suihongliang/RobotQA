@@ -74,7 +74,7 @@ class Command(BaseCommand):
             g = calc_will(user_info.microstore_seconds, user_info.microstore_times, user_info.access_times)
             value = a + b + c + d + e + f + g
 
-            user_info.self_willingness = calc_will_flag(value)
+            user_info.willingness = calc_will_flag(value)
             print('-----------------[ ', value, user_info.self_willingness)
             user_info.save()
 
