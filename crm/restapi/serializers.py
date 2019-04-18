@@ -56,7 +56,7 @@ class SellerFilter:
                     user__user__mobile=mobile_user, )
                 if not queryset.exists():
                     raise serializers.ValidationError(
-                        {'detail': "手机号无效"})
+                        {'detail': "只能给自己可管理的客户发放"})
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
@@ -439,6 +439,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'purchase_purpose',
             'industry',
             'sampleroom_times',
+            'self_willingness',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
