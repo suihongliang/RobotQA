@@ -447,7 +447,7 @@ class UserInfoViewSet(SellerFilterViewSet,
     ordering = ('created', 'gender', 'name',)
 
     queryset = UserInfo.objects.prefetch_related(
-        'customerrelation', 'user').filter(is_seller=False).order_by('created')
+        'customerrelation', 'user').order_by('created')
     # serializer_class = UserInfoSerializer
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
