@@ -278,8 +278,9 @@ class BackendUserViewSet(SellerFilterViewSet,
             fields = ['role__is_seller', 'mobile', 'has_group',
                       'group_id', 'group_in', 'role__name']
 
-    queryset = BackendUser.objects.filter(
-        is_superuser=False, is_staff=False).order_by('created')
+    # queryset = BackendUser.objects.filter(
+    #     is_superuser=False, is_staff=False).order_by('created')
+    queryset = BackendUser.objects.order_by('created')
     serializer_class = BackendUserSerializer
     # filterset_fields = ('role__is_seller', 'mobile',)
     filterset_class = BackendUserFilter
@@ -446,7 +447,7 @@ class UserInfoViewSet(SellerFilterViewSet,
     ordering = ('created', 'gender', 'name',)
 
     queryset = UserInfo.objects.prefetch_related(
-        'customerrelation', 'user').order_by('created')
+        'customerrelation', 'user').filter(is_seller=False).order_by('created')
     # serializer_class = UserInfoSerializer
     lookup_url_kwarg = 'user__mobile'
     lookup_field = 'user__mobile'
@@ -675,7 +676,7 @@ class CustomerRelationViewSet(CompanyFilterViewSet,
     )
     companyfilter_field = 'user__user__company_id'
 
-    queryset = CustomerRelation.objects.order_by('created')
+    queryset = CustomerRelation.objects.select_related('user').order_by('created')
     serializer_class = CustomerRelationSerializer
     # filterset_fields = (
     #     'user__user__mobile',
@@ -684,7 +685,7 @@ class CustomerRelationViewSet(CompanyFilterViewSet,
     # )
     userfilter_field = 'seller__user__mobile'
     ordering = ('-created',)
-    ordering_fields = ('user__status', 'user__access_times', 'user__last_active_time')
+    ordering_fields = ('user__self_willingness', 'user__access_times', 'user__last_active_time')
     lookup_url_kwarg = 'user__user__mobile'
     lookup_field = 'user__user__mobile'
     filterset_class = CustomerRelationFilter
@@ -1046,7 +1047,10 @@ def message(request):
         if record.change_type == "rule_reward":
             change_name = record.rule.get_category_display()
         else:
-            change_name = record.get_change_type_display()
+            if record.change_type == "seller_send":
+                change_name = "销售赠送"
+            else:
+                change_name = "购物积分"
         change_by = record.change_by
         ret.append({'coin': record.coin,
                     'created': str(record.created_at),

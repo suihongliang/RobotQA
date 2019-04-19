@@ -524,6 +524,7 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
                 return {
                     'seller_name': b_user.name,
                     'seller_mobile': mobile,
+                    'group_name': b_user.group.name if b_user.group else ''
                 }
         except CustomerRelation.DoesNotExist:
             CustomerRelation.objects.create(user=instance)
@@ -677,6 +678,10 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
         help_text='公司编号', max_length=50, write_only=True)
     mobile_customer = serializers.SerializerMethodField(
         help_text='客户手机')
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, instance):
+        return instance.mark_name if instance.mark_name else instance.user.name
 
     def get_mobile_customer(self, instance):
         mobile_customer = instance.user.mobile
@@ -726,6 +731,7 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             'company_id',
             'created',
             'mobile_customer',
+            'name',
         )
         read_only_fields = ('user', 'created')
 
