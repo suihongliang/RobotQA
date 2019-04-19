@@ -88,8 +88,8 @@ def user_behavior_event(sender, **kwargs):
         if not user_behavior_record:  # 每天一次
             access_times = instance.user.userinfo.access_times
             access_times += 1
-        instance.user.userinfo.last_active_time = timezone.now()
-        instance.user.userinfo.save()
+            instance.user.userinfo.last_active_time = timezone.now()
+            instance.user.userinfo.save()
     elif category == 'sampleroom':
         # 看样板房
         if instance.location == 'out':
