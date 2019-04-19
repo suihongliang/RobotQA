@@ -60,13 +60,14 @@ class SellerReport(UserInfoViewSet):
             access_times = row['access_times']
             sampleroom_times = row['sampleroom_times']
             model_houses = '已看' if row['is_sampleroom'] else '未看'
+            self_willingness = row['self_willingness_display']
             willingness = row['willingness_display']
             content.append([
                 seller, group_name, customer_name, mobile, bind_time, last_active_time,
-                model_houses, access_times, sampleroom_times, willingness,
+                model_houses, access_times, sampleroom_times, self_willingness, willingness,
                 ])
         fields = ['销售', '销售团队', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
-                  '到访次数', '样板房看房次数', '意愿度']
+                  '到访次数', '样板房看房次数', '主观意向度', '客观意向度']
         table_name = '销售报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
@@ -117,6 +118,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
             seller = row['seller']['seller_name'] if row['seller'] else ''
             customer_name = row['mark_name'] if row['mark_name'] else row['name']
             mobile = row['mobile']
+            self_willingness = row['self_willingness_display']
             willingness = row['willingness_display']
             gender = gender_name_dic[row['gender']]
             bind_time = str(row['bind_relation_time'])
@@ -143,6 +145,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
                 age,
                 bind_time,
                 note,
+                self_willingness,
                 willingness,
                 avg_sampleroom_seconds,
                 created,
@@ -159,7 +162,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
                 coin])
         # fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
         #           '到访次数', '意愿度', '净值度', '状态']
-        fields = ['姓名', '专属销售人员', '手机号', '性别', '年龄', '销售绑定时间', '备注', '意向度',
+        fields = ['姓名', '专属销售人员', '手机号', '性别', '年龄', '销售绑定时间', '备注', '主观意向度', '客观意向度'
                   '平均停留时间', '用户注册日期', '最近到访时间', '到访次数', '样板房看房次数',
                   '样板房总停留时间', '小店参观次数', '小店停留时间', '大厅停留时间', 'VR看房次数', '已消费积分', '优惠券', '积分']
         table_name = '用户意愿报表'

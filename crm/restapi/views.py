@@ -278,8 +278,9 @@ class BackendUserViewSet(SellerFilterViewSet,
             fields = ['role__is_seller', 'mobile', 'has_group',
                       'group_id', 'group_in', 'role__name']
 
-    queryset = BackendUser.objects.filter(
-        is_superuser=False, is_staff=False).order_by('created')
+    # queryset = BackendUser.objects.filter(
+    #     is_superuser=False, is_staff=False).order_by('created')
+    queryset = BackendUser.objects.order_by('created')
     serializer_class = BackendUserSerializer
     # filterset_fields = ('role__is_seller', 'mobile',)
     filterset_class = BackendUserFilter
