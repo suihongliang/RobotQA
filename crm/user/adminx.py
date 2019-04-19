@@ -5,22 +5,50 @@ from .models import (
     UserInfo,
     UserOnlineOrder,
     UserBehavior,
+    BackendPermission,
+    BackendRole,
+    BackendUser,
+    BackendGroup,
     )
 # from django.utils import timezone
+
+
+xadmin.site.unregister(BackendUser)
+
+
+@xadmin.sites.register(BackendPermission)
+class BackendPermissionAdmin():
+    '''
+    '''
+    list_display = ('id', 'name', 'code')
+
+
+@xadmin.sites.register(BackendRole)
+class BackendRoleAdmin():
+    '''
+    '''
+    list_display = ('id', 'name', 'created')
+
+
+@xadmin.sites.register(BackendUser)
+class BackendUserAdmin():
+    '''
+    '''
+    list_display = ('id', 'mobile', 'created', 'group')
 
 
 @xadmin.sites.register(BaseUser)
 class BaseUserAdmin():
     '''
     '''
-    list_display = ('id', 'mobile', 'store_code')
+    list_display = ('id', 'mobile', 'company_id')
 
 
 @xadmin.sites.register(UserInfo)
 class UserInfoAdmin():
     '''
     '''
-    list_display = ('user', 'mobile', 'created')
+    list_display = ('user', 'mobile', 'created', 'msg_last_at')
     ordering = ('created',)
 
 
@@ -37,3 +65,10 @@ class UserBehaviorAdmin():
     '''
     '''
     list_display = ('user', 'mobile', 'created')
+
+
+@xadmin.sites.register(BackendGroup)
+class BackendGroupAdmin():
+    '''
+    '''
+    list_display = ('name', 'manager', 'created')

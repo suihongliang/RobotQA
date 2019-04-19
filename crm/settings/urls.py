@@ -17,7 +17,10 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
+from crm.report.views import echart_data
+from crm.restapi.views import sdvr, message
 from ..restapi import views as rest_views
+from ..user import views as user_views
 import xadmin
 from xadmin.plugins import xversion
 
@@ -28,12 +31,35 @@ xversion.register_models()
 router = DefaultRouter()
 
 router.register(r'user', rest_views.UserInfoViewSet)
+router.register(r'user_report', rest_views.UserInfoReportViewSet)
 router.register(r'useronlineorder', rest_views.UserOnlineOrderViewSet)
 router.register(r'seller', rest_views.SellerViewSet)
+router.register(r'coinrule', rest_views.CoinRuleViewSet)
+router.register(r'usercoinrecord', rest_views.UserCoinRecordViewSet)
+router.register(r'backendpermission', rest_views.BackendPermissionViewSet)
+router.register(r'backendrole', rest_views.BackendRoleViewSet)
+router.register(r'backenduser', rest_views.BackendUserViewSet)
+router.register(r'customerrelation', rest_views.CustomerRelationViewSet)
+router.register(r'coupon', rest_views.CouponViewSet)
+router.register(r'sendcoupon', rest_views.SendCouponViewSet)
+router.register(r'userbehavior', rest_views.UserBehaviorViewSet)
+router.register(r'qrcode', rest_views.QRCodeViewSet)
+router.register(r'coin_qrcode', rest_views.CoinQRCodeViewSet)
+router.register(r'backendgroup', rest_views.BackendGroupViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
+    path(r'user/login/', user_views.LoginView.as_view()),
+    path(r'user/logout/', user_views.LogoutView.as_view()),
+    path(r'3dvr/', sdvr),
     path(r'api/1.0/', include(router.urls)),
+    path(r'api/1.0/sale/', include('crm.sale.urls')),
+    path(r'api/1.0/crmuser/', include('crm.user.urls')),
+    path(r'api/1.0/product/', include('crm.product.urls')),
+    path(r'api/1.0/order/', include('crm.order.urls')),
+    path(r'api/1.0/report/', include('crm.report.urls')),
+    path(r'api/1.0/message/', message),
+    path(r'echart_data/', echart_data)
 ]
 
 # if settings.DEBUG:

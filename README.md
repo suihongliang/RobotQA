@@ -7,3 +7,15 @@
 ### 更新
 
 ### 测试
+
+### 生成密钥
+
+    openssl genrsa -out keypair.pem 2048
+    openssl rsa -in keypair.pem -pubout -out publickey.crt
+    openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in keypair.pem -out pkcs8.key
+
+### Command
+
+创建默认积分规则
+
+    python manage.py createcoinrule {company_id}
