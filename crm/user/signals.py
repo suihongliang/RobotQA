@@ -16,6 +16,7 @@ from ..sale.models import (
     Seller,
     )
 from .utils import get_or_create_user
+from crm.user.tasks import SendSMS
 
 
 def update_seller_info(b_user):
@@ -90,6 +91,7 @@ def user_behavior_event(sender, **kwargs):
             access_times += 1
         instance.user.userinfo.last_active_time = timezone.now()
         instance.user.userinfo.save()
+        SendSMS.apply_async(args=[instance.user_id])
     elif category == 'sampleroom':
         # 看样板房
         if instance.location == 'out':
