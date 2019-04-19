@@ -116,6 +116,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
         gender_name_dic = dict([(1, '男'), (2, '女'), (0, '未知')])
         for row in data:
             seller = row['seller']['seller_name'] if row['seller'] else ''
+            seller_group_name = row['seller']['group_name'] if row['seller'] else ''
             customer_name = row['mark_name'] if row['mark_name'] else row['name']
             mobile = row['mobile']
             self_willingness = row['self_willingness_display']
@@ -139,6 +140,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
             coin = row['coin']
             content.append([
                 customer_name,
+                seller_group_name,
                 seller,
                 mobile,
                 gender,
@@ -162,7 +164,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
                 coin])
         # fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
         #           '到访次数', '意愿度', '净值度', '状态']
-        fields = ['姓名', '专属销售人员', '手机号', '性别', '年龄', '销售绑定时间', '备注', '主观意向度', '客观意向度'
+        fields = ['姓名', '销售团队', '专属销售人员', '手机号', '性别', '年龄', '销售绑定时间', '备注', '主观意向度', '客观意向度'
                   '平均停留时间', '用户注册日期', '最近到访时间', '到访次数', '样板房看房次数',
                   '样板房总停留时间', '小店参观次数', '小店停留时间', '大厅停留时间', 'VR看房次数', '已消费积分', '优惠券', '积分']
         table_name = '用户意愿报表'

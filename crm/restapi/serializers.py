@@ -524,6 +524,7 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
                 return {
                     'seller_name': b_user.name,
                     'seller_mobile': mobile,
+                    'group_name': b_user.group.name if b_user.group else ''
                 }
         except CustomerRelation.DoesNotExist:
             CustomerRelation.objects.create(user=instance)
