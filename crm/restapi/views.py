@@ -1046,7 +1046,10 @@ def message(request):
         if record.change_type == "rule_reward":
             change_name = record.rule.get_category_display()
         else:
-            change_name = record.get_change_type_display()
+            if record.change_type == "seller_send":
+                change_name = "销售赠送"
+            else:
+                change_name = "购物积分"
         change_by = record.change_by
         ret.append({'coin': record.coin,
                     'created': str(record.created_at),
