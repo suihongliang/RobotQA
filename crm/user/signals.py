@@ -66,9 +66,9 @@ def sync_create_userinfo(sender, **kwargs):
     '''
     user = kwargs['instance']
     if kwargs['created']:
+        rule = CoinRule.objects.get(category=0)
         userinfo = UserInfo.objects.create(user=user)
         CustomerRelation.objects.create(user=userinfo)
-        rule = CoinRule.objects.get(category=0)
         UserBehavior.objects.create(user=user, category='signup', location='')
         PointRecord.objects.create(user_id=user.id,
                                    rule=rule,
@@ -104,8 +104,7 @@ def user_behavior_event(sender, **kwargs):
         # 某天第一次到访
         category_flag = 1
         if not user_behavior_record:  # 每天一次
-            access_times = instance.user.userinfo.access_times
-            access_times += 1
+            instance.user.userinfo.access_times += 1
             instance.user.userinfo.last_active_time = timezone.now()
             instance.user.userinfo.save()
         send_msg(instance, user_behavior_record)
