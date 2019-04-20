@@ -676,7 +676,7 @@ class CustomerRelationViewSet(CompanyFilterViewSet,
     )
     companyfilter_field = 'user__user__company_id'
 
-    queryset = CustomerRelation.objects.order_by('created')
+    queryset = CustomerRelation.objects.select_related('user').order_by('created')
     serializer_class = CustomerRelationSerializer
     # filterset_fields = (
     #     'user__user__mobile',
@@ -685,7 +685,7 @@ class CustomerRelationViewSet(CompanyFilterViewSet,
     # )
     userfilter_field = 'seller__user__mobile'
     ordering = ('-created',)
-    ordering_fields = ('user__status', 'user__access_times', 'user__last_active_time')
+    ordering_fields = ('user__self_willingness', 'user__access_times', 'user__last_active_time')
     lookup_url_kwarg = 'user__user__mobile'
     lookup_field = 'user__user__mobile'
     filterset_class = CustomerRelationFilter

@@ -17,6 +17,7 @@ from ..sale.models import (
     )
 from .utils import get_or_create_user
 from crm.user.tasks import SendSMS
+import datetime
 
 
 def update_seller_info(b_user):
@@ -33,6 +34,22 @@ def update_seller_info(b_user):
         if user.userinfo:
             user.userinfo.is_seller = False
             user.userinfo.save()
+
+
+def send_msg(instance, user_behavior_record):
+    user_id = instance.user_id
+    user = UserInfo.objects.select_related('customerrelation', 'user').filter(user_id=user_id).first()
+    seller_obj = user.customerrelation.seller
+    if not user.is_seller and seller_obj:
+        if user_behavior_record:
+            now = timezone.now()
+            berfore_time = now - datetime.timedelta(hours=4)
+            behavior = UserBehavior.objects.filter(
+                user_id=user_id, category='access', created__range=[berfore_time, now])
+            if not behavior.exists():
+                SendSMS.apply_async(args=[user_id])
+        else:
+            SendSMS.apply_async(args=[user_id])
 
 
 @receiver(post_save, sender=BackendRole)
@@ -90,7 +107,8 @@ def user_behavior_event(sender, **kwargs):
             instance.user.userinfo.access_times += 1
             instance.user.userinfo.last_active_time = timezone.now()
             instance.user.userinfo.save()
-        SendSMS.apply_async(args=[instance.user_id])
+        send_msg(instance, user_behavior_record)
+
     elif category == 'sampleroom':
         # 看样板房
         if instance.location == 'out':
