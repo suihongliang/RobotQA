@@ -457,10 +457,14 @@ class UserInfoViewSet(SellerFilterViewSet,
     def get_queryset(self):
         queryset = super().get_queryset()
         is_sampleroom = self.request.GET.get('is_sampleroom')
+        exclude_admin = self.request.GET.get('exclude_admin')
         if is_sampleroom == 'true':
             queryset = queryset.filter(sampleroom_times__gt=0)
         elif is_sampleroom == 'false':
             queryset = queryset.filter(sampleroom_times=0)
+        if exclude_admin:
+            admin = BackendUser.objects.filter(role__name='销售经理').values_list('mobile', flat=True)
+            queryset = queryset.exclude(user__mobile__in=admin)
         return queryset
 
     def get_serializer_class(self):
