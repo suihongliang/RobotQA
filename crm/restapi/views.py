@@ -636,17 +636,15 @@ class SellerViewSet(CompanyFilterViewSet,
 class CustomerRelationFilter(filters.FilterSet):
     mark_name = filters.CharFilter(
         field_name="mark_name", lookup_expr='icontains',
-        help_text='备注名'
-    )
+        help_text='备注名')
     user__user__mobile = filters.CharFilter(
         field_name="user__user__mobile", lookup_expr='icontains',
-        help_text='客户手机'
-    )
+        help_text='客户手机')
 
     class Meta:
         model = CustomerRelation
         fields = (
-            'user__user__mobile', 'seller__user__mobile', 'mark_name',
+            'user__user__mobile', 'seller__user__mobile', 'mark_name', 'user__is_seller'
         )
 
 
