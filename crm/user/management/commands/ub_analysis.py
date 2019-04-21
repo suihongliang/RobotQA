@@ -82,9 +82,9 @@ def calc_stop(mobile, ub_type, start_at, end_at):
 
 def calc_big_room(mobile_list, start_at, end_at):
     for mobile in mobile_list:
-        records = UserBehavior.objects.filter(
+        records = list(UserBehavior.objects.filter(
             user__mobile=mobile,
-            created__gt=start_at, created__lte=end_at).order_by('-created')
+            created__gt=start_at, created__lte=end_at).order_by('-created'))
 
         if len(records) > 1:
             end, start = records[0].created, records[-1].created
