@@ -268,14 +268,14 @@ class BackendUserViewSet(SellerFilterViewSet,
     )
 
     class BackendUserFilter(filters.FilterSet):
-        has_group = filters.BooleanFilter(
+        no_group = filters.BooleanFilter(
             field_name="group", lookup_expr='isnull')
         group_in = filters.BaseInFilter(
             field_name="group_id", lookup_expr='in')
 
         class Meta:
             model = BackendUser
-            fields = ['role__is_seller', 'mobile', 'has_group',
+            fields = ['role__is_seller', 'mobile', 'no_group',
                       'group_id', 'group_in', 'role__name']
 
     # queryset = BackendUser.objects.filter(
@@ -457,10 +457,14 @@ class UserInfoViewSet(SellerFilterViewSet,
     def get_queryset(self):
         queryset = super().get_queryset()
         is_sampleroom = self.request.GET.get('is_sampleroom')
+        exclude_admin = self.request.GET.get('exclude_admin')
         if is_sampleroom == 'true':
             queryset = queryset.filter(sampleroom_times__gt=0)
         elif is_sampleroom == 'false':
             queryset = queryset.filter(sampleroom_times=0)
+        if exclude_admin:
+            admin = BackendUser.objects.filter(is_active=True, role__name='销售经理').values_list('mobile', flat=True)
+            queryset = queryset.exclude(user__mobile__in=admin)
         return queryset
 
     def get_serializer_class(self):
