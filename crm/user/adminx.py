@@ -9,7 +9,8 @@ from .models import (
     BackendRole,
     BackendUser,
     BackendGroup,
-    StayTime
+    StayTime,
+    UserVisit
     )
 # from django.utils import timezone
 
@@ -80,3 +81,15 @@ class StayTimeAdmin():
     '''
     '''
     list_display = ('user', 'sample_seconds', 'micro_seconds', 'big_room_seconds', 'created_at')
+
+@xadmin.sites.register(UserVisit)
+class UserVisitAdmin():
+    '''
+    '''
+    list_display = (
+        'access_total',
+        'register_total',
+        'sample_room_total',
+        'micro_store_total',
+        'created_at'
+    )

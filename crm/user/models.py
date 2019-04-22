@@ -364,3 +364,17 @@ class StayTime(models.Model):
 
     def __str__(self):
         return self.user.mobile
+
+
+class UserVisit(models.Model):
+    access_total = models.IntegerField(verbose_name="来访人数", default=0)
+    register_total = models.IntegerField(verbose_name="注册人数", default=0)
+    sample_room_total = models.IntegerField(verbose_name="样板房参观人数", default=0)
+    micro_store_total = models.IntegerField(verbose_name="小店参数人数", default=0)
+    created_at = models.DateField(verbose_name="创建于", unique_for_date=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = "参观数据"
+
+    def __str__(self):
+        return str(self.created_at) if self.created_at else ""
