@@ -1,4 +1,3 @@
-from django.db.models import F
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -11,7 +10,7 @@ from .models import (
     BackendUser,
     UserBehavior,
     BackendRole,
-    StayTime)
+    )
 from ..sale.models import (
     CustomerRelation,
     Seller,
@@ -121,9 +120,6 @@ def user_behavior_event(sender, **kwargs):
             if ub and ub.location == 'in':
                 stay_seconds = (timezone.now() - ub.created).seconds
                 instance.user.userinfo.sampleroom_seconds += stay_seconds
-                obj, created = StayTime.objects.get_or_create(user_id=instance.user_id, created_at=timezone.now().date())
-                obj.sample_seconds = F('sample_seconds') + stay_seconds
-                obj.save()
         else:
             instance.user.userinfo.sampleroom_times += 1
         instance.user.userinfo.save()
@@ -138,9 +134,6 @@ def user_behavior_event(sender, **kwargs):
             if ub and ub.location == 'in':
                 stay_seconds = (timezone.now() - ub.created).seconds
                 instance.user.userinfo.microstore_seconds += stay_seconds
-                obj, created = StayTime.objects.get_or_create(user_id=instance.user_id, created_at=timezone.now().date())
-                obj.micro_seconds = F('micro_seconds') + stay_seconds
-                obj.save()
         else:
             if not user_behavior_record:  # 每天一次
                 instance.user.userinfo.microstore_times += 1

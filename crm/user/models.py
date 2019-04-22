@@ -349,32 +349,3 @@ class UserBehavior(models.Model, UserMobileMixin):
 
     class Meta:
         verbose_name = '用户行为'
-
-
-class StayTime(models.Model):
-    user = models.ForeignKey(
-        BaseUser, on_delete=models.CASCADE, verbose_name="用户")
-    sample_seconds = models.IntegerField(verbose_name="样板房逗留时间", default=0)
-    micro_seconds = models.IntegerField(verbose_name="微店逗留时间", default=0)
-    big_room_seconds = models.IntegerField(verbose_name="大厅逗留时间", default=0)
-    created_at = models.DateField(verbose_name="创建于", auto_now_add=True)
-
-    class Meta:
-        verbose_name = verbose_name_plural = "大厅逗留时间"
-
-    def __str__(self):
-        return self.user.mobile
-
-
-class UserVisit(models.Model):
-    access_total = models.IntegerField(verbose_name="来访人数", default=0)
-    register_total = models.IntegerField(verbose_name="注册人数", default=0)
-    sample_room_total = models.IntegerField(verbose_name="样板房参观人数", default=0)
-    micro_store_total = models.IntegerField(verbose_name="小店参数人数", default=0)
-    created_at = models.DateField(verbose_name="创建于", unique_for_date=True)
-
-    class Meta:
-        verbose_name = verbose_name_plural = "参观数据"
-
-    def __str__(self):
-        return str(self.created_at) if self.created_at else ""
