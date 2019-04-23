@@ -62,7 +62,7 @@ def calc_big_room(user_list, today_at):
 
         records = list(UserBehavior.objects.filter(
             user=user,
-            created__date=datetime.date.today()).order_by('-created'))
+            created__date=today_at).order_by('-created'))
 
         if len(records) > 1:
             end, start = records[0].created, records[-1].created

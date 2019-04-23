@@ -67,6 +67,7 @@ class UserBehaviorAdmin():
     '''
     '''
     list_display = ('user', 'mobile', 'created')
+    list_filter = ('user__mobile',)
 
 
 @xadmin.sites.register(BackendGroup)
