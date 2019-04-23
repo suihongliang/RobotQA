@@ -71,7 +71,7 @@ class PasswordView(View):
             else:
                 return dict(detail='无权限'), 403
         else:
-            return dict(detail='用户名或密码错误'), 400
+            return dict(detail='旧密码错误'), 400
 
     def post(self, request):
         data = json.loads(request.body.decode())
