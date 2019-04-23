@@ -55,3 +55,31 @@ class LogoutView(View):
             logout(request)
         return JsonResponse(
             {'results': {}})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PasswordView(View):
+    """修改密码"""
+
+    def modify_password(self, username, old_password, new_password):
+        user = authenticate(username=username, password=old_password)
+        if user is not None:
+            if user.is_active:
+                user.set_password(new_password)
+                user.save()
+                return dict(detail='修改成功'), 200
+            else:
+                return dict(detail='无权限'), 403
+        else:
+            return dict(detail='用户名或密码错误'), 400
+
+    def post(self, request):
+        data = json.loads(request.body.decode())
+        username = data.get('username')
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        if username and old_password and new_password:
+            result, status = self.modify_password(username, old_password, new_password)
+            return JsonResponse(result, status=status)
+        else:
+            return JsonResponse(dict(detail='参数错误'), status=400)

@@ -19,6 +19,7 @@ from ..sale.models import (
 from .utils import get_or_create_user
 from crm.user.tasks import SendSMS
 import datetime
+from rest_framework.serializers import ValidationError
 
 
 def update_seller_info(b_user):
@@ -52,6 +53,19 @@ def send_msg(instance, user_behavior_record):
                 SendSMS.apply_async(args=[user_id])
         else:
             SendSMS.apply_async(args=[user_id])
+
+
+def negative_activity(instance, rule):
+    coin = rule.coin
+    user_coin = instance.user.userinfo.coin
+    if user_coin + coin < 0:
+        raise ValidationError(dict(msg='积分不足'))
+    else:
+        PointRecord.objects.create(
+            user_id=instance.user_id,
+            rule=rule,
+            coin=rule.coin,
+            change_type='rule_reward')
 
 
 @receiver(post_save, sender=BackendRole)
@@ -146,22 +160,36 @@ def user_behavior_event(sender, **kwargs):
                 instance.user.userinfo.microstore_times += 1
         instance.user.userinfo.save()
         category_flag = 7
-    elif category == 'activity1':
-        # 活动扫码送积分3
-        category_flag = 8
-    elif category == 'activity2':
-        # 活动扫码送积分4
-        category_flag = 9
-    elif category == 'activity3':
-        # 活动扫码送积分5
-        category_flag = 10
+    # elif category == 'activity1':
+    #     # 活动扫码送积分3
+    #     category_flag = 8
+    # elif category == 'activity2':
+    #     # 活动扫码送积分4
+    #     category_flag = 9
+    # elif category == 'activity3':
+    #     # 活动扫码送积分5
+    #     category_flag = 10
 
-    if user_behavior_record:  # 记录存在则不加积分
-        return
+    elif category.startswith('activity'):
+        # 活动扫码送积分
+        category_dict = {'activity'+str(i-7): i for i in range(8, 23)}
+        category_flag = category_dict.get('category')
 
     rule = CoinRule.objects.filter(category=category_flag).first()
     if not rule:
         return
+
+    # 负积分活动
+    if rule.coin < 0:
+        negative_activity(instance, rule)
+        return
+
+    if user_behavior_record:  # 记录存在则不加积分
+        return
+
+    # rule = CoinRule.objects.filter(category=category_flag).first()
+    # if not rule:
+    #     return
     PointRecord.objects.create(
         user_id=instance.user_id,
         rule=rule,
