@@ -446,13 +446,13 @@ def last_week_echart_data(request):
     for date_at in date_range:
         user_visit = UserVisit.objects.filter(created_at=date_at).first()
         data.append({
-            "date": date_at,
+            "date": str(date_at)[5:],
             "access_total": user_visit.access_total if user_visit else 0,
             "sample_room_total": user_visit.sample_room_total if user_visit else 0,
             "micro_store_total": user_visit.micro_store_total if user_visit else 0,
         })
         register_data.append({
-            "date": date_at,
+            "date": str(date_at),
             "register_total": user_visit.register_total if user_visit else 0,
         })
     return cores({"data": data, "register_data": register_data})

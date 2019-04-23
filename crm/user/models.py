@@ -357,7 +357,7 @@ class StayTime(models.Model):
     sample_seconds = models.IntegerField(verbose_name="样板房逗留时间", default=0)
     micro_seconds = models.IntegerField(verbose_name="微店逗留时间", default=0)
     big_room_seconds = models.IntegerField(verbose_name="大厅逗留时间", default=0)
-    created_at = models.DateField(verbose_name="创建于", auto_now_add=True)
+    created_at = models.DateField(verbose_name="创建于")
 
     class Meta:
         verbose_name = verbose_name_plural = "大厅逗留时间"

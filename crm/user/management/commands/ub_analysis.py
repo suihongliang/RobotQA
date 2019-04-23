@@ -6,11 +6,17 @@ from crm.user.models import UserBehavior, BaseUser, UserInfo, StayTime
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    help = '大厅逗留时间以及意愿度计算'
 
+    def add_arguments(self, parser):
+        parser.add_argument('offset', type=int, help='天数偏移量')
+
+    def handle(self, *args, **options):
+        offset = options['offset']
+        today_at = datetime.date.today() - datetime.timedelta(days=offset)
         user_list = UserInfo.objects.values_list('user', flat=True)
         # 当天售楼大厅停留时间(s)
-        calc_big_room(user_list)
+        calc_big_room(user_list, today_at)
 
         # 计算意愿度
 
@@ -50,9 +56,9 @@ def calc_will_flag(v):
     else:
         return '4'
 
-def calc_big_room(user_list):
+def calc_big_room(user_list, today_at):
     for user in user_list:
-        stay, _ = StayTime.objects.get_or_create(user_id=user)
+        stay, _ = StayTime.objects.get_or_create(user_id=user, created_at=today_at)
 
         records = list(UserBehavior.objects.filter(
             user=user,

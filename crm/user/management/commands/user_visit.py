@@ -5,9 +5,14 @@ from crm.user.models import UserBehavior, BaseUser, UserInfo, StayTime, UserVisi
 
 
 class Command(BaseCommand):
+    help = '用户参观以及注册按天统计'
+
+    def add_arguments(self, parser):
+        parser.add_argument('offset', type=int, help='天数偏移量')
 
     def handle(self, *args, **options):
-        today_at = datetime.date.today()
+        offset = options['offset']
+        today_at = datetime.date.today() - datetime.timedelta(days=offset)
         access_total = UserBehavior.objects.filter(
             category='access',
             created__date=today_at).values('user_id').distinct().count()
@@ -27,4 +32,4 @@ class Command(BaseCommand):
         obj.sample_room_total = sample_room_total
         obj.micro_store_total = micro_store_total
         obj.save()
-        self.stdout.write(self.style.SUCCESS('Successfully'))
+        self.stdout.write(self.style.SUCCESS('Successfully {}'.format(offset)))

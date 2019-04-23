@@ -81,6 +81,7 @@ class StayTimeAdmin():
     '''
     '''
     list_display = ('user', 'sample_seconds', 'micro_seconds', 'big_room_seconds', 'created_at')
+    list_filter = ('user__mobile', 'created_at')
 
 @xadmin.sites.register(UserVisit)
 class UserVisitAdmin():
@@ -93,3 +94,4 @@ class UserVisitAdmin():
         'micro_store_total',
         'created_at'
     )
+    list_filter = ('created_at',)
