@@ -67,11 +67,11 @@ class PasswordView(View):
             if user.is_active:
                 user.set_password(new_password)
                 user.save()
-                return dict(detail='修改成功')
+                return dict(detail='修改成功'), 200
             else:
-                return dict(detail='无权限')
+                return dict(detail='无权限'), 403
         else:
-            return dict(detail='用户名或密码错误')
+            return dict(detail='用户名或密码错误'), 400
 
     def post(self, request):
         data = json.loads(request.body.decode())
@@ -79,7 +79,7 @@ class PasswordView(View):
         old_password = data.get('old_password')
         new_password = data.get('new_password')
         if username and old_password and new_password:
-            result = self.modify_password(username, old_password, new_password)
-            return JsonResponse(result)
+            result, status = self.modify_password(username, old_password, new_password)
+            return JsonResponse(result, status=status)
         else:
-            return JsonResponse(dict(detail='参数错误'))
+            return JsonResponse(dict(detail='参数错误'), status=400)
