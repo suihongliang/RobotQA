@@ -416,17 +416,17 @@ def echart_data(request):
         create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
     access_total = UserBehavior.objects.filter(
         category='access',
-        created__date=create_at).values('user_id').distinct().count()
+        created__date=create_at).count()
     register_total = UserInfo.objects.filter(
         created__date=create_at).count()
     sample_room_total = UserBehavior.objects.filter(
         category='sampleroom',
         location='in',
-        created__date=create_at).values('user_id').distinct().count()
+        created__date=create_at).count()
     micro_store_total = UserBehavior.objects.filter(
         category='microstore',
         location='in',
-        created__date=create_at).values('user_id').distinct().count()
+        created__date=create_at).count()
 
     return cores({
         'access_total': access_total,
