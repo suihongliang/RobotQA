@@ -1,4 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes
+
+from crm.discount.models import CoinRule, PointRecord
 from crm.sale.models import Seller, CustomerRelation
 from crm.user.models import UserBehavior
 from rest_framework.response import Response
@@ -12,7 +14,7 @@ def scan_bind_seller(request):
     code = request.GET.get('code', '')
     mobile_customer = request.GET.get('mobile_customer')
     company_id = request.GET.get('company_id')
-    user = BaseUser.objects.get_or_create(mobile=mobile_customer, defaults={'company_id': company_id})
+    user, create = BaseUser.objects.get_or_create(mobile=mobile_customer, defaults={'company_id': company_id})
     customer_relation = CustomerRelation.objects.get(
         user__user__mobile=mobile_customer)
     if customer_relation.seller:
@@ -35,4 +37,10 @@ def scan_bind_seller(request):
     UserBehavior.objects.create(user_id=customer_relation.user_id,
                                 category='sellerbind',
                                 location='')
+    rule = CoinRule.objects.filter(category=6).first()
+    if rule:
+        PointRecord.objects.create(user_id=customer_relation.user_id,
+                                   rule=rule,
+                                   coin=rule.coin,
+                                   change_type='rule_reward')
     return Response(msg)

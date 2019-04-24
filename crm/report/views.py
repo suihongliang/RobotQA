@@ -5,7 +5,7 @@ from datetime import datetime, date, timedelta
 
 from rest_framework.response import Response
 
-from crm.user.models import UserBehavior, UserInfo
+from crm.user.models import UserBehavior, UserInfo, UserVisit
 from ..core.views import (
     custom_permission,
     )
@@ -416,7 +416,6 @@ def echart_data(request):
         create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
     access_total = UserBehavior.objects.filter(
         category='access',
-        location='in',
         created__date=create_at).values('user_id').distinct().count()
     register_total = UserInfo.objects.filter(
         created__date=create_at).count()
@@ -428,12 +427,39 @@ def echart_data(request):
         category='microstore',
         location='in',
         created__date=create_at).values('user_id').distinct().count()
-    resp = Response({
+
+    return cores({
         'access_total': access_total,
         'register_total': register_total,
         'sample_room_total': sample_room_total,
         'micro_store_total': micro_store_total})
 
+
+@api_view(['GET'])
+@permission_classes((AllowAny, ))
+def last_week_echart_data(request):
+    date_range = [date.today() - timedelta(days=7-i) for i in range(7)]
+
+    data = []
+    register_data = []
+
+    for date_at in date_range:
+        user_visit = UserVisit.objects.filter(created_at=date_at).first()
+        data.append({
+            "date": str(date_at)[5:],
+            "access_total": user_visit.access_total if user_visit else 0,
+            "sample_room_total": user_visit.sample_room_total if user_visit else 0,
+            "micro_store_total": user_visit.micro_store_total if user_visit else 0,
+        })
+        register_data.append({
+            "date": str(date_at),
+            "register_total": user_visit.register_total if user_visit else 0,
+        })
+    return cores({"data": data, "register_data": register_data})
+
+
+def cores(data):
+    resp = Response(data)
     if settings.DEBUG:
         resp["Access-Control-Allow-Origin"] = "*"
         resp["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
