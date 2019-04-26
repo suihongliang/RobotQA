@@ -441,21 +441,20 @@ def last_week_echart_data(request):
     date_range = [date.today() - timedelta(days=7-i) for i in range(7)]
 
     data = []
-    register_data = []
 
     for date_at in date_range:
         user_visit = UserVisit.objects.filter(created_at=date_at).first()
         data.append({
             "date": str(date_at)[5:],
+            "register_total": user_visit.register_total if user_visit else 0,
             "access_total": user_visit.access_total if user_visit else 0,
             "sample_room_total": user_visit.sample_room_total if user_visit else 0,
             "micro_store_total": user_visit.micro_store_total if user_visit else 0,
+            "all_access_total": user_visit.all_access_total if user_visit else 0,
+            "all_sample_room_total": user_visit.all_sample_room_total if user_visit else 0,
+            "all_micro_store_total": user_visit.all_micro_store_total if user_visit else 0,
         })
-        register_data.append({
-            "date": str(date_at),
-            "register_total": user_visit.register_total if user_visit else 0,
-        })
-    return cores({"data": data, "register_data": register_data})
+    return cores({"data": data})
 
 
 def cores(data):
