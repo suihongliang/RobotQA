@@ -89,6 +89,9 @@ class UserVisitAdmin():
     '''
     '''
     list_display = (
+        'all_access_total',
+        'all_sample_room_total',
+        'all_micro_store_total',
         'access_total',
         'register_total',
         'sample_room_total',

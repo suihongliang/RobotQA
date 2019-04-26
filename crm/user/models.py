@@ -367,6 +367,12 @@ class StayTime(models.Model):
 
 
 class UserVisit(models.Model):
+    # 不去重
+    all_access_total = models.IntegerField(verbose_name="来访人次", default=0)
+    all_sample_room_total = models.IntegerField(verbose_name="样板房参观人次", default=0)
+    all_micro_store_total = models.IntegerField(verbose_name="小店参数人次", default=0)
+
+    # 去重
     access_total = models.IntegerField(verbose_name="来访人数", default=0)
     register_total = models.IntegerField(verbose_name="注册人数", default=0)
     sample_room_total = models.IntegerField(verbose_name="样板房参观人数", default=0)
