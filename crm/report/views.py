@@ -414,21 +414,54 @@ def echart_data(request):
         create_at = timezone.now().date()
     else:
         create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
-    access_total = UserBehavior.objects.filter(
-        category='access',
-        created__date=create_at).count()
+
+    user_id_list = UserBehavior.objects.filter(created__date=create_at).values_list('user_id', flat=True).distinct()
+    all_access_total = 0
+    for user_id in user_id_list:
+        last_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at).latest('created').created
+        first_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at).latest('-created').created
+        if last_at - first_at <= timedelta(hours=4):
+            all_access_total += 1
+        elif timedelta(hours=4) < last_at - first_at <= timedelta(hours=8):
+            all_access_total += 2
+        else:
+            if UserBehavior.objects.filter(
+                    user_id=user_id,
+                    created__date=create_at,
+                    created__gt=first_at + timedelta(hours=4),
+                    created__lte=first_at + timedelta(hours=8)).exists():
+                all_access_total += 3
+            else:
+                all_access_total += 2
+
     register_total = UserInfo.objects.filter(
         created__date=create_at).count()
-    sample_room_total = UserBehavior.objects.filter(
+    all_sample_room_total = UserBehavior.objects.filter(
         category='sampleroom',
         location='in',
         created__date=create_at).count()
-    micro_store_total = UserBehavior.objects.filter(
+    all_micro_store_total = UserBehavior.objects.filter(
         category='microstore',
         location='in',
         created__date=create_at).count()
 
+    access_total = UserBehavior.objects.filter(
+        category='access',
+        created__date=create_at).values('user_id').distinct().count()
+
+    sample_room_total = UserBehavior.objects.filter(
+        category='sampleroom',
+        location='in',
+        created__date=create_at).values('user_id').distinct().count()
+    micro_store_total = UserBehavior.objects.filter(
+        category='microstore',
+        location='in',
+        created__date=create_at).values('user_id').distinct().count()
+
     return cores({
+        'all_access_total': all_access_total,
+        'all_sample_room_total': all_sample_room_total,
+        'all_micro_store_total': all_micro_store_total,
         'access_total': access_total,
         'register_total': register_total,
         'sample_room_total': sample_room_total,
@@ -444,15 +477,23 @@ def last_week_echart_data(request):
 
     for date_at in date_range:
         user_visit = UserVisit.objects.filter(created_at=date_at).first()
+        all_access_total = user_visit.all_access_total if user_visit else 0
+        all_sample_room_total = user_visit.all_sample_room_total if user_visit else 0
+        all_micro_store_total = user_visit.all_micro_store_total if user_visit else 0
+        access_total = user_visit.access_total if user_visit else 0
+        sample_room_total = user_visit.sample_room_total if user_visit else 0
+        micro_store_total = user_visit.micro_store_total if user_visit else 0
+        if all_access_total > 0 and access_total == 0:
+            access_total = 1
         data.append({
             "date": str(date_at)[5:],
             "register_total": user_visit.register_total if user_visit else 0,
-            "access_total": user_visit.access_total if user_visit else 0,
-            "sample_room_total": user_visit.sample_room_total if user_visit else 0,
-            "micro_store_total": user_visit.micro_store_total if user_visit else 0,
-            "all_access_total": user_visit.all_access_total if user_visit else 0,
-            "all_sample_room_total": user_visit.all_sample_room_total if user_visit else 0,
-            "all_micro_store_total": user_visit.all_micro_store_total if user_visit else 0,
+            "access_total": access_total ,
+            "sample_room_total": sample_room_total,
+            "micro_store_total": micro_store_total,
+            "all_access_total": all_access_total if all_access_total >= access_total else access_total,
+            "all_sample_room_total": all_sample_room_total if all_sample_room_total >= sample_room_total else sample_room_total,
+            "all_micro_store_total": all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
         })
     return cores({"data": data})
 

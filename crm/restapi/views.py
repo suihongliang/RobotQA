@@ -1009,6 +1009,7 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 @permission_classes((AllowAny, ))
 def sdvr(request):
     mobile = request.GET.get('mobile')
+    url_type = request.GET.get('type', '1')
     user = UserInfo.objects.filter(user__mobile=mobile).first()
     if user:
         UserBehavior.objects.create(user_id=user.user_id,
@@ -1024,8 +1025,8 @@ def sdvr(request):
             created_at__date__gte=start_at,
             created_at__date__lte=end_at,
             defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
-
-    return HttpResponseRedirect(settings.SD_URL)
+    url = settings.MARKET_URL if url_type == "1" else settings.COFFEE_URL
+    return HttpResponseRedirect(url)
 
 
 @api_view(['GET'])
