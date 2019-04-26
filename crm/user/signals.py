@@ -172,7 +172,7 @@ def user_behavior_event(sender, **kwargs):
 
     elif category.startswith('activity'):
         # 活动扫码送积分
-        category_dict = {'activity'+str(i-7): i for i in range(8, 23)}
+        category_dict = {'activity'+str(i-7): i for i in range(8, CoinRule.ACTIVITY[-1][0]+1)}
         category_flag = category_dict.get(category)
 
     rule = CoinRule.objects.filter(category=category_flag).first()
