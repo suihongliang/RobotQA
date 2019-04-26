@@ -20,7 +20,6 @@ class Command(BaseCommand):
         for user_id in user_id_list:
             last_at = UserBehavior.objects.filter(user_id=user_id, created__date=today_at).latest('created').created
             first_at = UserBehavior.objects.filter(user_id=user_id, created__date=today_at).latest('-created').created
-            print("- - - - - - -", last_at, first_at)
             if last_at - first_at <= datetime.timedelta(hours=4):
                 all_access_total += 1
             elif datetime.timedelta(hours=4) < last_at - first_at <= datetime.timedelta(hours=8):
