@@ -483,10 +483,12 @@ def last_week_echart_data(request):
         access_total = user_visit.access_total if user_visit else 0
         sample_room_total = user_visit.sample_room_total if user_visit else 0
         micro_store_total = user_visit.micro_store_total if user_visit else 0
+        if all_access_total > 0 and access_total == 0:
+            access_total = 1
         data.append({
             "date": str(date_at)[5:],
             "register_total": user_visit.register_total if user_visit else 0,
-            "access_total": access_total,
+            "access_total": access_total ,
             "sample_room_total": sample_room_total,
             "micro_store_total": micro_store_total,
             "all_access_total": all_access_total if all_access_total >= access_total else access_total,
