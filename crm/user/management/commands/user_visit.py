@@ -60,9 +60,9 @@ class Command(BaseCommand):
 
         obj.register_total = register_total
 
-        all_access_total = all_access_total if all_access_total >= access_total else access_total,
-        all_sample_room_total = all_sample_room_total if all_sample_room_total >= sample_room_total else sample_room_total,
-        all_micro_store_total = all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
+        all_access_total = all_access_total if all_access_total >= access_total else access_total
+        all_sample_room_total = all_sample_room_total if all_sample_room_total >= sample_room_total else sample_room_total
+        all_micro_store_total = all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total
 
         # 人次 不去重
         obj.all_sample_room_total = all_sample_room_total
