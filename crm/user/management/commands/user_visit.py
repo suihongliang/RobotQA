@@ -47,7 +47,6 @@ class Command(BaseCommand):
             created__date=today_at).count()
 
         access_total = UserBehavior.objects.filter(
-            category='access',
             created__date=today_at).values('user_id').distinct().count()
         sample_room_total = UserBehavior.objects.filter(
             category='sampleroom',
@@ -60,6 +59,10 @@ class Command(BaseCommand):
         obj, created = UserVisit.objects.get_or_create(created_at=today_at)
 
         obj.register_total = register_total
+
+        all_access_total = all_access_total if all_access_total >= access_total else access_total,
+        all_sample_room_total = all_sample_room_total if all_sample_room_total >= sample_room_total else sample_room_total,
+        all_micro_store_total = all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
 
         # 人次 不去重
         obj.all_sample_room_total = all_sample_room_total
