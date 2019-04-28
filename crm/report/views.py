@@ -1,3 +1,4 @@
+import math
 from django.conf import settings
 from django.utils import timezone
 from rest_framework.permissions import AllowAny
@@ -126,6 +127,7 @@ class UserAnalysisReport(UserInfoReportViewSet):
             age = row['age']
             note = row['note']
             avg_sampleroom_seconds = row['avg_sampleroom_seconds']
+            avg_sampleroom_seconds = math.ceil(avg_sampleroom_seconds / 60)
             created = row['created']
             last_active_time = row['last_active_time']
             access_times = row['access_times']
