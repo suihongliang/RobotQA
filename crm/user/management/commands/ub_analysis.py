@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
             e = calc_will(user_info.big_room_seconds, user_info.access_times, user_info.access_times)
             f = calc_will(user_info.sampleroom_seconds, user_info.sampleroom_times, user_info.access_times)
-            g = calc_will(user_info.microstore_seconds, user_info.microstore_times, user_info.access_times)
+            g = calc_will(user_info.microstore_seconds, 1 if user_info.microstore_times > 0 else 0, user_info.access_times)
             value = a + b + c + d + e + f + g
             print('compute-------', a, b, c, d, e, f, g)
 
