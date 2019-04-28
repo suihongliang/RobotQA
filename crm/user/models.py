@@ -260,7 +260,7 @@ class UserInfo(models.Model, UserMobileMixin):
     is_seller = models.BooleanField(
         verbose_name='是否销售', default=False)
     last_active_time = models.DateTimeField(
-        verbose_name='活跃时间', default=timezone.now)
+        verbose_name='活跃时间')
     access_times = models.IntegerField(
         verbose_name='到访次数', default=0)
     microstore_times = models.IntegerField(

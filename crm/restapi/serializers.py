@@ -535,7 +535,10 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
         return None
 
     def get_bind_relation_time(self, instance):
-        return instance.customerrelation.created.strftime("%Y-%m-%d %H:%M:%S")
+        if instance.customerrelation.seller:
+            return instance.customerrelation.created.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            return None
 
     class Meta:
         model = UserInfo

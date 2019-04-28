@@ -1018,12 +1018,10 @@ def sdvr(request):
         user.sdver_times += 1
         user.save()
         rule = CoinRule.objects.filter(category=3).first()
-        start_at, end_at = week_date_range()
         PointRecord.objects.get_or_create(
             user_id=user.user_id,
             rule=rule,
-            created_at__date__gte=start_at,
-            created_at__date__lte=end_at,
+            created_at__date=date.today(),
             defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
     url = settings.MARKET_URL if url_type == "1" else settings.COFFEE_URL
     return HttpResponseRedirect(url)
