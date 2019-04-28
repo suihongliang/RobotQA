@@ -133,8 +133,10 @@ class UserAnalysisReport(UserInfoReportViewSet):
             access_times = row['access_times']
             sampleroom_times = row['sampleroom_times']
             sampleroom_seconds = row['sampleroom_seconds']
+            sampleroom_seconds = math.ceil(sampleroom_seconds / 60)
             microstore_times = row['microstore_times']
             microstore_seconds = row['microstore_seconds']
+            microstore_seconds = math.ceil(microstore_seconds / 60)
             sdver_times = row['sdver_times']
             spend_coin = row['spend_coin']
             coupon_count = row['coupon_count']
