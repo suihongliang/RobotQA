@@ -472,7 +472,7 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
         source='get_self_willingness_display', read_only=True)
 
     def get_avg_sampleroom_seconds(self, instance):
-        return instance.big_room_seconds / instance.access_times if instance.access_times > 0 else 0
+        return instance.big_room_seconds / instance.access_times if instance.access_times > 0 else instance.big_room_seconds
 
     def get_coupon_count(self, instance):
         coupon_num = SendCoupon.objects.filter(user=instance).count()

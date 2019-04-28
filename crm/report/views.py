@@ -133,7 +133,6 @@ class UserAnalysisReport(UserInfoReportViewSet):
             sampleroom_seconds = row['sampleroom_seconds']
             microstore_times = row['microstore_times']
             microstore_seconds = row['microstore_seconds']
-            big_room_seconds = row['big_room_seconds']
             sdver_times = row['sdver_times']
             spend_coin = row['spend_coin']
             coupon_count = row['coupon_count']
@@ -157,16 +156,33 @@ class UserAnalysisReport(UserInfoReportViewSet):
                 sampleroom_seconds,
                 microstore_times,
                 microstore_seconds,
-                big_room_seconds,
                 sdver_times,
                 spend_coin,
                 coupon_count,
                 coin])
-        # fields = ['销售', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
-        #           '到访次数', '意愿度', '净值度', '状态']
-        fields = ['姓名', '销售团队', '专属销售人员', '手机号', '性别', '年龄', '销售绑定时间', '备注', '主观意向度', '客观意向度'
-                  '平均停留时间', '用户注册日期', '最近到访时间', '到访次数', '样板房看房次数',
-                  '样板房总停留时间', '小店参观次数', '小店停留时间', '大厅停留时间', 'VR看房次数', '已消费积分', '优惠券', '积分']
+        fields = ['姓名',
+                  '销售团队',
+                  '专属销售人员',
+                  '手机号',
+                  '性别',
+                  '年龄',
+                  '销售绑定时间',
+                  '备注',
+                  '主观意向度',
+                  '客观意向度',
+                  '平均停留时间',
+                  '用户注册日期',
+                  '最近到访时间',
+                  '到访次数',
+                  '样板房看房次数',
+                  '样板房总停留时间',
+                  '小店参观次数',
+                  '小店停留时间',
+                  'VR看房次数',
+                  '已消费积分',
+                  '优惠券',
+                  '积分'
+                  ]
         table_name = '用户意愿报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()
