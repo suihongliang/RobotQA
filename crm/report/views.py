@@ -123,13 +123,13 @@ class UserAnalysisReport(UserInfoReportViewSet):
             self_willingness = row['self_willingness_display']
             willingness = row['willingness_display']
             gender = gender_name_dic[row['gender']]
-            bind_time = str(row['bind_relation_time'])
+            bind_time = str(row['bind_relation_time'] or "")
             age = row['age']
             note = row['note']
             avg_sampleroom_seconds = row['avg_sampleroom_seconds']
             avg_sampleroom_seconds = math.ceil(avg_sampleroom_seconds / 60)
             created = row['created']
-            last_active_time = row['last_active_time']
+            last_active_time = row['last_active_time'] or ""
             access_times = row['access_times']
             sampleroom_times = row['sampleroom_times']
             sampleroom_seconds = row['sampleroom_seconds']
