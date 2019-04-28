@@ -156,8 +156,7 @@ def user_behavior_event(sender, **kwargs):
                 obj.micro_seconds = F('micro_seconds') + stay_seconds
                 obj.save()
         else:
-            if not user_behavior_record:  # 每天一次
-                instance.user.userinfo.microstore_times += 1
+            instance.user.userinfo.microstore_times += 1
         instance.user.userinfo.save()
         category_flag = 7
     # elif category == 'activity1':
