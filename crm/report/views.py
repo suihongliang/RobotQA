@@ -426,20 +426,23 @@ class UserBehaviorReport(UserBehaviorViewSet):
         return response
 
 
-@api_view(['GET'])
-@permission_classes((AllowAny, ))
-def echart_data(request):
-    create_at = request.GET.get('create_at')
-    if not create_at:
-        create_at = timezone.now().date()
-    else:
-        create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
-
-    user_id_list = UserBehavior.objects.filter(created__date=create_at).values_list('user_id', flat=True).distinct()
+def get_today(create_at):
+    """
+      access: 到访(摄像头)
+    signup: 注册
+    sampleroom: 样板房
+    sellerbind: 绑定销售
+    3dvr: 3d看房
+    microstore: 门店到访
+    :param create_at:
+    :return:
+    """
+    cate_set = ['access', 'sampleroom', 'microstore']
+    user_id_list = UserBehavior.objects.filter(created__date=create_at, user__seller__isnull=True, category__in=cate_set).values_list('user_id', flat=True).distinct()
     all_access_total = 0
     for user_id in user_id_list:
-        last_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at).latest('created').created
-        first_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at).latest('-created').created
+        last_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at, user__seller__isnull=True, category__in=cate_set).latest('created').created
+        first_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at, user__seller__isnull=True, category__in=cate_set).latest('-created').created
         if last_at - first_at <= timedelta(hours=4):
             all_access_total += 1
         elif timedelta(hours=4) < last_at - first_at <= timedelta(hours=8):
@@ -447,6 +450,7 @@ def echart_data(request):
         else:
             if UserBehavior.objects.filter(
                     user_id=user_id,
+                    user__seller__isnull=True, category__in=cate_set,
                     created__date=create_at,
                     created__gt=first_at + timedelta(hours=4),
                     created__lte=first_at + timedelta(hours=8)).exists():
@@ -457,25 +461,58 @@ def echart_data(request):
     register_total = UserInfo.objects.filter(
         created__date=create_at).count()
     all_sample_room_total = UserBehavior.objects.filter(
+        user__seller__isnull=True,
         category='sampleroom',
         location='in',
         created__date=create_at).count()
     all_micro_store_total = UserBehavior.objects.filter(
+        user__seller__isnull=True,
         category='microstore',
         location='in',
         created__date=create_at).count()
 
     access_total = UserBehavior.objects.filter(
+        user__seller__isnull=True,
         created__date=create_at).values('user_id').distinct().count()
 
     sample_room_total = UserBehavior.objects.filter(
+        user__seller__isnull=True,
         category='sampleroom',
         location='in',
         created__date=create_at).values('user_id').distinct().count()
     micro_store_total = UserBehavior.objects.filter(
+        user__seller__isnull=True,
         category='microstore',
         location='in',
         created__date=create_at).values('user_id').distinct().count()
+    return {
+        'all_access_total': all_access_total,
+        'register_total': register_total,
+        'all_sample_room_total': all_sample_room_total,
+        'all_micro_store_total': all_micro_store_total,
+        'access_total': access_total,
+        'sample_room_total': sample_room_total,
+        'micro_store_total': micro_store_total,
+    }
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny, ))
+def echart_data(request):
+    create_at = request.GET.get('create_at')
+    if not create_at:
+        create_at = timezone.now().date()
+    else:
+        create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
+
+    data = get_today(create_at)
+    all_access_total = data['all_access_total']
+    register_total = data['register_total']
+    all_sample_room_total = data['all_sample_room_total']
+    all_micro_store_total = data['all_micro_store_total']
+    access_total = data['access_total']
+    sample_room_total = data['sample_room_total']
+    micro_store_total = data['micro_store_total']
 
     return cores({
         "all_access_total": all_access_total if all_access_total >= access_total else access_total,
@@ -490,11 +527,11 @@ def echart_data(request):
 @api_view(['GET'])
 @permission_classes((AllowAny, ))
 def last_week_echart_data(request):
-    date_range = [date.today() - timedelta(days=7-i) for i in range(7)]
+    date_range = [date.today() - timedelta(days=7-i) for i in range(1, 8)]
 
     data = []
 
-    for date_at in date_range:
+    for date_at in date_range[:-1]:
         user_visit = UserVisit.objects.filter(created_at=date_at).first()
         all_access_total = user_visit.all_access_total if user_visit else 0
         all_sample_room_total = user_visit.all_sample_room_total if user_visit else 0
@@ -507,13 +544,31 @@ def last_week_echart_data(request):
         data.append({
             "date": str(date_at)[5:],
             "register_total": user_visit.register_total if user_visit else 0,
-            "access_total": access_total ,
+            "access_total": access_total,
             "sample_room_total": sample_room_total,
             "micro_store_total": micro_store_total,
             "all_access_total": all_access_total if all_access_total >= access_total else access_total,
             "all_sample_room_total": all_sample_room_total if all_sample_room_total >= sample_room_total else sample_room_total,
             "all_micro_store_total": all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
         })
+    ret = get_today(date_range[-1])
+    all_access_total = ret['all_access_total']
+    register_total = ret['register_total']
+    all_sample_room_total = ret['all_sample_room_total']
+    all_micro_store_total = ret['all_micro_store_total']
+    access_total = ret['access_total']
+    sample_room_total = ret['sample_room_total']
+    micro_store_total = ret['micro_store_total']
+    data.append({
+        "date": str(date_range[-1])[5:],
+        "register_total": register_total,
+        "access_total": access_total,
+        "sample_room_total": sample_room_total,
+        "micro_store_total": micro_store_total,
+        "all_access_total": all_access_total if all_access_total >= access_total else access_total,
+        "all_sample_room_total": all_sample_room_total if all_sample_room_total >= sample_room_total else sample_room_total,
+        "all_micro_store_total": all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
+    })
     return cores({"data": data})
 
 

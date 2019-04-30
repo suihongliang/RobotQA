@@ -13,13 +13,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         offset = options['offset']
         today_at = datetime.date.today() - datetime.timedelta(days=offset)
+        cate_set = ['access', 'sampleroom', 'microstore']
 
         # 到访人人次 4小时间隔 不去重 缺了用别的补
-        user_id_list = UserBehavior.objects.filter(created__date=today_at).values_list('user_id', flat=True).distinct()
+        user_id_list = UserBehavior.objects.filter(created__date=today_at, user__seller__isnull=True, category__in=cate_set).values_list('user_id', flat=True).distinct()
         all_access_total = 0
         for user_id in user_id_list:
-            last_at = UserBehavior.objects.filter(user_id=user_id, created__date=today_at).latest('created').created
-            first_at = UserBehavior.objects.filter(user_id=user_id, created__date=today_at).latest('-created').created
+            last_at = UserBehavior.objects.filter(user_id=user_id, created__date=today_at, user__seller__isnull=True, category__in=cate_set).latest('created').created
+            first_at = UserBehavior.objects.filter(user_id=user_id, created__date=today_at, user__seller__isnull=True, category__in=cate_set).latest('-created').created
 
             if last_at - first_at <= datetime.timedelta(hours=4):
                 all_access_total += 1
@@ -29,6 +30,7 @@ class Command(BaseCommand):
                 if UserBehavior.objects.filter(
                         user_id=user_id,
                         created__date=today_at,
+                        user__seller__isnull=True, category__in=cate_set,
                         created__gt=first_at+datetime.timedelta(hours=4),
                         created__lte=first_at+datetime.timedelta(hours=8)).exists():
                     all_access_total += 3
@@ -38,21 +40,26 @@ class Command(BaseCommand):
         register_total = UserInfo.objects.filter(
             created__date=today_at).count()
         all_sample_room_total = UserBehavior.objects.filter(
+            user__seller__isnull=True,
             category='sampleroom',
             location='in',
             created__date=today_at).count()
         all_micro_store_total = UserBehavior.objects.filter(
+            user__seller__isnull=True,
             category='microstore',
             location='in',
             created__date=today_at).count()
 
         access_total = UserBehavior.objects.filter(
+            user__seller__isnull=True,
             created__date=today_at).values('user_id').distinct().count()
         sample_room_total = UserBehavior.objects.filter(
+            user__seller__isnull=True,
             category='sampleroom',
             location='in',
             created__date=today_at).values('user_id').distinct().count()
         micro_store_total = UserBehavior.objects.filter(
+            user__seller__isnull=True,
             category='microstore',
             location='in',
             created__date=today_at).values('user_id').distinct().count()
