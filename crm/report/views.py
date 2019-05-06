@@ -473,6 +473,7 @@ def get_today(create_at):
 
     access_total = UserBehavior.objects.filter(
         user__seller__isnull=True,
+        category__in=cate_set,
         created__date=create_at).values('user_id').distinct().count()
 
     sample_room_total = UserBehavior.objects.filter(
@@ -570,6 +571,18 @@ def last_week_echart_data(request):
         "all_micro_store_total": all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
     })
     return cores({"data": data})
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny, ))
+def top_data(request):
+    is_self = request.GET.get('is_self')
+    if is_self:
+        info = UserInfo.objects.filter(user__seller__isnull=True).order_by('-self_willingness').values_list('user__mobile', 'name', 'self_willingness')[:20]
+    else:
+        info = UserInfo.objects.filter(user__seller__isnull=True).order_by('-willingness').values_list('user__mobile', 'name', 'willingness')[:20]
+    ret = [{'mobile': mobile, 'name': name, 'willingness': willingness} for mobile, name, willingness in info]
+    return cores(ret)
 
 
 def cores(data):
