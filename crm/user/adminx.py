@@ -37,6 +37,7 @@ class BackendUserAdmin():
     '''
     '''
     list_display = ('id', 'mobile', 'created', 'group')
+    list_filter = ('mobile',)
 
 
 @xadmin.sites.register(BaseUser)
@@ -44,6 +45,7 @@ class BaseUserAdmin():
     '''
     '''
     list_display = ('id', 'mobile', 'company_id')
+    list_filter = ('mobile',)
 
 
 @xadmin.sites.register(UserInfo)
@@ -52,6 +54,7 @@ class UserInfoAdmin():
     '''
     list_display = ('user', 'mobile', 'created', 'msg_last_at')
     ordering = ('created',)
+    list_filter = ('user__mobile',)
 
 
 @xadmin.sites.register(UserOnlineOrder)
@@ -66,8 +69,8 @@ class UserOnlineOrderAdmin():
 class UserBehaviorAdmin():
     '''
     '''
-    list_display = ('user', 'mobile', 'created')
-    list_filter = ('user__mobile',)
+    list_display = ('user', 'mobile', 'created', 'category')
+    list_filter = ('user__mobile', 'category')
 
 
 @xadmin.sites.register(BackendGroup)
