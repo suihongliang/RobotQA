@@ -159,17 +159,15 @@ def user_behavior_event(sender, **kwargs):
             instance.user.userinfo.microstore_times += 1
         instance.user.userinfo.save()
         category_flag = 7
-    # elif category == 'activity1':
-    #     # 活动扫码送积分3
-    #     category_flag = 8
-    # elif category == 'activity2':
-    #     # 活动扫码送积分4
-    #     category_flag = 9
-    # elif category == 'activity3':
-    #     # 活动扫码送积分5
-    #     category_flag = 10
 
     elif category.startswith('activity'):
+        # 一次性活动 参加过就不加积分
+        if category in ['activity24', 'activity25', 'activity26', 'activity27', 'activity28']:
+            filter_query = {'category': category, 'user': instance.user}
+            activity_behavior_record = UserBehavior.objects.filter(**filter_query).exists()
+            if activity_behavior_record:
+                return
+
         # 活动扫码送积分
         category_dict = {'activity'+str(i-7): i for i in range(8, CoinRule.ACTIVITY[-1][0]+1)}
         category_flag = category_dict.get(category)
@@ -186,9 +184,6 @@ def user_behavior_event(sender, **kwargs):
     if user_behavior_record:  # 记录存在则不加积分
         return
 
-    # rule = CoinRule.objects.filter(category=category_flag).first()
-    # if not rule:
-    #     return
     PointRecord.objects.create(
         user_id=instance.user_id,
         rule=rule,
