@@ -51,6 +51,7 @@ class UserInfoAdmin():
     '''
     '''
     list_display = ('user', 'mobile', 'created', 'msg_last_at')
+    list_filter = ('is_staff',)
     ordering = ('created',)
 
 

@@ -438,11 +438,17 @@ def get_today(create_at):
     :return:
     """
     cate_set = ['access', 'sampleroom', 'microstore']
-    user_id_list = UserBehavior.objects.filter(created__date=create_at, user__seller__isnull=True, category__in=cate_set).values_list('user_id', flat=True).distinct()
+    user_id_list = UserBehavior.objects.filter(
+        created__date=create_at,
+        user__seller__isnull=True, category__in=cate_set, user__userinfo__is_staff=False).values_list('user_id', flat=True).distinct()
     all_access_total = 0
     for user_id in user_id_list:
-        last_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at, user__seller__isnull=True, category__in=cate_set).latest('created').created
-        first_at = UserBehavior.objects.filter(user_id=user_id, created__date=create_at, user__seller__isnull=True, category__in=cate_set).latest('-created').created
+        last_at = UserBehavior.objects.filter(
+            user_id=user_id, created__date=create_at, user__seller__isnull=True,
+            category__in=cate_set, user__userinfo__is_staff=False).latest('created').created
+        first_at = UserBehavior.objects.filter(
+            user_id=user_id, created__date=create_at, user__seller__isnull=True,
+            category__in=cate_set, user__userinfo__is_staff=False).latest('-created').created
         if last_at - first_at <= timedelta(hours=4):
             all_access_total += 1
         elif timedelta(hours=4) < last_at - first_at <= timedelta(hours=8):
@@ -452,6 +458,7 @@ def get_today(create_at):
                     user_id=user_id,
                     user__seller__isnull=True, category__in=cate_set,
                     created__date=create_at,
+                    user__userinfo__is_staff=False,
                     created__gt=first_at + timedelta(hours=4),
                     created__lte=first_at + timedelta(hours=8)).exists():
                 all_access_total += 3
@@ -459,29 +466,35 @@ def get_today(create_at):
                 all_access_total += 2
 
     register_total = UserInfo.objects.filter(
+        is_staff = False,
         created__date=create_at).count()
     all_sample_room_total = UserBehavior.objects.filter(
+        user__userinfo__is_staff = False,
         user__seller__isnull=True,
         category='sampleroom',
         location='in',
         created__date=create_at).count()
     all_micro_store_total = UserBehavior.objects.filter(
+        user__userinfo__is_staff = False,
         user__seller__isnull=True,
         category='microstore',
         location='in',
         created__date=create_at).count()
 
     access_total = UserBehavior.objects.filter(
+        user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category__in=cate_set,
         created__date=create_at).values('user_id').distinct().count()
 
     sample_room_total = UserBehavior.objects.filter(
+        user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category='sampleroom',
         location='in',
         created__date=create_at).values('user_id').distinct().count()
     micro_store_total = UserBehavior.objects.filter(
+        user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category='microstore',
         location='in',
@@ -578,9 +591,9 @@ def last_week_echart_data(request):
 def top_data(request):
     is_self = request.GET.get('is_self')
     if is_self:
-        info = UserInfo.objects.filter(user__seller__isnull=True).order_by('-self_willingness').values_list('user__mobile', 'name', 'self_willingness')[:20]
+        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by('-self_willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'self_willingness')[:20]
     else:
-        info = UserInfo.objects.filter(user__seller__isnull=True).order_by('-willingness').values_list('user__mobile', 'name', 'willingness')[:20]
+        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by('-willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'willingness')[:20]
     ret = [{'mobile': mobile, 'name': name, 'willingness': willingness} for mobile, name, willingness in info]
     return cores(ret)
 

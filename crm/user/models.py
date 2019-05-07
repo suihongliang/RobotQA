@@ -290,6 +290,7 @@ class UserInfo(models.Model, UserMobileMixin):
         max_length=50, verbose_name='购买用途', default='')
     big_room_seconds = models.IntegerField(
         verbose_name="大厅总停留时间", default=0)
+    is_staff = models.BooleanField(verbose_name="是否为员工", default=False)
 
     def get_extra_data_json(self):
         try:
