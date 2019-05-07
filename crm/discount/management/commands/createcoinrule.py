@@ -12,8 +12,11 @@ class Command(BaseCommand):
         company_id = options['company_id']
         for category, value in CoinRule._meta.get_field('category').choices:
             try:
-                CoinRule.objects.create(
+                rule, created = CoinRule.objects.get_or_create(
                     category=category, company_id=company_id)
-                self.stdout.write('{} created.'.format(value))
+                if created:
+                    self.stdout.write('{} created.'.format(value))
+                else:
+                    self.stdout.write('{} exists.'.format(value))
             except Exception:
                 self.stdout.write('{} maybe exists.'.format(value))
