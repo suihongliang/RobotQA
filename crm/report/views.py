@@ -15,6 +15,7 @@ from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet, UserInfoRepo
 import urllib
 from django.http import HttpResponse
 from crm.report.utils import ExcelHelper
+from django.views.decorators.cache import cache_page
 
 
 class SellerReport(UserInfoViewSet):
@@ -510,6 +511,7 @@ def get_today(create_at):
     }
 
 
+@cache_page(60)
 @api_view(['GET'])
 @permission_classes((AllowAny, ))
 def echart_data(request):
@@ -538,6 +540,7 @@ def echart_data(request):
         'micro_store_total': micro_store_total})
 
 
+@cache_page(60)
 @api_view(['GET'])
 @permission_classes((AllowAny, ))
 def last_week_echart_data(request):
@@ -586,6 +589,7 @@ def last_week_echart_data(request):
     return cores({"data": data})
 
 
+@cache_page(60)
 @api_view(['GET'])
 @permission_classes((AllowAny, ))
 def top_data(request):
