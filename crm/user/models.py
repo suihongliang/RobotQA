@@ -291,6 +291,13 @@ class UserInfo(models.Model, UserMobileMixin):
     big_room_seconds = models.IntegerField(
         verbose_name="大厅总停留时间", default=0)
     is_staff = models.BooleanField(verbose_name="是否为员工", default=False)
+    tags = models.TextField(verbose_name="标签", null=True, blank=True, max_length=500)
+
+    @property
+    def tag_list(self):
+        if not self.tags:
+            return []
+        return self.tags.split("|")
 
     def get_extra_data_json(self):
         try:
