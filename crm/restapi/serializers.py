@@ -441,6 +441,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'sampleroom_times',
             'self_willingness',
             'tags',
+            'is_staff',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
@@ -578,7 +579,8 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
             'big_room_seconds',
             'sdver_times',
             'coupon_count',
-            'avg_sampleroom_seconds'
+            'avg_sampleroom_seconds',
+            'is_staff'
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
