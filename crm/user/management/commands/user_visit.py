@@ -1,6 +1,7 @@
 import datetime
 from django.core.management.base import BaseCommand, CommandError
 
+from crm.report.utils import start_end
 from crm.report.views import get_today
 from crm.user.models import UserBehavior, BaseUser, UserInfo, StayTime, UserVisit
 
@@ -89,6 +90,7 @@ class Command(BaseCommand):
         # obj.sample_room_total = sample_room_total
         # obj.micro_store_total = micro_store_total
         # obj.save()
-        data = get_today(today_at)
+        start, end = start_end(today_at)
+        data = get_today(today_at, start, end)
         obj, created = UserVisit.objects.update_or_create(created_at=today_at, defaults=data)
         self.stdout.write(self.style.SUCCESS('Successfully {}'.format(offset)))
