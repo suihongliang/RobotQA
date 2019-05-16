@@ -308,6 +308,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
         help_text='额外参数', required=False, write_only=True)
     customer_remark = serializers.CharField(
         help_text='客户备注名', required=False, write_only=True)
+    name = serializers.CharField(
+        help_text='用户名', required=False, allow_blank=True, allow_null=True
+    )
     seller = serializers.SerializerMethodField()
     extra_data = serializers.SerializerMethodField()
     mark_name = serializers.SerializerMethodField()
