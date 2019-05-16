@@ -14,7 +14,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet, UserInfoReportViewSet
 import urllib
 from django.http import HttpResponse
-from crm.report.utils import ExcelHelper
+from crm.report.utils import ExcelHelper, start_end
 from django.views.decorators.cache import cache_page
 
 
@@ -427,7 +427,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
         return response
 
 
-def get_today(create_at):
+def get_today(create_at, start, end, is_cron=False):
     """
       access: 到访(摄像头)
     signup: 注册
@@ -440,31 +440,51 @@ def get_today(create_at):
     """
     cate_set = ['access', 'sampleroom', 'microstore']
     user_id_list = UserBehavior.objects.filter(
-        created__date=create_at,
-        user__seller__isnull=True, category__in=cate_set, user__userinfo__is_staff=False).values_list('user_id', flat=True).distinct()
+        user__seller__isnull=True, category__in=cate_set,
+        user__userinfo__is_staff=False,
+        created__gte= start,
+        created__lte=end,
+    ).values_list('user_id', flat=True).distinct()
     all_access_total = 0
     for user_id in user_id_list:
+        _count = 0
         last_at = UserBehavior.objects.filter(
-            user_id=user_id, created__date=create_at, user__seller__isnull=True,
+            user_id=user_id,
+            user__seller__isnull=True,
+            created__gte=start,
+            created__lte=end,
             category__in=cate_set, user__userinfo__is_staff=False).latest('created').created
         first_at = UserBehavior.objects.filter(
-            user_id=user_id, created__date=create_at, user__seller__isnull=True,
+            user_id=user_id,
+            created__gte=start,
+            created__lte=end,
+            user__seller__isnull=True,
             category__in=cate_set, user__userinfo__is_staff=False).latest('-created').created
         if last_at - first_at <= timedelta(hours=4):
             all_access_total += 1
+            _count += 1
         elif timedelta(hours=4) < last_at - first_at <= timedelta(hours=8):
             all_access_total += 2
+            _count += 2
         else:
             if UserBehavior.objects.filter(
+                    created__gte=start,
+                    created__lte=end,
+            ).filter(
                     user_id=user_id,
                     user__seller__isnull=True, category__in=cate_set,
-                    created__date=create_at,
                     user__userinfo__is_staff=False,
                     created__gt=first_at + timedelta(hours=4),
                     created__lte=first_at + timedelta(hours=8)).exists():
                 all_access_total += 3
+                _count += 3
             else:
                 all_access_total += 2
+                _count += 2
+        if is_cron:
+            u = UserInfo.objects.get(user_id=user_id)
+            u.access_times += _count
+            u.save()
 
     register_total = UserInfo.objects.filter(
         is_staff = False,
@@ -474,32 +494,37 @@ def get_today(create_at):
         user__seller__isnull=True,
         category='sampleroom',
         location='in',
-        created__date=create_at).count()
+        created__gte=start,
+        created__lte=end).count()
     all_micro_store_total = UserBehavior.objects.filter(
         user__userinfo__is_staff = False,
         user__seller__isnull=True,
         category='microstore',
         location='in',
-        created__date=create_at).count()
+        created__gte=start,
+        created__lte=end).count()
 
     access_total = UserBehavior.objects.filter(
         user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category__in=cate_set,
-        created__date=create_at).values('user_id').distinct().count()
+        created__gte=start,
+        created__lte=end).values('user_id').distinct().count()
 
     sample_room_total = UserBehavior.objects.filter(
         user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category='sampleroom',
         location='in',
-        created__date=create_at).values('user_id').distinct().count()
+        created__gte=start,
+        created__lte=end).values('user_id').distinct().count()
     micro_store_total = UserBehavior.objects.filter(
         user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category='microstore',
         location='in',
-        created__date=create_at).values('user_id').distinct().count()
+        created__gte=start,
+        created__lte=end).values('user_id').distinct().count()
     return {
         'all_access_total': all_access_total,
         'register_total': register_total,
@@ -521,7 +546,8 @@ def echart_data(request):
     else:
         create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
 
-    data = get_today(create_at)
+    start, end = start_end(create_at)
+    data = get_today(create_at, start, end)
     all_access_total = data['all_access_total']
     register_total = data['register_total']
     all_sample_room_total = data['all_sample_room_total']
@@ -568,7 +594,8 @@ def last_week_echart_data(request):
             "all_sample_room_total": all_sample_room_total if all_sample_room_total >= sample_room_total else sample_room_total,
             "all_micro_store_total": all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
         })
-    ret = get_today(date_range[-1])
+    start, end = start_end(date_range[-1])
+    ret = get_today(date_range[-1], start, end)
     all_access_total = ret['all_access_total']
     register_total = ret['register_total']
     all_sample_room_total = ret['all_sample_room_total']

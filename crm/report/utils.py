@@ -1,6 +1,7 @@
 import xlwt
 import os
 from io import BytesIO
+from datetime import datetime, date
 
 
 class ExcelHelper:
@@ -42,3 +43,9 @@ class ExcelHelper:
 
     def __exit__(self, type, value, trace):
         self.fp.close()
+
+
+def start_end(d):
+    start = datetime(year=d.year, month=d.month, day=d.day, hour=9)
+    end = datetime(year=d.year, month=d.month, day=d.day, hour=21)
+    return start, end

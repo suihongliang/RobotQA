@@ -119,10 +119,10 @@ def user_behavior_event(sender, **kwargs):
     if category == 'access':
         # 某天第一次到访
         category_flag = 1
-        if not user_behavior_record:  # 每天一次
-            instance.user.userinfo.access_times += 1
-            instance.user.userinfo.last_active_time = timezone.now()
-            instance.user.userinfo.save()
+        # if not user_behavior_record:  # 每天一次
+        #     instance.user.userinfo.access_times += 1
+        instance.user.userinfo.last_active_time = timezone.now()
+        instance.user.userinfo.save()
         send_msg(instance, user_behavior_record)
 
     elif category == 'sampleroom':
