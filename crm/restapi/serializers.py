@@ -440,6 +440,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'industry',
             'sampleroom_times',
             'self_willingness',
+            'tags',
+            'is_staff',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
@@ -577,7 +579,8 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
             'big_room_seconds',
             'sdver_times',
             'coupon_count',
-            'avg_sampleroom_seconds'
+            'avg_sampleroom_seconds',
+            'is_staff'
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
@@ -590,16 +593,20 @@ class UserInfoReportSerializer(serializers.ModelSerializer):
 class UserInfoDetailSerializer(UserInfoSerializer):
 
     seller_info = serializers.SerializerMethodField()
+    tags_list = serializers.SerializerMethodField()
 
     def get_seller_info(self, instance):
         if hasattr(instance.user, 'seller'):
             return SellerSerializer(instance.user.seller).data
         return {}
 
+    def get_tags_list(self, instance):
+        return instance.tag_list
+
     class Meta:
         model = UserInfo
         fields = UserInfoSerializer.Meta.fields + (
-            'seller_info',)
+            'seller_info', 'tags_list')
 
 
 class UserInfoDetailReportSerializer(UserInfoReportSerializer):
@@ -620,14 +627,18 @@ class UserInfoDetailReportSerializer(UserInfoReportSerializer):
 class BackendUserInfoSerializer(UserInfoSerializer):
 
     coupon_count = serializers.SerializerMethodField()
+    tags_list = serializers.SerializerMethodField()
 
     def get_coupon_count(self, instance):
         return instance.sendcoupon_set.count()
 
+    def get_tags_list(self, instance):
+        return instance.tag_list
+
     class Meta:
         model = UserInfo
         fields = UserInfoSerializer.Meta.fields + (
-            'coupon_count',)
+            'tags_list', 'coupon_count',)
         read_only_fields = UserInfoSerializer.Meta.read_only_fields
 
 

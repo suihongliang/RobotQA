@@ -363,6 +363,10 @@ class UserInfoFilter(filters.FilterSet):
     max_big_room_seconds = filters.NumberFilter(
         field_name="big_room_seconds", lookup_expr='lte',
         help_text="最大大厅总停留秒数")
+    is_staff = filters.BooleanFilter(
+        field_name="is_staff",
+        help_text="是否为员工"
+    )
 
 
     class Meta:
@@ -380,7 +384,7 @@ class UserInfoFilter(filters.FilterSet):
             'max_bind_time', 'min_sampleroom_times', 'max_sampleroom_times',
             'min_sampleroom_seconds', 'max_sampleroom_seconds', 'min_sdver_times',
             'max_sdver_times', 'customerrelation__mark_name', 'microstore_times',
-            'big_room_seconds', 'microstore_seconds'
+            'big_room_seconds', 'microstore_seconds', 'is_staff'
         )
 
 
