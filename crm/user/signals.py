@@ -140,6 +140,7 @@ def user_behavior_event(sender, **kwargs):
                 obj.save()
         else:
             instance.user.userinfo.sampleroom_times += 1
+        instance.user.userinfo.last_active_time = timezone.now()
         instance.user.userinfo.save()
         category_flag = 5
     elif category == 'microstore':
@@ -157,6 +158,7 @@ def user_behavior_event(sender, **kwargs):
                 obj.save()
         else:
             instance.user.userinfo.microstore_times += 1
+        instance.user.userinfo.last_active_time = timezone.now()
         instance.user.userinfo.save()
         category_flag = 7
 

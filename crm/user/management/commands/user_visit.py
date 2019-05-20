@@ -91,6 +91,6 @@ class Command(BaseCommand):
         # obj.micro_store_total = micro_store_total
         # obj.save()
         start, end = start_end(today_at)
-        data = get_today(today_at, start, end)
+        data = get_today(today_at, start, end, is_cron=True)
         obj, created = UserVisit.objects.update_or_create(created_at=today_at, defaults=data)
         self.stdout.write(self.style.SUCCESS('Successfully {}'.format(offset)))
