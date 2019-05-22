@@ -2,8 +2,7 @@ import datetime
 from django.core.management.base import BaseCommand, CommandError
 
 from crm.report.utils import start_end
-from crm.report.views import get_today
-from crm.user.models import UserBehavior, BaseUser, UserInfo, StayTime, UserVisit
+from crm.user.models import UserBehavior, UserInfo, UserVisit
 
 
 class Command(BaseCommand):
