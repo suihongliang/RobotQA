@@ -10,8 +10,8 @@ from .models import (
     BackendUser,
     BackendGroup,
     StayTime,
-    UserVisit
-    )
+    UserVisit,
+    UserDailyData)
 # from django.utils import timezone
 
 
@@ -103,3 +103,17 @@ class UserVisitAdmin():
         'created_at'
     )
     list_filter = ('created_at',)
+
+@xadmin.sites.register(UserDailyData)
+class UserDailyDataAdmin():
+    list_display = (
+        'user',
+        'created_at',
+        'store_times',
+        'sample_times',
+        'access_times',
+        'total_time',
+        'store_time',
+        'sample_time',
+        'big_room_time'
+    )

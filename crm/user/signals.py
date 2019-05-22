@@ -10,8 +10,7 @@ from .models import (
     UserInfo,
     BackendUser,
     UserBehavior,
-    BackendRole,
-    StayTime)
+    BackendRole)
 from ..sale.models import (
     CustomerRelation,
     Seller,
@@ -119,45 +118,16 @@ def user_behavior_event(sender, **kwargs):
     if category == 'access':
         # 某天第一次到访
         category_flag = 1
-        # if not user_behavior_record:  # 每天一次
-        #     instance.user.userinfo.access_times += 1
         instance.user.userinfo.last_active_time = timezone.now()
         instance.user.userinfo.save()
         send_msg(instance, user_behavior_record)
-
     elif category == 'sampleroom':
         # 看样板房
-        if instance.location == 'out':
-            ub = UserBehavior.objects.filter(
-                user_id=instance.user_id,
-                category=category,
-                created__date=timezone.now().date()).order_by('-created').first()
-            if ub and ub.location == 'in':
-                stay_seconds = (timezone.now() - ub.created).seconds
-                instance.user.userinfo.sampleroom_seconds += stay_seconds
-                obj, created = StayTime.objects.get_or_create(user_id=instance.user_id, created_at=timezone.now().date())
-                obj.sample_seconds = F('sample_seconds') + stay_seconds
-                obj.save()
-        else:
-            instance.user.userinfo.sampleroom_times += 1
         instance.user.userinfo.last_active_time = timezone.now()
         instance.user.userinfo.save()
         category_flag = 5
     elif category == 'microstore':
         # 门店到访
-        if instance.location == 'out':
-            ub = UserBehavior.objects.filter(
-                user_id=instance.user_id,
-                category=category,
-                created__date=timezone.now().date()).order_by('-created').first()
-            if ub and ub.location == 'in':
-                stay_seconds = (timezone.now() - ub.created).seconds
-                instance.user.userinfo.microstore_seconds += stay_seconds
-                obj, created = StayTime.objects.get_or_create(user_id=instance.user_id, created_at=timezone.now().date())
-                obj.micro_seconds = F('micro_seconds') + stay_seconds
-                obj.save()
-        else:
-            instance.user.userinfo.microstore_times += 1
         instance.user.userinfo.last_active_time = timezone.now()
         instance.user.userinfo.save()
         category_flag = 7

@@ -9,6 +9,50 @@ from django.contrib.auth.models import (
 )
 import json
 
+
+class UserEvent:
+    def __init__(self, user_id, in_type, in_time, out_time):
+        self.user_id = user_id
+        self.in_type = in_type
+        self.in_time = in_time
+        self.out_time = out_time
+        self.diff_time = (out_time - in_time).seconds
+
+    def __repr__(self):
+        return "<{}: {}>".format(self.user_id, self.diff_time)
+
+
+class BehaviorStack:
+    def __init__(self, user_id):
+        self._stack = []
+        self.user_id = user_id
+        self.value_in = "in"
+        self.value_out = "out"
+        self.result = []
+
+    def clean(self):
+        self._stack = []
+
+    def push(self, bh_type, value):
+        if bh_type == self.value_in:
+            self.clean()
+            self._stack.append(value)
+        elif (bh_type == self.value_out) and self._stack:
+            if self._stack[0].location != self.value_in:
+                return
+            v_in = self._stack.pop()
+            v_out = value
+            # compare value and save to record
+            if reach_timeout(v_out.created, v_in.created):
+                self.clean()
+            else:
+                self.clean()
+                self.result.append(UserEvent(v_in.user_id, v_in.category, v_in.created, v_out.created))
+
+def reach_timeout(d1, d2):
+    df = d2 - d1
+    return df > timedelta(minutes=10, seconds=0)
+
 #
 # class Store(models.Model):
 #
@@ -392,3 +436,140 @@ class UserVisit(models.Model):
 
     def __str__(self):
         return str(self.created_at) if self.created_at else ""
+
+
+class UserDailyData(models.Model):
+    user = models.ForeignKey(
+        BaseUser, on_delete=models.CASCADE, verbose_name="用户")
+    created_at = models.DateField(verbose_name="创建于")
+
+    store_times = models.IntegerField(verbose_name="参观小店次数", default=0)
+    sample_times = models.IntegerField(verbose_name="参观样板房次数", default=0)
+    access_times = models.IntegerField(verbose_name="到访次数", default=0)
+
+    total_time = models.IntegerField(verbose_name="总秒数", default=0)
+    store_time = models.IntegerField(verbose_name="参观小店秒数", default=0)
+    sample_time = models.IntegerField(verbose_name="参观样板房秒数", default=0)
+    big_room_time = models.IntegerField(verbose_name="大厅停留秒数", default=0)
+
+    class Meta:
+        verbose_name = verbose_name_plural = "没人每天统计数据"
+
+    def __str__(self):
+        return self.user.mobile
+
+    @classmethod
+    def daily_times_compute(cls, start, end):
+        cate_set = ['access', 'sampleroom', 'microstore']
+        user_id_list = UserBehavior.objects.filter(
+            user__seller__isnull=True, category__in=cate_set,
+            user__userinfo__is_staff=False,
+            created__gte=start,
+            created__lte=end,
+        ).values_list('user_id', flat=True).distinct()
+        for user_id in user_id_list:
+            all_access_total = 0
+            last_at = UserBehavior.objects.filter(
+                user_id=user_id,
+                user__seller__isnull=True,
+                created__gte=start,
+                created__lte=end,
+                category__in=cate_set, user__userinfo__is_staff=False).latest('created').created
+            first_at = UserBehavior.objects.filter(
+                user_id=user_id,
+                created__gte=start,
+                created__lte=end,
+                user__seller__isnull=True,
+                category__in=cate_set, user__userinfo__is_staff=False).latest('-created').created
+            total_time = (last_at - first_at).seconds
+            if last_at - first_at <= timedelta(hours=4):
+                all_access_total += 1
+            elif timedelta(hours=4) < last_at - first_at <= timedelta(hours=8):
+                all_access_total += 2
+            else:
+                if UserBehavior.objects.filter(
+                        created__gte=start,
+                        created__lte=end,
+                ).filter(
+                    user_id=user_id,
+                    user__seller__isnull=True, category__in=cate_set,
+                    user__userinfo__is_staff=False,
+                    created__gt=first_at + timedelta(hours=4),
+                    created__lte=first_at + timedelta(hours=8)).exists():
+                    all_access_total += 3
+                else:
+                    all_access_total += 2
+
+            all_sample_room_total = UserBehavior.objects.filter(
+                user_id=user_id,
+                user__userinfo__is_staff=False,
+                user__seller__isnull=True,
+                category='sampleroom',
+                location='in',
+                created__gte=start,
+                created__lte=end).count()
+            all_micro_store_total = UserBehavior.objects.filter(
+                user_id=user_id,
+                user__userinfo__is_staff=False,
+                user__seller__isnull=True,
+                category='microstore',
+                location='in',
+                created__gte=start,
+                created__lte=end).count()
+            UserDailyData.objects.update_or_create(
+                user_id=user_id, created_at=start.date(),
+                defaults={
+                    'total_time': total_time,
+                    'store_times': all_micro_store_total,
+                    'sample_times': all_sample_room_total,
+                    'access_times': all_access_total
+                }
+            )
+
+    @classmethod
+    def daily_time_compute(cls, start, end):
+        microstore_records = UserBehavior.objects.filter(
+            user__seller__isnull=True, category='microstore',
+            user__userinfo__is_staff=False,
+            created__gte=start,
+            created__lte=end,
+        )
+        events = {}
+        for index, r in enumerate(microstore_records):
+            if r.user_id not in events:
+                events[r.user_id] = BehaviorStack(r.user_id)
+            bh_stack = events[r.user_id]
+            bh_stack.push(r.location, r)
+        for uid, event in events.items():
+            store_time = sum([r.diff_time for r in event.result])
+            UserDailyData.objects.update_or_create(
+                user_id=uid, created_at=start.date(),
+                defaults={
+                    'store_time': store_time
+                }
+            )
+
+        sampleroom_records = UserBehavior.objects.filter(
+            user__seller__isnull=True, category='sampleroom',
+            user__userinfo__is_staff=False,
+            created__gte=start,
+            created__lte=end,
+        )
+        events = {}
+        for index, r in enumerate(sampleroom_records):
+            if r.user_id not in events:
+                events[r.user_id] = BehaviorStack(r.user_id)
+            bh_stack = events[r.user_id]
+            bh_stack.push(r.location, r)
+        for uid, event in events.items():
+            sample_time = sum([r.diff_time for r in event.result])
+            UserDailyData.objects.update_or_create(
+                user_id=uid, created_at=start.date(),
+                defaults={
+                    'sample_time': sample_time
+                }
+            )
+        data_list = UserDailyData.objects.filter(created_at=start.date()).all()
+        for data in data_list:
+            data.big_room_time = data.total_time - data.store_time - data.sample_time
+            data.save()
