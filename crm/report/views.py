@@ -227,7 +227,7 @@ class DailyDataReport(DailyDataViewSet):
         response = HttpResponse(content_type='application/octet-stream')
         response['Content-Disposition'] = \
             'attachment; filename="{0}.xls"'.format(
-                urllib.parse.quote_plus('每日没人数据统计'))
+                urllib.parse.quote_plus('每日每人数据统计'))
         response.write(binary_data)
         return response
 
