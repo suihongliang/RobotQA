@@ -13,6 +13,7 @@ from ..user.models import (
     BackendUser,
     UserBehavior,
     BackendGroup,
+    UserDailyData,
     )
 from ..sale.models import (
     Seller,
@@ -59,7 +60,7 @@ from .serializers import (
     CoinQRCodeSerializer,
     BackendGroupSerializer,
     BackendGroupDetailSerializer,
-    UserInfoReportSerializer, PointRecordSerializer, CreatePointRecordSerializer)
+    UserInfoReportSerializer, PointRecordSerializer, CreatePointRecordSerializer, UserDailyDataSerializer)
 from django_filters import rest_framework as filters
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 
@@ -1070,3 +1071,32 @@ def message(request):
         'current_page': page,
         'total_size': record_list.count(),
         'total_pages': paginator.num_pages})
+
+
+class DailyDataFilter(filters.FilterSet):
+    min_created = filters.DateTimeFilter(
+        field_name="created_at", lookup_expr='gte',
+        help_text='创建日期')
+    max_created = filters.DateTimeFilter(
+        field_name="created_at", lookup_expr='lte',
+        help_text='创建日期')
+    mobile = filters.CharFilter(field_name="user__mobile",
+                                help_text='手机号')
+
+
+class DailyDataViewSet(viewsets.GenericViewSet,
+                       mixins.RetrieveModelMixin,
+                       mixins.ListModelMixin,):
+    '''
+    retrieve:
+        获取详情
+        ---
+
+    list:
+        获取列表
+        ---
+    '''
+
+    queryset = UserDailyData.objects.order_by('-created_at')
+    serializer_class = UserDailyDataSerializer
+    filter_class = DailyDataFilter

@@ -9,7 +9,7 @@ from ..user.models import (
     BackendUser,
     UserBehavior,
     BackendGroup,
-    )
+    UserDailyData)
 from ..sale.models import (
     Seller,
     CustomerRelation,
@@ -662,6 +662,13 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
             'location',
             'order',
         )
+
+
+class UserDailyDataSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserDailyData
+        fields = '__all__'
 
 
 class SellerSerializer(AssignUserCompanySerializer):
