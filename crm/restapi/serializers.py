@@ -665,10 +665,23 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
 
 
 class UserDailyDataSerializer(serializers.ModelSerializer):
+    mobile = serializers.SerializerMethodField()
+
+    def get_mobile(self, instance):
+        return instance.user.mobile
 
     class Meta:
         model = UserDailyData
-        fields = '__all__'
+        fields = (
+            'created_at',
+            'store_times',
+            'sample_times',
+            'access_times',
+            'store_time',
+            'sample_time',
+            'big_room_time',
+            'mobile'
+        )
 
 
 class SellerSerializer(AssignUserCompanySerializer):
