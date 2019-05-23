@@ -11,7 +11,7 @@ from ..core.views import (
     custom_permission,
     )
 from rest_framework.decorators import action, api_view, permission_classes
-from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet, UserInfoReportViewSet
+from crm.restapi.views import UserInfoViewSet, UserBehaviorViewSet, UserInfoReportViewSet, DailyDataViewSet
 import urllib
 from django.http import HttpResponse
 from crm.report.utils import ExcelHelper, start_end
@@ -197,6 +197,40 @@ class UserAnalysisReport(UserInfoReportViewSet):
                 urllib.parse.quote_plus('用户意愿报表'))
         response.write(binary_data)
         return response
+
+
+class DailyDataReport(DailyDataViewSet):
+    @action(detail=False)
+    def export(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        content = []
+
+        for row in data:
+            mobile = row['mobile']
+            created_at = row['created_at']
+            store_times = row['store_times']
+            sample_times = row['sample_times']
+            access_times = row['access_times']
+
+            store_time = row['store_time']
+            sample_time = row['sample_time']
+            big_room_time = row['big_room_time']
+
+            content.append([mobile, store_times, sample_times, access_times, store_time, sample_time, big_room_time, created_at])
+        fields = ['手机号', '小店拜访次数', '样板房拜访次数', '来访次数',
+                  '小店拜访时间', '样板房拜访时间', '大厅停留时间', '日期']
+        table_name = '每日没人数据统计'
+        with ExcelHelper(fields, content, table_name) as eh:
+            binary_data = eh.to_bytes()
+        response = HttpResponse(content_type='application/octet-stream')
+        response['Content-Disposition'] = \
+            'attachment; filename="{0}.xls"'.format(
+                urllib.parse.quote_plus('每日没人数据统计'))
+        response.write(binary_data)
+        return response
+
 
 
 class CustomerReport(UserInfoViewSet):
