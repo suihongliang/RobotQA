@@ -9,7 +9,7 @@ from ..user.models import (
     BackendUser,
     UserBehavior,
     BackendGroup,
-    )
+    UserDailyData)
 from ..sale.models import (
     Seller,
     CustomerRelation,
@@ -661,6 +661,26 @@ class UserOnlineOrderSerializer(serializers.ModelSerializer):
             'created',
             'location',
             'order',
+        )
+
+
+class UserDailyDataSerializer(serializers.ModelSerializer):
+    mobile = serializers.SerializerMethodField()
+
+    def get_mobile(self, instance):
+        return instance.user.mobile
+
+    class Meta:
+        model = UserDailyData
+        fields = (
+            'created_at',
+            'store_times',
+            'sample_times',
+            'access_times',
+            'store_time',
+            'sample_time',
+            'big_room_time',
+            'mobile'
         )
 
 
