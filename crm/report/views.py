@@ -656,10 +656,14 @@ def last_week_echart_data(request):
 def top_data(request):
     is_self = request.GET.get('is_self')
     if is_self:
-        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by('-self_willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'self_willingness')[:20]
+        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by(
+            '-self_willingness', '-big_room_seconds').values_list(
+            'user__mobile', 'name', 'self_willingness', 'customerrelation__mark_name')[:20]
     else:
-        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by('-willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'willingness')[:20]
-    ret = [{'mobile': mobile, 'name': name, 'willingness': willingness} for mobile, name, willingness in info]
+        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by(
+            '-willingness', '-big_room_seconds').values_list(
+            'user__mobile', 'name', 'willingness', 'customerrelation__mark_name')[:20]
+    ret = [{'mobile': mobile, 'name': name, 'willingness': willingness, 'mark_name': mark_name} for mobile, name, willingness, mark_name in info]
     return cores(ret)
 
 
