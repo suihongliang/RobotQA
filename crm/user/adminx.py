@@ -11,7 +11,8 @@ from .models import (
     BackendGroup,
     StayTime,
     UserVisit,
-    UserDailyData)
+    UserDailyData,
+    WebsiteConfig)
 # from django.utils import timezone
 
 
@@ -88,6 +89,7 @@ class StayTimeAdmin():
     list_display = ('user', 'sample_seconds', 'micro_seconds', 'big_room_seconds', 'created_at')
     list_filter = ('user__mobile', 'created_at')
 
+
 @xadmin.sites.register(UserVisit)
 class UserVisitAdmin():
     '''
@@ -104,6 +106,7 @@ class UserVisitAdmin():
     )
     list_filter = ('created_at',)
 
+
 @xadmin.sites.register(UserDailyData)
 class UserDailyDataAdmin():
     list_display = (
@@ -117,3 +120,12 @@ class UserDailyDataAdmin():
         'sample_time',
         'big_room_time'
     )
+
+
+@xadmin.sites.register(WebsiteConfig)
+class WebsiteConfigAdmin():
+    list_display = (
+        'http_host',
+        'config',
+    )
+    list_filter = ('http_host',)

@@ -573,3 +573,17 @@ class UserDailyData(models.Model):
         for data in data_list:
             data.big_room_time = data.total_time - data.store_time - data.sample_time
             data.save()
+
+
+class WebsiteConfig(models.Model):
+    http_host = models.CharField(
+        verbose_name="域名", max_length=20,
+        unique=True)
+    config = models.TextField(
+        verbose_name="配置json")
+
+    class Meta:
+        verbose_name = verbose_name_plural = "后台配置"
+
+    def __str__(self):
+        return self.http_host
