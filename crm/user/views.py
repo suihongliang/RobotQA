@@ -5,7 +5,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
-from .models import BackendUser, WebsiteConfig
+from .models import BackendUser
+from crm.core.utils import website_config
 
 logger = logging.getLogger('user_logger')
 
@@ -60,11 +61,7 @@ class LogoutView(View):
 class WebsiteConfigView(View):
 
     def get(self, request):
-        http_host = request.META["HTTP_HOST"].split(":")[0]
-        config = {"name": "测试新城"}
-        if WebsiteConfig.objects.filter(http_host=http_host).exists():
-            config = json.loads(WebsiteConfig.objects.get(http_host=http_host).config)
-        return JsonResponse({'results': config})
+        return JsonResponse({'results': website_config(request)})
 
 
 @method_decorator(csrf_exempt, name='dispatch')

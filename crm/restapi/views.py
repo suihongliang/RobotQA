@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from datetime import date, datetime
 from django.conf import settings
 
-from crm.core.utils import week_date_range
+from crm.core.utils import website_config
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -119,7 +119,10 @@ class BackendPermissionViewSet(viewsets.GenericViewSet,
                 page = self.paginate_queryset(queryset)
 
                 serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
+
+                resp = self.get_paginated_response(serializer.data)
+                resp.data["config"] = website_config(request)
+                return resp
         return Response({
             'results': []
         })

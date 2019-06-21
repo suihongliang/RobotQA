@@ -2,6 +2,8 @@ from datetime import datetime, date, timedelta
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from crm.user.models import WebsiteConfig
+import json
 
 
 class CustomPagination(PageNumberPagination):
@@ -33,3 +35,11 @@ def report_analysis_range(n):
     start_at = today_0 - timedelta(hours=24-n)
     end_at = today_0 + timedelta(hours=n)
     return start_at, end_at
+
+
+def website_config(requst):
+    http_host = requst.META["HTTP_HOST"].split(":")[0]
+    config = {"name": "测试新城"}
+    if WebsiteConfig.objects.filter(http_host=http_host).exists():
+        config = json.loads(WebsiteConfig.objects.get(http_host=http_host).config)
+    return config
