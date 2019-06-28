@@ -511,6 +511,7 @@ class UserInfoViewSet(SellerFilterViewSet,
         )
 
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        nickname = self.request.query_params.get('nickname')
         obj = queryset.filter(**filter_kwargs).first()
         if not obj:
             company_id = self.get_param_company_id()
@@ -522,6 +523,10 @@ class UserInfoViewSet(SellerFilterViewSet,
                 obj = b_user.userinfo
             else:
                 raise Http404()
+
+        if nickname and not obj.name:
+            obj.name = nickname
+            obj.save()
 
         # May raise a permission denied
         self.check_object_permissions(self.request, obj)
@@ -1102,6 +1107,10 @@ class DailyDataViewSet(CompanyFilterViewSet,
         获取列表
         ---
     '''
+
+    permission_classes = (
+        AllowAny,
+    )
 
     queryset = UserDailyData.objects.order_by('-created_at')
     serializer_class = UserDailyDataSerializer

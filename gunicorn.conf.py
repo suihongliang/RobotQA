@@ -21,5 +21,5 @@ max_requests = 2000
 loglevel = 'info'
 
 
-accesslog = '/home/jian/logs/gunicorn_access.log'
-errorlog = '/home/jian/logs/gunicorn_err.log'
+accesslog = '/home/ubuntu/logs/gunicorn_access.log'
+errorlog = '/home/ubuntu/logs/gunicorn_err.log'
