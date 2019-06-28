@@ -50,6 +50,7 @@ router.register(r'daily_data', rest_views.DailyDataViewSet)
 
 urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
+    path(r'website-config/', user_views.WebsiteConfigView.as_view()),
     path(r'user/login/', user_views.LoginView.as_view()),
     path(r'user/logout/', user_views.LogoutView.as_view()),
     path(r'user/password/', user_views.PasswordView.as_view()),

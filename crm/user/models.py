@@ -334,8 +334,19 @@ class UserInfo(models.Model, UserMobileMixin):
         max_length=50, verbose_name='购买用途', default='')
     big_room_seconds = models.IntegerField(
         verbose_name="大厅总停留时间", default=0)
-    is_staff = models.BooleanField(verbose_name="是否为员工", default=False)
-    tags = models.TextField(verbose_name="标签", null=True, blank=True, max_length=500)
+    is_staff = models.BooleanField(
+        verbose_name="是否为员工", default=False)
+    buy_done = models.BooleanField(
+        verbose_name="是否成交", default=False)
+    introducer_name = models.CharField(
+        max_length=50, verbose_name="介绍人姓名",
+        blank=True, null=True)
+    introducer_mobile = models.CharField(
+        max_length=50, verbose_name="介绍人手机号码",
+        blank=True, null=True)
+    tags = models.TextField(
+        verbose_name="标签", null=True,
+        blank=True, max_length=500)
 
     @property
     def tag_list(self):
@@ -573,3 +584,17 @@ class UserDailyData(models.Model):
         for data in data_list:
             data.big_room_time = data.total_time - data.store_time - data.sample_time
             data.save()
+
+
+class WebsiteConfig(models.Model):
+    http_host = models.CharField(
+        verbose_name="域名", max_length=20,
+        unique=True)
+    config = models.TextField(
+        verbose_name="配置json")
+
+    class Meta:
+        verbose_name = verbose_name_plural = "后台配置"
+
+    def __str__(self):
+        return self.http_host
