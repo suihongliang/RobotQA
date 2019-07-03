@@ -471,13 +471,14 @@ class UserDailyData(models.Model):
         return self.user.mobile
 
     @classmethod
-    def daily_times_compute(cls, start, end):
+    def daily_times_compute(cls, start, end, company_id):
         cate_set = ['access', 'sampleroom', 'microstore']
         user_id_list = UserBehavior.objects.filter(
             user__seller__isnull=True, category__in=cate_set,
             user__userinfo__is_staff=False,
             created__gte=start,
             created__lte=end,
+            user__company_id=company_id,
         ).values_list('user_id', flat=True).distinct()
         for user_id in user_id_list:
             all_access_total = 0
@@ -539,12 +540,13 @@ class UserDailyData(models.Model):
             )
 
     @classmethod
-    def daily_time_compute(cls, start, end):
+    def daily_time_compute(cls, start, end, company_id):
         microstore_records = UserBehavior.objects.filter(
             user__seller__isnull=True, category='microstore',
             user__userinfo__is_staff=False,
             created__gte=start,
             created__lte=end,
+            user__company_id=company_id,
         )
         events = {}
         for index, r in enumerate(microstore_records):
@@ -566,6 +568,7 @@ class UserDailyData(models.Model):
             user__userinfo__is_staff=False,
             created__gte=start,
             created__lte=end,
+            user__company_id=company_id,
         )
         events = {}
         for index, r in enumerate(sampleroom_records):
