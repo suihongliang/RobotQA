@@ -77,6 +77,8 @@ ROOT_URLCONF = 'crm.settings.urls'
 
 AUTH_USER_MODEL = 'user.BackendUser'
 
+AUTHENTICATION_BACKENDS = ('crm.core.views.CustomBackend',)
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

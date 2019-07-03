@@ -37,8 +37,8 @@ def report_analysis_range(n):
     return start_at, end_at
 
 
-def website_config(requst):
-    http_host = requst.META["HTTP_HOST"].split(":")[0]
+def website_config(request):
+    http_host = request.META["HTTP_HOST"].split(":")[0]
     config = {"name": "测试新城"}
     if WebsiteConfig.objects.filter(http_host=http_host).exists():
         config = json.loads(WebsiteConfig.objects.get(http_host=http_host).config)

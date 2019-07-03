@@ -1,6 +1,8 @@
 from rest_framework import permissions
 from rest_framework import viewsets
 from crm.user.models import BackendUser
+from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
 
 
 class CompanyFilterViewSet(viewsets.GenericViewSet):
@@ -99,3 +101,21 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
                 return False
         else:
             return True
+
+
+class CustomBackend(ModelBackend):
+
+    def authenticate(self, request, username=None, password=None, company_id=None, **kwargs):
+        UserModel = get_user_model()
+        try:
+            if company_id:
+                user = UserModel.objects.get(username=username,
+                                             company_id=company_id,
+                                             is_active=True)
+            else:
+                user = UserModel.objects.get(username=username,
+                                             is_active=True)
+            if user.check_password(password) and self.user_can_authenticate(user):
+                return user
+        except Exception:
+            return None
