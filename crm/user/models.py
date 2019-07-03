@@ -441,6 +441,7 @@ class UserVisit(models.Model):
     sample_room_total = models.IntegerField(verbose_name="样板房参观人数", default=0)
     micro_store_total = models.IntegerField(verbose_name="小店参数人数", default=0)
     created_at = models.DateField(verbose_name="创建于", unique_for_date=True)
+    company_id = models.CharField(max_length=20, verbose_name="公司id", blank=True, null=True)
 
     class Meta:
         verbose_name = verbose_name_plural = "参观数据"
