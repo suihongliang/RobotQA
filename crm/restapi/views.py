@@ -1054,7 +1054,7 @@ def message(request):
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 20))
     company_id = request.GET.get("company_id")
-    user = UserInfo.objects.filter(user__mobile=mobile, user__company_id=company_id).first()
+    user = BaseUser.objects.filter(mobile=mobile, company_id=company_id).first()
     record_list = PointRecord.objects.filter(user_id=user.id if user else None).order_by('-id')
 
     paginator = Paginator(record_list.all(), limit)
