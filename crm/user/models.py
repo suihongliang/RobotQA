@@ -228,7 +228,8 @@ class BaseUser(models.Model):
     objects = BaseUserManager()
 
     def __str__(self):
-        return self.mobile
+        company_id = self.company_id or ""
+        return "{}:{}".format(company_id, self.mobile)
 
     class Meta:
         verbose_name = '用户'
