@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
 from .models import BackendUser
+from crm.core.utils import website_config
 
 logger = logging.getLogger('user_logger')
 
@@ -55,6 +56,12 @@ class LogoutView(View):
             logout(request)
         return JsonResponse(
             {'results': {}})
+
+
+class WebsiteConfigView(View):
+
+    def get(self, request):
+        return JsonResponse({'results': website_config(request)})
 
 
 @method_decorator(csrf_exempt, name='dispatch')

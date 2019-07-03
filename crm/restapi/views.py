@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from datetime import date, datetime
 from django.conf import settings
 
-from crm.core.utils import week_date_range
+from crm.core.utils import website_config
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -119,7 +119,10 @@ class BackendPermissionViewSet(viewsets.GenericViewSet,
                 page = self.paginate_queryset(queryset)
 
                 serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
+
+                resp = self.get_paginated_response(serializer.data)
+                resp.data["config"] = website_config(request)
+                return resp
         return Response({
             'results': []
         })
@@ -182,7 +185,8 @@ class BackendRoleViewSet(CompanyFilterViewSet,
     filterset_fields = ('is_seller',)
 
 
-class BackendGroupViewSet(mixins.RetrieveModelMixin,
+class BackendGroupViewSet(CompanyFilterViewSet,
+                          mixins.RetrieveModelMixin,
                           mixins.ListModelMixin,
                           mixins.CreateModelMixin,
                           mixins.UpdateModelMixin,
@@ -229,6 +233,7 @@ class BackendGroupViewSet(mixins.RetrieveModelMixin,
 
     queryset = BackendGroup.objects.order_by('id')
     serializer_class = BackendGroupSerializer
+    companyfilter_field = 'manager__company_id'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -1088,7 +1093,8 @@ class DailyDataFilter(filters.FilterSet):
                                 help_text='手机号')
 
 
-class DailyDataViewSet(viewsets.GenericViewSet,
+class DailyDataViewSet(CompanyFilterViewSet,
+                       viewsets.GenericViewSet,
                        mixins.RetrieveModelMixin,
                        mixins.ListModelMixin,):
     '''
@@ -1107,3 +1113,4 @@ class DailyDataViewSet(viewsets.GenericViewSet,
     queryset = UserDailyData.objects.order_by('-created_at')
     serializer_class = UserDailyDataSerializer
     filter_class = DailyDataFilter
+    companyfilter_field = 'user__company_id'

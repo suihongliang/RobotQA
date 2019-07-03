@@ -461,7 +461,7 @@ class UserBehaviorReport(UserBehaviorViewSet):
         return response
 
 
-def get_today(create_at, start, end, is_cron=False):
+def get_today(create_at, start, end, company_id, is_cron=False):
     """
       access: 到访(摄像头)
     signup: 注册
@@ -478,6 +478,7 @@ def get_today(create_at, start, end, is_cron=False):
         user__userinfo__is_staff=False,
         created__gte= start,
         created__lte=end,
+        user__company_id=company_id,
     ).values_list('user_id', flat=True).distinct()
     all_access_total = 0
     for user_id in user_id_list:
@@ -485,11 +486,13 @@ def get_today(create_at, start, end, is_cron=False):
         last_at = UserBehavior.objects.filter(
             user_id=user_id,
             user__seller__isnull=True,
+            user__company_id=company_id,
             created__gte=start,
             created__lte=end,
             category__in=cate_set, user__userinfo__is_staff=False).latest('created').created
         first_at = UserBehavior.objects.filter(
             user_id=user_id,
+            user__company_id=company_id,
             created__gte=start,
             created__lte=end,
             user__seller__isnull=True,
@@ -504,6 +507,7 @@ def get_today(create_at, start, end, is_cron=False):
             if UserBehavior.objects.filter(
                     created__gte=start,
                     created__lte=end,
+                    user__company_id=company_id,
             ).filter(
                     user_id=user_id,
                     user__seller__isnull=True, category__in=cate_set,
@@ -521,9 +525,11 @@ def get_today(create_at, start, end, is_cron=False):
             u.save()
 
     register_total = UserInfo.objects.filter(
+        user__company_id=company_id,
         is_staff = False,
         created__date=create_at).count()
     all_sample_room_total = UserBehavior.objects.filter(
+        user__company_id=company_id,
         user__userinfo__is_staff = False,
         user__seller__isnull=True,
         category='sampleroom',
@@ -531,6 +537,7 @@ def get_today(create_at, start, end, is_cron=False):
         created__gte=start,
         created__lte=end).count()
     all_micro_store_total = UserBehavior.objects.filter(
+        user__company_id=company_id,
         user__userinfo__is_staff = False,
         user__seller__isnull=True,
         category='microstore',
@@ -539,6 +546,7 @@ def get_today(create_at, start, end, is_cron=False):
         created__lte=end).count()
 
     access_total = UserBehavior.objects.filter(
+        user__company_id=company_id,
         user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category__in=cate_set,
@@ -546,6 +554,7 @@ def get_today(create_at, start, end, is_cron=False):
         created__lte=end).values('user_id').distinct().count()
 
     sample_room_total = UserBehavior.objects.filter(
+        user__company_id=company_id,
         user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category='sampleroom',
@@ -553,6 +562,7 @@ def get_today(create_at, start, end, is_cron=False):
         created__gte=start,
         created__lte=end).values('user_id').distinct().count()
     micro_store_total = UserBehavior.objects.filter(
+        user__company_id=company_id,
         user__userinfo__is_staff=False,
         user__seller__isnull=True,
         category='microstore',
@@ -575,13 +585,15 @@ def get_today(create_at, start, end, is_cron=False):
 @permission_classes((AllowAny, ))
 def echart_data(request):
     create_at = request.GET.get('create_at')
+    company_id = request.GET.get('company_id')
+    company_id = '1' if company_id is None else company_id
     if not create_at:
         create_at = timezone.now().date()
     else:
         create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
 
     start, end = start_end(create_at)
-    data = get_today(create_at, start, end)
+    data = get_today(create_at, start, end, company_id)
     all_access_total = data['all_access_total']
     register_total = data['register_total']
     all_sample_room_total = data['all_sample_room_total']
@@ -604,12 +616,16 @@ def echart_data(request):
 @api_view(['GET'])
 @permission_classes((AllowAny, ))
 def last_week_echart_data(request):
+
+    company_id = request.GET.get('company_id')
+    company_id = '1' if company_id is None else company_id
+
     date_range = [date.today() - timedelta(days=7-i) for i in range(1, 8)]
 
     data = []
 
     for date_at in date_range[:-1]:
-        user_visit = UserVisit.objects.filter(created_at=date_at).first()
+        user_visit = UserVisit.objects.filter(created_at=date_at, company_id=company_id).first()
         all_access_total = user_visit.all_access_total if user_visit else 0
         all_sample_room_total = user_visit.all_sample_room_total if user_visit else 0
         all_micro_store_total = user_visit.all_micro_store_total if user_visit else 0
@@ -629,7 +645,7 @@ def last_week_echart_data(request):
             "all_micro_store_total": all_micro_store_total if all_micro_store_total >= micro_store_total else micro_store_total,
         })
     start, end = start_end(date_range[-1])
-    ret = get_today(date_range[-1], start, end)
+    ret = get_today(date_range[-1], start, end, company_id)
     all_access_total = ret['all_access_total']
     register_total = ret['register_total']
     all_sample_room_total = ret['all_sample_room_total']
@@ -655,14 +671,18 @@ def last_week_echart_data(request):
 @permission_classes((AllowAny, ))
 def top_data(request):
     is_self = request.GET.get('is_self')
+    company_id = request.GET.get('company_id')
+    company_id = '1' if company_id is None else company_id
     if is_self:
-        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by(
-            '-self_willingness', '-big_room_seconds').values_list(
-            'user__mobile', 'name', 'self_willingness', 'customerrelation__mark_name')[:20]
+        info = UserInfo.objects.exclude(status=2).filter(
+            user__seller__isnull=True, is_staff=False,
+            user__company_id=company_id
+        ).order_by('-self_willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'self_willingness', 'customerrelation__mark_name')[:20]
     else:
-        info = UserInfo.objects.filter(user__seller__isnull=True, is_staff=False).order_by(
-            '-willingness', '-big_room_seconds').values_list(
-            'user__mobile', 'name', 'willingness', 'customerrelation__mark_name')[:20]
+        info = UserInfo.objects.exclude(status=2).filter(
+            user__seller__isnull=True, is_staff=False,
+            user__company_id=company_id
+        ).order_by('-willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'willingness', 'customerrelation__mark_name')[:20]
     ret = [{'mobile': mobile, 'name': name, 'willingness': willingness, 'mark_name': mark_name} for mobile, name, willingness, mark_name in info]
     return cores(ret)
 

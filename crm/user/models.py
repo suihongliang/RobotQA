@@ -334,8 +334,19 @@ class UserInfo(models.Model, UserMobileMixin):
         max_length=50, verbose_name='购买用途', default='')
     big_room_seconds = models.IntegerField(
         verbose_name="大厅总停留时间", default=0)
-    is_staff = models.BooleanField(verbose_name="是否为员工", default=False)
-    tags = models.TextField(verbose_name="标签", null=True, blank=True, max_length=500)
+    is_staff = models.BooleanField(
+        verbose_name="是否为员工", default=False)
+    buy_done = models.BooleanField(
+        verbose_name="是否成交", default=False)
+    introducer_name = models.CharField(
+        max_length=50, verbose_name="介绍人姓名",
+        blank=True, null=True)
+    introducer_mobile = models.CharField(
+        max_length=50, verbose_name="介绍人手机号码",
+        blank=True, null=True)
+    tags = models.TextField(
+        verbose_name="标签", null=True,
+        blank=True, max_length=500)
 
     @property
     def tag_list(self):
@@ -430,6 +441,7 @@ class UserVisit(models.Model):
     sample_room_total = models.IntegerField(verbose_name="样板房参观人数", default=0)
     micro_store_total = models.IntegerField(verbose_name="小店参数人数", default=0)
     created_at = models.DateField(verbose_name="创建于", unique_for_date=True)
+    company_id = models.CharField(max_length=20, verbose_name="公司id", blank=True, null=True)
 
     class Meta:
         verbose_name = verbose_name_plural = "参观数据"
@@ -573,3 +585,17 @@ class UserDailyData(models.Model):
         for data in data_list:
             data.big_room_time = data.total_time - data.store_time - data.sample_time
             data.save()
+
+
+class WebsiteConfig(models.Model):
+    http_host = models.CharField(
+        verbose_name="域名", max_length=20,
+        unique=True)
+    config = models.TextField(
+        verbose_name="配置json")
+
+    class Meta:
+        verbose_name = verbose_name_plural = "后台配置"
+
+    def __str__(self):
+        return self.http_host
