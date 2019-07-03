@@ -85,7 +85,7 @@ def sync_create_userinfo(sender, **kwargs):
         userinfo = UserInfo.objects.create(user=user)
         CustomerRelation.objects.create(user=userinfo)
         UserBehavior.objects.create(user=user, category='signup', location='')
-        PointRecord.objects.create(user_id=user.id,
+        PointRecord.objects.create(user__user=user,
                                    rule=rule,
                                    coin=rule.coin,
                                    change_type='rule_reward')
