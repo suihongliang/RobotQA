@@ -363,7 +363,8 @@ class UserInfo(models.Model, UserMobileMixin):
             return {}
 
     def __str__(self):
-        return str(self.user.mobile)
+        company_id = self.user.company_id or ""
+        return "{}:{}".format(company_id, self.mobile)
 
     class Meta:
         verbose_name = '用户基本信息'

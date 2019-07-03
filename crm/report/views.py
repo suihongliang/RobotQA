@@ -683,6 +683,7 @@ def top_data(request):
             user__seller__isnull=True, is_staff=False,
             user__company_id=company_id
         ).order_by('-willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'willingness', 'customerrelation__mark_name')[:20]
+
     ret = [{'mobile': mobile, 'name': name, 'willingness': willingness, 'mark_name': mark_name} for mobile, name, willingness, mark_name in info]
     return cores(ret)
 
