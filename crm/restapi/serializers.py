@@ -718,7 +718,7 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
     name = serializers.SerializerMethodField()
 
     def get_name(self, instance):
-        return instance.user.name
+        return instance.mark_name if instance.mark_name else instance.user.name
 
     def get_mobile_customer(self, instance):
         mobile_customer = instance.user.mobile
