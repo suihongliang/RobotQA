@@ -24,7 +24,7 @@ from rest_framework.serializers import ValidationError
 def update_seller_info(b_user):
     if b_user.role:
         user = get_or_create_user(b_user.mobile, b_user.company_id)
-        if user.userinfo:
+        if hasattr(user, 'userinfo'):
             # is_seller = b_user.role.is_seller and b_user.is_active
             is_seller = b_user.is_active
             user.userinfo.is_seller = is_seller
@@ -81,7 +81,7 @@ def sync_create_userinfo(sender, **kwargs):
     '''
     user = kwargs['instance']
     if kwargs['created']:
-        rule = CoinRule.objects.get(category=0)
+        rule = CoinRule.objects.get(category=0, company_id=user.company_id)
         userinfo = UserInfo.objects.create(user=user)
         CustomerRelation.objects.create(user=userinfo)
         UserBehavior.objects.create(user=user, category='signup', location='')

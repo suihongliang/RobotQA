@@ -526,7 +526,7 @@ class UserInfoViewSet(SellerFilterViewSet,
 
         if nickname and not obj.name:
             obj.name = nickname
-            obj.save()
+            obj.save(update_fields=['name'])
 
         # May raise a permission denied
         self.check_object_permissions(self.request, obj)
@@ -1109,9 +1109,6 @@ class DailyDataViewSet(CompanyFilterViewSet,
         获取列表
         ---
     '''
-    permission_classes = (
-        AllowAny,
-    )
 
     permission_classes = (
         AllowAny,

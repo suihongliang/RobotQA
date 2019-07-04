@@ -236,6 +236,10 @@ class BackendUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ModelClass = self.Meta.model
+        mobile = validated_data["mobile"]
+        company_id = validated_data["company_id"]
+        if ModelClass.objects.filter(mobile=mobile, company_id=company_id).exists():
+            raise serializers.ValidationError('此销售已存在')
         info = model_meta.get_field_info(ModelClass)
         many_to_many = {}
         for field_name, relation_info in info.relations.items():
