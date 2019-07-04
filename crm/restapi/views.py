@@ -516,11 +516,15 @@ class UserInfoViewSet(SellerFilterViewSet,
         if not obj:
             company_id = self.get_param_company_id()
             create = self.request.query_params.get('create')
+            name = self.request.query_params.get('name')
             if create and company_id:
                 b_user = BaseUser.objects.create(
                     company_id=company_id,
                     mobile=self.kwargs[lookup_url_kwarg])
                 obj = b_user.userinfo
+                if name:
+                    obj.name = name
+                    obj.save()
             else:
                 raise Http404()
 
@@ -1025,7 +1029,8 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 def sdvr(request):
     mobile = request.GET.get('mobile')
     url_type = request.GET.get('type', '1')
-    user = UserInfo.objects.filter(user__mobile=mobile).first()
+    company_id = request.GET.get("company_id")
+    user = UserInfo.objects.filter(user__mobile=mobile, company_id=company_id).first()
     if user:
         UserBehavior.objects.create(user_id=user.user_id,
                                     category='3dvr',
@@ -1048,7 +1053,8 @@ def message(request):
     mobile = request.GET.get('mobile')
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 20))
-    user = BaseUser.objects.filter(mobile=mobile).first()
+    company_id = request.GET.get("company_id")
+    user = BaseUser.objects.filter(mobile=mobile, company_id=company_id).first()
     record_list = PointRecord.objects.filter(user_id=user.id if user else None).order_by('-id')
 
     paginator = Paginator(record_list.all(), limit)
@@ -1107,6 +1113,9 @@ class DailyDataViewSet(CompanyFilterViewSet,
         获取列表
         ---
     '''
+    permission_classes = (
+        AllowAny,
+    )
 
     permission_classes = (
         AllowAny,

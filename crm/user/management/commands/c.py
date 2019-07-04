@@ -17,46 +17,50 @@ class Command(BaseCommand):
         today_at = datetime.date.today() - datetime.timedelta(days=offset)
         start, end = start_end(today_at)
         cate_set = ['access', 'sampleroom', 'microstore']
-        user_id_list = UserBehavior.objects.filter(
-            user__seller__isnull=True, category__in=cate_set,
-            user__userinfo__is_staff=False,
-            created__gte=start,
-            created__lte=end,
-        ).values_list('user_id', flat=True).distinct()
 
-        ret_list = UserDailyData.objects.filter(user_id__in=user_id_list).values_list('user_id').annotate(
-            models.Sum('store_times'),
-            models.Sum('sample_times'),
-            models.Sum('access_times'),
-            models.Sum('store_time'),
-            models.Sum('sample_time'),
-            models.Sum('big_room_time'),
-        )
+        company_ids = BaseUser.objects.values_list('company_id', flat=True).distinct()
+        for company_id in company_ids:
+            user_id_list = UserBehavior.objects.filter(
+                user__company_id=company_id,
+                user__seller__isnull=True, category__in=cate_set,
+                user__userinfo__is_staff=False,
+                created__gte=start,
+                created__lte=end,
+            ).values_list('user_id', flat=True).distinct()
 
-        for ret in ret_list:
-            uid, store_times, sample_times, access_times, store_time, sample_time, big_room_time = ret
-            user_info = UserInfo.objects.get(user_id=uid)
-            # 计算意愿度
-            a = access_times * 0.3
-            b = sample_times * 0.3
-            c = store_times * 0.1
-            d = user_info.sdver_times * 0.1
+            ret_list = UserDailyData.objects.filter(user_id__in=user_id_list).values_list('user_id').annotate(
+                models.Sum('store_times'),
+                models.Sum('sample_times'),
+                models.Sum('access_times'),
+                models.Sum('store_time'),
+                models.Sum('sample_time'),
+                models.Sum('big_room_time'),
+            )
 
-            e = calc_will(big_room_time, access_times, access_times)
-            f = calc_will(sample_time, sample_times, sample_times)
-            g = calc_will(store_time, 1 if store_times > 0 else 0, store_times)
-            value = a + b + c + d + e + f + g
+            for ret in ret_list:
+                uid, store_times, sample_times, access_times, store_time, sample_time, big_room_time = ret
+                user_info = UserInfo.objects.get(user_id=uid)
+                # 计算意愿度
+                a = access_times * 0.3
+                b = sample_times * 0.3
+                c = store_times * 0.1
+                d = user_info.sdver_times * 0.1
 
-            user_info.microstore_times=store_times
-            user_info.microstore_seconds=store_time
-            user_info.sampleroom_times=sample_times
-            user_info.sampleroom_seconds=sample_time
-            user_info.access_times=access_times
-            user_info.big_room_seconds=big_room_time
-            user_info.willingness=calc_will_flag(value)
-            user_info.save()
+                e = calc_will(big_room_time, access_times, access_times)
+                f = calc_will(sample_time, sample_times, sample_times)
+                g = calc_will(store_time, 1 if store_times > 0 else 0, store_times)
+                value = a + b + c + d + e + f + g
 
-        self.stdout.write(self.style.SUCCESS('Successfully {}'.format(len(user_id_list))))
+                user_info.microstore_times=store_times
+                user_info.microstore_seconds=store_time
+                user_info.sampleroom_times=sample_times
+                user_info.sampleroom_seconds=sample_time
+                user_info.access_times=access_times
+                user_info.big_room_seconds=big_room_time
+                user_info.willingness=calc_will_flag(value)
+                user_info.save()
+
+            self.stdout.write(self.style.SUCCESS('{} Successfully {}'.format(company_id, len(user_id_list))))
 
 
 def calc_will(seconds, times, access_times):

@@ -131,7 +131,7 @@ class BackendPermission(models.Model):
 class BackendRole(models.Model):
 
     name = models.CharField(
-        max_length=20, unique=True, verbose_name="组名称")
+        max_length=20, verbose_name="组名称")
     permissions = models.ManyToManyField(
         BackendPermission)
     only_myself = models.BooleanField(
@@ -156,8 +156,7 @@ class BackendRole(models.Model):
 class BackendGroup(models.Model):
 
     name = models.CharField(
-        max_length=20, unique=True,
-        verbose_name="备注名称")
+        max_length=20, verbose_name="备注名称")
     created = models.DateTimeField(
         verbose_name='创建时间', default=timezone.now)
     manager = models.ForeignKey(
@@ -169,15 +168,15 @@ class BackendGroup(models.Model):
 
     class Meta:
         verbose_name = '用户组'
+        unique_together = (("name", "manager"),)
 
 
 class BackendUser(AbstractBaseUser, PermissionsMixin):
 
     mobile = models.CharField(
-        max_length=20, unique=True,
-        verbose_name="手机号")
+        max_length=20, verbose_name="手机号")
     username = models.CharField(
-        verbose_name="用户名", max_length=30, unique=True)
+        verbose_name="用户名", max_length=30)
     is_active = models.BooleanField(
         verbose_name="激活", default=True)
     is_staff = models.BooleanField(
@@ -198,7 +197,7 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
 
     objects = BackendUserManager()
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'id'
     REQUIRED_FIELDS = ['mobile', ]
 
     def has_backend_perms(self):
@@ -210,6 +209,8 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = '后台用户'
         swappable = 'AUTH_USER_MODEL'
+
+        unique_together = (("mobile", "company_id"), ("username", "company_id"))
 
 
 class BaseUser(models.Model):
@@ -228,7 +229,8 @@ class BaseUser(models.Model):
     objects = BaseUserManager()
 
     def __str__(self):
-        return self.mobile
+        company_id = self.company_id or ""
+        return "{}:{}".format(company_id, self.mobile)
 
     class Meta:
         verbose_name = '用户'
@@ -361,7 +363,8 @@ class UserInfo(models.Model, UserMobileMixin):
             return {}
 
     def __str__(self):
-        return str(self.user.mobile)
+        company_id = self.user.company_id or ""
+        return "{}:{}".format(company_id, self.mobile)
 
     class Meta:
         verbose_name = '用户基本信息'
@@ -441,6 +444,7 @@ class UserVisit(models.Model):
     sample_room_total = models.IntegerField(verbose_name="样板房参观人数", default=0)
     micro_store_total = models.IntegerField(verbose_name="小店参数人数", default=0)
     created_at = models.DateField(verbose_name="创建于", unique_for_date=True)
+    company_id = models.CharField(max_length=20, verbose_name="公司id", blank=True, null=True)
 
     class Meta:
         verbose_name = verbose_name_plural = "参观数据"
@@ -470,13 +474,14 @@ class UserDailyData(models.Model):
         return self.user.mobile
 
     @classmethod
-    def daily_times_compute(cls, start, end):
+    def daily_times_compute(cls, start, end, company_id):
         cate_set = ['access', 'sampleroom', 'microstore']
         user_id_list = UserBehavior.objects.filter(
             user__seller__isnull=True, category__in=cate_set,
             user__userinfo__is_staff=False,
             created__gte=start,
             created__lte=end,
+            user__company_id=company_id,
         ).values_list('user_id', flat=True).distinct()
         for user_id in user_id_list:
             all_access_total = 0
@@ -538,12 +543,13 @@ class UserDailyData(models.Model):
             )
 
     @classmethod
-    def daily_time_compute(cls, start, end):
+    def daily_time_compute(cls, start, end, company_id):
         microstore_records = UserBehavior.objects.filter(
             user__seller__isnull=True, category='microstore',
             user__userinfo__is_staff=False,
             created__gte=start,
             created__lte=end,
+            user__company_id=company_id,
         )
         events = {}
         for index, r in enumerate(microstore_records):
@@ -565,6 +571,7 @@ class UserDailyData(models.Model):
             user__userinfo__is_staff=False,
             created__gte=start,
             created__lte=end,
+            user__company_id=company_id,
         )
         events = {}
         for index, r in enumerate(sampleroom_records):
@@ -588,8 +595,11 @@ class UserDailyData(models.Model):
 
 class WebsiteConfig(models.Model):
     http_host = models.CharField(
-        verbose_name="域名", max_length=20,
+        verbose_name="域名", max_length=100,
         unique=True)
+    company_id = models.CharField(
+        verbose_name="公司id", max_length=20,
+        null=True)
     config = models.TextField(
         verbose_name="配置json")
 
