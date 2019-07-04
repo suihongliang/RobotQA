@@ -516,15 +516,11 @@ class UserInfoViewSet(SellerFilterViewSet,
         if not obj:
             company_id = self.get_param_company_id()
             create = self.request.query_params.get('create')
-            name = self.request.query_params.get('name')
             if create and company_id:
                 b_user = BaseUser.objects.create(
                     company_id=company_id,
                     mobile=self.kwargs[lookup_url_kwarg])
                 obj = b_user.userinfo
-                if name:
-                    obj.name = name
-                    obj.save()
             else:
                 raise Http404()
 
