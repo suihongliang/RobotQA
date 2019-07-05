@@ -5,8 +5,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
-from .models import BackendUser
-from crm.core.utils import website_config
+from .models import BackendUser, WebsiteConfig
+from crm.core.utils import website_config, json_response
 
 logger = logging.getLogger('user_logger')
 
@@ -27,7 +27,14 @@ class LoginView(View):
         if not mobile or not password:
             return JsonResponse(
                 {'detail': '密码不能空'}, status=400)
-        user = authenticate(username=mobile, password=password)
+        http_host = request.META["HTTP_HOST"].split(":")[0]
+        try:
+            company_id = WebsiteConfig.objects.get(http_host=http_host).company_id
+        except WebsiteConfig.DoesNotExist:
+            return JsonResponse({'detail': '域名尚未关联公司'}, status=400)
+        user = authenticate(username=mobile,
+                            password=password,
+                            company_id=company_id)
         if user is not None:
             if user.is_active:
                 login(request, user)
@@ -36,13 +43,13 @@ class LoginView(View):
                         'results': {
                             'mobile': mobile,
                             'company_id': user.company_id,
-                            'role': user.role.name,
+                            'role': user.role.name if user.role else None,
                             'username': user.username,
                         }
                     })
         else:
             if BackendUser.objects.filter(
-                    username=mobile, is_active=False).exists():
+                    username=mobile, company_id=company_id, is_active=False).exists():
                 return JsonResponse(
                     {'detail': '此用户被禁用'}, status=403)
         return JsonResponse(
@@ -61,7 +68,7 @@ class LogoutView(View):
 class WebsiteConfigView(View):
 
     def get(self, request):
-        return JsonResponse({'results': website_config(request)})
+        return json_response({'results': website_config(request)})
 
 
 @method_decorator(csrf_exempt, name='dispatch')

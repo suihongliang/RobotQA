@@ -526,7 +526,7 @@ class UserInfoViewSet(SellerFilterViewSet,
 
         if nickname and not obj.name:
             obj.name = nickname
-            obj.save()
+            obj.save(update_fields=['name'])
 
         # May raise a permission denied
         self.check_object_permissions(self.request, obj)
@@ -1025,14 +1025,15 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 def sdvr(request):
     mobile = request.GET.get('mobile')
     url_type = request.GET.get('type', '1')
-    user = UserInfo.objects.filter(user__mobile=mobile).first()
+    company_id = request.GET.get("company_id")
+    user = UserInfo.objects.filter(user__mobile=mobile, company_id=company_id).first()
     if user:
         UserBehavior.objects.create(user_id=user.user_id,
                                     category='3dvr',
                                     location='')
         user.sdver_times += 1
         user.save()
-        rule = CoinRule.objects.filter(category=3).first()
+        rule = CoinRule.objects.filter(company_id=company_id, category=3).first()
         PointRecord.objects.get_or_create(
             user_id=user.user_id,
             rule=rule,
@@ -1048,7 +1049,8 @@ def message(request):
     mobile = request.GET.get('mobile')
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 20))
-    user = BaseUser.objects.filter(mobile=mobile).first()
+    company_id = request.GET.get("company_id")
+    user = BaseUser.objects.filter(mobile=mobile, company_id=company_id).first()
     record_list = PointRecord.objects.filter(user_id=user.id if user else None).order_by('-id')
 
     paginator = Paginator(record_list.all(), limit)

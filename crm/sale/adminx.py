@@ -12,7 +12,7 @@ from .models import (
 class SellerAdmin():
     '''
     '''
-    list_display = ('user', 'mobile', 'created')
+    list_display = ('user', 'mobile', 'qrcode', 'created')
 
 
 @xadmin.sites.register(CustomerRelation)
@@ -22,10 +22,10 @@ class CustomerRelationAdmin():
 
 @xadmin.sites.register(QRCode)
 class QRCodeAdmin():
-    list_display = ('code', 'seller_mobile')
+    list_display = ('code', 'seller_mobile', 'company_id')
     readonly_fields = ('seller_mobile',)
 
     def seller_mobile(self, obj):
-        return obj.seller.user.mobile
+        return "{}:{}".format(obj.seller.user.company_id, obj.seller.user.mobile)
 
     seller_mobile.short_description = '销售'

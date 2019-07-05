@@ -17,7 +17,7 @@ class QRCode(models.Model):
         max_length=20, verbose_name="公司id", null=True, blank=True)
 
     def __str__(self):
-        return self.code
+        return "{}:{}".format(self.company_id, self.code)
 
     class Meta:
         verbose_name = verbose_name_plural = "销售二维码"

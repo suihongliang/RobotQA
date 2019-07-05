@@ -290,6 +290,13 @@ class BackendUserSerializer(serializers.ModelSerializer):
             'group_id',
         )
         read_only_fields = ('created',)
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=('mobile', 'company_id'),
+                message=("此销售已存在")
+            )
+        ]
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -388,7 +395,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             extra_data.update(extra_info)
             validated_data['extra_data'] = json.dumps(extra_data)
             # 完善个人信息送积分
-            rule = CoinRule.objects.filter(category=2).first()
+            rule = CoinRule.objects.filter(company_id=instance.user.company_id,
+                                           category=2).first()
             PointRecord.objects.get_or_create(
                 user=instance, rule=rule,
                 defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
@@ -690,6 +698,8 @@ class SellerSerializer(AssignUserCompanySerializer):
 
     def get_qrcode(self, instance):
         qrcode_info = instance.qrcode
+        if hasattr(qrcode_info, 'company_id') and not qrcode_info.company_id == instance.user.company_id:
+            return None
         return QRCodeSerializer(qrcode_info).data if qrcode_info else None
 
     class Meta:
@@ -718,13 +728,18 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
     name = serializers.SerializerMethodField()
 
     def get_name(self, instance):
-        return instance.mark_name if instance.mark_name else instance.user.name
+        # return instance.mark_name if instance.mark_name else instance.user.name
+        return instance.user.name
 
     def get_mobile_customer(self, instance):
         mobile_customer = instance.user.mobile
         return mobile_customer
 
     def update(self, instance, validated_data):
+        if Seller.objects.filter(user=instance.user.user,
+                                 user__userinfo__is_seller=True).exists():
+            raise serializers.ValidationError(
+                    {'detail': "此手机号已是销售"})
         if instance.seller:
             raise serializers.ValidationError(
                     {'detail': "客户已绑定销售"})
