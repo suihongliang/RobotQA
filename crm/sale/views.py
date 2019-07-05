@@ -37,7 +37,7 @@ def scan_bind_seller(request):
     UserBehavior.objects.create(user_id=customer_relation.user_id,
                                 category='sellerbind',
                                 location='')
-    rule = CoinRule.objects.filter(category=6).first()
+    rule = CoinRule.objects.filter(company_id=company_id, category=6).first()
     if rule:
         PointRecord.objects.create(user_id=customer_relation.user_id,
                                    rule=rule,

@@ -395,7 +395,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             extra_data.update(extra_info)
             validated_data['extra_data'] = json.dumps(extra_data)
             # 完善个人信息送积分
-            rule = CoinRule.objects.filter(category=2).first()
+            rule = CoinRule.objects.filter(company_id=instance.company_id,
+                                           category=2).first()
             PointRecord.objects.get_or_create(
                 user=instance, rule=rule,
                 defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
@@ -697,7 +698,7 @@ class SellerSerializer(AssignUserCompanySerializer):
 
     def get_qrcode(self, instance):
         qrcode_info = instance.qrcode
-        if not qrcode_info.company_id == instance.user.company_id:
+        if hasattr(qrcode_info, 'company_id') and not qrcode_info.company_id == instance.user.company_id:
             return None
         return QRCodeSerializer(qrcode_info).data if qrcode_info else None
 

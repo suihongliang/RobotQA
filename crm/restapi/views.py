@@ -1033,7 +1033,7 @@ def sdvr(request):
                                     location='')
         user.sdver_times += 1
         user.save()
-        rule = CoinRule.objects.filter(category=3).first()
+        rule = CoinRule.objects.filter(company_id=company_id, category=3).first()
         PointRecord.objects.get_or_create(
             user_id=user.user_id,
             rule=rule,

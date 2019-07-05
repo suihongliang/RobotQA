@@ -144,7 +144,8 @@ def user_behavior_event(sender, **kwargs):
         category_dict = {'activity'+str(i-7): i for i in range(8, CoinRule.ACTIVITY[-1][0]+1)}
         category_flag = category_dict.get(category)
 
-    rule = CoinRule.objects.filter(category=category_flag).first()
+    rule = CoinRule.objects.filter(company_id=instance.user.company_id,
+                                   category=category_flag).first()
     if not rule:
         return
 
