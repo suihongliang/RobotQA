@@ -6,6 +6,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy, ugettext as _
 
 from django.contrib.auth import get_user_model
+from crm.user.models import WebsiteConfig
 
 ERROR_MESSAGE = ugettext_lazy("Please enter the correct username and password "
                               "for a staff account. Note that both fields are case-sensitive.")
@@ -26,8 +27,13 @@ class AdminAuthenticationForm(AuthenticationForm):
         message = ERROR_MESSAGE
 
         if username and password:
+            http_host = self.request.META["HTTP_HOST"].split(":")[0]
+            try:
+                company_id = WebsiteConfig.objects.get(http_host=http_host).company_id
+            except WebsiteConfig.DoesNotExist:
+                raise forms.ValidationError("域名未关联公司")
             self.user_cache = authenticate(
-                username=username, password=password)
+                username=username, password=password, company_id=company_id)
             if self.user_cache is None:
                 if u'@' in username:
                     User = get_user_model()

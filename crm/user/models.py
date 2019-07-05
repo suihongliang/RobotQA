@@ -204,7 +204,7 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
         pass
 
     def __str__(self):
-        return self.mobile
+        return "{}:{}".format(self.company_id, self.mobile)
 
     class Meta:
         verbose_name = '后台用户'

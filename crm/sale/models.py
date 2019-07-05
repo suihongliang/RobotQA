@@ -10,7 +10,7 @@ from ..user.models import (
 class QRCode(models.Model):
 
     code = models.CharField(
-        verbose_name="qrcode编码", max_length=50, unique=True)
+        verbose_name="qrcode编码", max_length=50)
     qr_code_url = models.URLField(
         verbose_name="二维码图片链接", max_length=500)
     company_id = models.CharField(
@@ -21,6 +21,7 @@ class QRCode(models.Model):
 
     class Meta:
         verbose_name = verbose_name_plural = "销售二维码"
+        unique_together = (("code", "company_id"),)
 
 
 class Seller(models.Model, UserMobileMixin):

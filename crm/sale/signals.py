@@ -8,6 +8,6 @@ from .models import Seller, QRCode
 def seller_save(sender, **kwargs):
     seller = kwargs['instance']
     if not seller.qrcode:
-        qr_code = QRCode.objects.filter(seller__isnull=True).first()
+        qr_code = QRCode.objects.filter(seller__isnull=True, company_id=seller.user.company_id).first()
         if qr_code:
             seller.qrcode = qr_code

@@ -37,7 +37,7 @@ class BackendRoleAdmin():
 class BackendUserAdmin():
     '''
     '''
-    list_display = ('id', 'mobile', 'created', 'group')
+    list_display = ('id', 'mobile', 'created', 'group', 'company_id')
     list_filter = ('mobile',)
 
 
@@ -126,6 +126,7 @@ class UserDailyDataAdmin():
 class WebsiteConfigAdmin():
     list_display = (
         'http_host',
+        'company_id',
         'config',
     )
-    list_filter = ('http_host',)
+    list_filter = ('http_host', 'company_id')
