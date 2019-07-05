@@ -113,8 +113,8 @@ class CustomBackend(ModelBackend):
                                              company_id=company_id,
                                              is_active=True)
             else:
-                user = UserModel.objects.get(username=username,
-                                             is_active=True)
+                user = UserModel.objects.filter(username=username,
+                                                is_active=True).first()
             if user.check_password(password) and self.user_can_authenticate(user):
                 return user
         except Exception:
