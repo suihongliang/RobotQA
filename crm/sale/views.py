@@ -14,13 +14,13 @@ def scan_bind_seller(request):
     code = request.GET.get('code', '')
     mobile_customer = request.GET.get('mobile_customer')
     company_id = request.GET.get('company_id')
-    user, create = BaseUser.objects.get_or_create(mobile=mobile_customer, defaults={'company_id': company_id})
+    user, create = BaseUser.objects.get_or_create(mobile=mobile_customer,  company_id=company_id)
     customer_relation = CustomerRelation.objects.get(
-        user__user__mobile=mobile_customer)
+        user__user__mobile=mobile_customer, user__user__company_id=company_id)
     if customer_relation.seller:
         msg = dict(msg='已绑定销售', code=400)
         return Response(msg)
-    seller = Seller.objects.filter(qrcode__code=code)
+    seller = Seller.objects.filter(qrcode__code=code, user__company_id=company_id)
     if not seller.exists():
         msg = dict(msg='二维码没有关联的销售', code=400)
         return Response(msg)
