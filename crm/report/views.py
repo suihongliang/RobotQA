@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 
 from rest_framework.response import Response
 
-from crm.user.models import UserBehavior, UserInfo, UserVisit
+from crm.user.models import UserBehavior, UserInfo, UserVisit, WebsiteConfig
 from ..core.views import (
     custom_permission,
     )
@@ -585,8 +585,7 @@ def get_today(create_at, start, end, company_id, is_cron=False):
 @permission_classes((AllowAny, ))
 def echart_data(request):
     create_at = request.GET.get('create_at')
-    company_id = request.GET.get('company_id')
-    company_id = '1' if company_id is None else company_id
+    company_id = get_company_id(request)
     if not create_at:
         create_at = timezone.now().date()
     else:
@@ -616,10 +615,7 @@ def echart_data(request):
 @api_view(['GET'])
 @permission_classes((AllowAny, ))
 def last_week_echart_data(request):
-
-    company_id = request.GET.get('company_id')
-    company_id = '1' if company_id is None else company_id
-
+    company_id = get_company_id(request)
     date_range = [date.today() - timedelta(days=7-i) for i in range(1, 8)]
 
     data = []
@@ -671,8 +667,7 @@ def last_week_echart_data(request):
 @permission_classes((AllowAny, ))
 def top_data(request):
     is_self = request.GET.get('is_self')
-    company_id = request.GET.get('company_id')
-    company_id = '1' if company_id is None else company_id
+    company_id = get_company_id(request)
     if is_self:
         info = UserInfo.objects.exclude(status=2).filter(
             user__seller__isnull=True, is_staff=False,
@@ -697,3 +692,12 @@ def cores(data):
             "Access-Control-Allow-Headers"] = "Access-Control-Allow-Methods,Origin, Accept，Content-Type, Access-Control-Allow-Origin, access-control-allow-headers,Authorization, X-Requested-With"
 
     return resp
+
+
+def get_company_id(request):
+    http_host = request.META["HTTP_HOST"].split(":")[0]
+    try:
+        company_id = WebsiteConfig.objects.get(http_host=http_host).company_id
+    except WebsiteConfig.DoesNotExist:
+        company_id = 1
+    return company_id

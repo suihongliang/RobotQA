@@ -236,10 +236,6 @@ class BackendUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ModelClass = self.Meta.model
-        mobile = validated_data["mobile"]
-        company_id = validated_data["company_id"]
-        if ModelClass.objects.filter(mobile=mobile, company_id=company_id).exists():
-            raise serializers.ValidationError('此销售已存在')
         info = model_meta.get_field_info(ModelClass)
         many_to_many = {}
         for field_name, relation_info in info.relations.items():
@@ -294,6 +290,13 @@ class BackendUserSerializer(serializers.ModelSerializer):
             'group_id',
         )
         read_only_fields = ('created',)
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=('mobile', 'company_id'),
+                message=("此销售已存在")
+            )
+        ]
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -694,6 +697,8 @@ class SellerSerializer(AssignUserCompanySerializer):
 
     def get_qrcode(self, instance):
         qrcode_info = instance.qrcode
+        if not qrcode_info.company_id == instance.user.company_id:
+            return None
         return QRCodeSerializer(qrcode_info).data if qrcode_info else None
 
     class Meta:

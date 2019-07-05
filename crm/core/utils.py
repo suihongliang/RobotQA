@@ -3,6 +3,7 @@ from datetime import datetime, date, timedelta
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from crm.user.models import WebsiteConfig
+from django.http import JsonResponse
 import json
 
 
@@ -43,3 +44,18 @@ def website_config(request):
     if WebsiteConfig.objects.filter(http_host=http_host).exists():
         config = json.loads(WebsiteConfig.objects.get(http_host=http_host).config)
     return config
+
+
+def json_response(json_dict):
+    if not isinstance(json_dict, dict):
+        response = JsonResponse(json_dict, safe=False)
+    else:
+        response = JsonResponse(json_dict)
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+    response["Access-Control-Allow-Headers"] = (
+        "Access-Control-Allow-Methods,Origin,"
+        "Accept，Content-Type, Access-Control-Allow-Origin, "
+        "access-control-allow-headers,Authorization, X-Requested-With, content-type"
+    )
+    return response
