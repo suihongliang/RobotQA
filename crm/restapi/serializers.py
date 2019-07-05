@@ -395,7 +395,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             extra_data.update(extra_info)
             validated_data['extra_data'] = json.dumps(extra_data)
             # 完善个人信息送积分
-            rule = CoinRule.objects.filter(company_id=instance.company_id,
+            rule = CoinRule.objects.filter(company_id=instance.user.company_id,
                                            category=2).first()
             PointRecord.objects.get_or_create(
                 user=instance, rule=rule,
@@ -736,6 +736,10 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
         return mobile_customer
 
     def update(self, instance, validated_data):
+        if Seller.objects.filter(user=instance.user.user,
+                                 user__userinfo__is_seller=True).exists():
+            raise serializers.ValidationError(
+                    {'detail': "此手机号已是销售"})
         if instance.seller:
             raise serializers.ValidationError(
                     {'detail': "客户已绑定销售"})
