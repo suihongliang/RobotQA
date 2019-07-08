@@ -1025,8 +1025,8 @@ class CoinQRCodeViewSet(CompanyFilterViewSet,
 def sdvr(request):
     mobile = request.GET.get('mobile')
     url_type = request.GET.get('type', '1')
-    company_id = request.GET.get("company_id")
-    user = UserInfo.objects.filter(user__mobile=mobile, company_id=company_id).first()
+    company_id = request.GET.get("company_id", "1")
+    user = UserInfo.objects.filter(user__mobile=mobile, user__company_id=company_id).first()
     if user:
         UserBehavior.objects.create(user_id=user.user_id,
                                     category='3dvr',
