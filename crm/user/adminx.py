@@ -12,7 +12,11 @@ from .models import (
     StayTime,
     UserVisit,
     UserDailyData,
-    WebsiteConfig)
+    WebsiteConfig,
+    SubTitle,
+    SubTitleChoice,
+    SubTitleRecord,
+)
 # from django.utils import timezone
 
 
@@ -130,3 +134,31 @@ class WebsiteConfigAdmin():
         'config',
     )
     list_filter = ('http_host', 'company_id')
+
+
+@xadmin.sites.register(SubTitle)
+class SubTitleAdmin():
+    list_display = (
+        'no',
+        'name',
+        'is_single',
+        'company_id',
+    )
+    list_filter = ('company_id',)
+
+
+@xadmin.sites.register(SubTitleChoice)
+class SubTitleChoiceAdmin():
+    list_display = (
+        'sub_title',
+        'content',
+    )
+
+
+@xadmin.sites.register(SubTitleRecord)
+class SubTitleRecordAdmin():
+    list_display = (
+        'user',
+        'choice',
+        'is_choose'
+    )

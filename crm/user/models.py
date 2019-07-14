@@ -608,3 +608,38 @@ class WebsiteConfig(models.Model):
 
     def __str__(self):
         return self.http_host
+
+
+class SubTitle(models.Model):
+    no = models.IntegerField(name="序号", default=0)
+    name = models.CharField(name="标题名", max_length=200)
+    is_single = models.BooleanField(name="是否单选")
+    company_id = models.CharField(
+        verbose_name="公司id", max_length=20,
+        null=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = "意向购买问题"
+
+    def __str__(self):
+        return self.name
+
+
+class SubTitleChoice(models.Model):
+    sub_title = models.ForeignKey(SubTitle, name="意向购买问题", on_delete=models.CASCADE)
+    content = models.CharField(name="选项内容", max_length=200)
+
+    class Meta:
+        verbose_name = verbose_name_plural = "意向购买选项"
+
+    def __str__(self):
+        return self.content
+
+class SubTitleRecord(models.Model):
+    user = models.ForeignKey(
+        BaseUser, on_delete=models.CASCADE, verbose_name="用户")
+    choice = models.ForeignKey(SubTitleChoice, name="意向购买问题", on_delete=models.CASCADE)
+    is_choose = models.BooleanField(name="是否单选")
+
+    class Meta:
+        verbose_name = verbose_name_plural = "意向记录"
