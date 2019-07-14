@@ -638,8 +638,8 @@ class SubTitleChoice(models.Model):
 class SubTitleRecord(models.Model):
     user = models.ForeignKey(
         BaseUser, on_delete=models.CASCADE, verbose_name="用户")
-    choice = models.ForeignKey(SubTitleChoice, verbose_name="意向购买问题", on_delete=models.CASCADE, blank=True, null=True)
-    is_choose = models.BooleanField(verbose_name="是否", default=True)
+    sub_title = models.ForeignKey(SubTitle, verbose_name="意向购买问题", on_delete=models.CASCADE, blank=True, null=True)
+    choice_choose = models.ForeignKey(SubTitleChoice, verbose_name="意向购买问题答案", on_delete=models.CASCADE, blank=True, null=True)
 
     class Meta:
         verbose_name = verbose_name_plural = "意向记录"
