@@ -159,6 +159,6 @@ class SubTitleChoiceAdmin():
 class SubTitleRecordAdmin():
     list_display = (
         'user',
-        'choice',
-        'is_choose'
+        'sub_title',
+        'choice_choose'
     )
