@@ -18,7 +18,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
 from crm.report.views import echart_data, last_week_echart_data, top_data
-from crm.restapi.views import sdvr, message
+from crm.restapi.views import sdvr, message, question
 from ..restapi import views as rest_views
 from ..user import views as user_views
 import xadmin
@@ -65,6 +65,7 @@ urlpatterns = [
     path(r'echart_data/', echart_data),
     path(r'last-week-echart-data/', last_week_echart_data),
     path(r'top-data/', top_data),
+    path(r'question/', question),
 ]
 
 # if settings.DEBUG:

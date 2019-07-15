@@ -14,6 +14,9 @@ from ..user.models import (
     UserBehavior,
     BackendGroup,
     UserDailyData,
+    SubTitle,
+    SubTitleRecord,
+    SubTitleChoice,
     )
 from ..sale.models import (
     Seller,
@@ -1118,3 +1121,28 @@ class DailyDataViewSet(CompanyFilterViewSet,
     serializer_class = UserDailyDataSerializer
     filter_class = DailyDataFilter
     companyfilter_field = 'user__company_id'
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny, ))
+def question(request):
+    mobile = request.GET.get('mobile')
+    company_id = request.GET.get("company_id")
+
+    sub_titles = SubTitle.objects.filter(company_id=company_id).all()
+    ret = []
+    for sub_title in sub_titles:
+        choice_list = sub_title.subtitlechoice_set.all()
+        records = SubTitleRecord.objects.filter(user__mobile=mobile,
+                                               user__company_id=company_id,
+                                               sub_title=sub_title).all()
+        ret.append(
+            {
+                'is_single': sub_title.is_single,
+                'choice_list': [{'choice_id': choice.id, 'choice_content': choice.content} for choice in
+                                      choice_list],
+                'answer_list': [record.choice_choose.id for record in records]
+            }
+        )
+
+    return Response({'data': ret})
