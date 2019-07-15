@@ -38,8 +38,7 @@ class Seller(models.Model, UserMobileMixin):
                                   blank=True, null=True)
     profession = models.CharField(verbose_name="职业", max_length=100, blank=True, null=True)
     avatar = models.URLField(verbose_name="头像链接", max_length=500, blank=True, null=True)
-    # name = models.CharField(
-    #     max_length=25, verbose_name='昵称', default='')
+    name = models.CharField(max_length=25, verbose_name='姓名', default='')
 
     @property
     def is_active(self):

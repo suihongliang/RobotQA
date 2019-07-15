@@ -366,7 +366,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             if not seller:
                 return None
             mobile = seller.user.mobile
-            b_user = BackendUser.objects.filter(mobile=mobile).first()
+            b_user = BackendUser.objects.filter(mobile=mobile, company_id=instance.user.company_id).first()
             if b_user:
                 return {
                     'seller_name': b_user.name,
@@ -709,7 +709,7 @@ class SellerSerializer(AssignUserCompanySerializer):
             'created',
             'mobile',
             'qrcode',
-            # 'name',
+            'name',
             'is_active',
             'avatar',
             'profession',
