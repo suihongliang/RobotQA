@@ -711,6 +711,8 @@ class SellerSerializer(AssignUserCompanySerializer):
             'qrcode',
             # 'name',
             'is_active',
+            'avatar',
+            'profession',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'qrcode',

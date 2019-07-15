@@ -12,7 +12,14 @@ from .models import (
 class SellerAdmin():
     '''
     '''
-    list_display = ('user', 'mobile', 'qrcode', 'created')
+    list_display = (
+        'user',
+        'mobile',
+        'qrcode',
+        'profession',
+        'avatar',
+        'created',
+    )
 
 
 @xadmin.sites.register(CustomerRelation)
