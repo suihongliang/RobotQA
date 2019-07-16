@@ -160,5 +160,4 @@ class SubTitleRecordAdmin():
     list_display = (
         'user',
         'sub_title',
-        'choice_choose'
     )
