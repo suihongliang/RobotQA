@@ -1142,6 +1142,8 @@ def question(request):
         answers = record.choice_choose.all()
         ret.append(
             {
+                'sub_title_id': sub_title.id,
+                'sub_title_no': sub_title.no,
                 'question_content': sub_title.name,
                 'is_single': sub_title.is_single,
                 'choice_list': [{'choice_id': choice.id, 'choice_content': choice.content} for choice in
