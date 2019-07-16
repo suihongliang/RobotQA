@@ -1132,47 +1132,22 @@ def question(request):
     mobile = request.GET.get('mobile')
     company_id = request.GET.get("company_id")
 
-    if request.method == "GET":
-        sub_titles = SubTitle.objects.filter(company_id=company_id).all()
-        ret = []
-        for sub_title in sub_titles:
-            choice_list = sub_title.subtitlechoice_set.all()
-            records = SubTitleRecord.objects.filter(user__mobile=mobile,
-                                                   user__company_id=company_id,
-                                                   sub_title=sub_title).all()
-            ret.append(
-                {
-                    'question_content': sub_title.name,
-                    'is_single': sub_title.is_single,
-                    'choice_list': [{'choice_id': choice.id, 'choice_content': choice.content} for choice in
-                                          choice_list],
-                    'answer_list': [record.choice_choose.id for record in records]
-                }
-            )
-    else:
-        data = json.loads(request.body.decode())
-        """
-        [
+    sub_titles = SubTitle.objects.filter(company_id=company_id).all()
+    ret = []
+    for sub_title in sub_titles:
+        choice_list = sub_title.subtitlechoice_set.all()
+        record = SubTitleRecord.objects.filter(user__mobile=mobile,
+                                               user__company_id=company_id,
+                                               sub_title=sub_title).first()
+        answers = record.choice_choose.all()
+        ret.append(
             {
-                "question_id": 1,
-                "answer_list": []
-            },
-            {
-                "question_id": 2,
-                "answer_list": []
+                'question_content': sub_title.name,
+                'is_single': sub_title.is_single,
+                'choice_list': [{'choice_id': choice.id, 'choice_content': choice.content} for choice in
+                                      choice_list],
+                'answer_list': [answer.id for answer in answers]
             }
-        ]
-        """
-        for d in data:
-            question_id = d['question_id']
-            answer_list = d['answer_list']
-            SubTitleRecord.objects.update_or_create(
-                user__mobile=mobile,
-                user__company_id=company_id,
-                sub_title_id=question_id,
-
-            )
+        )
 
     return Response({'data': ret})
-
-

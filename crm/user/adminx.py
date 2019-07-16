@@ -161,3 +161,4 @@ class SubTitleRecordAdmin():
         'user',
         'sub_title',
     )
+    style_fields = {'choice_choose': 'm2m_transfer'}
