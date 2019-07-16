@@ -639,7 +639,7 @@ class SubTitleRecord(models.Model):
     user = models.ForeignKey(
         BaseUser, on_delete=models.CASCADE, verbose_name="用户")
     sub_title = models.ForeignKey(SubTitle, verbose_name="意向购买问题", on_delete=models.CASCADE, blank=True, null=True)
-    choice_choose = models.ForeignKey(SubTitleChoice, verbose_name="意向购买问题答案", on_delete=models.CASCADE, blank=True, null=True)
+    choice_choose = models.ManyToManyField(SubTitleChoice, verbose_name="意向购买问题答案")
 
     class Meta:
         verbose_name = verbose_name_plural = "意向记录"
