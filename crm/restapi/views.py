@@ -1178,7 +1178,7 @@ def question(request):
                         sub_title=sub_title, user=user).first()
                     if not choice:
                         obj = SubTitleRecord.objects.create(user=user, sub_title=sub_title)
-                        obj.choice_choose.add(choice_list)
+                        obj.choice_choose.add(*choice_list)
                     else:
                         choice.choice_choose.clear()
                         choice.choice_choose.add(*choice_list)
