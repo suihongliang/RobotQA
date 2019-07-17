@@ -1125,31 +1125,63 @@ class DailyDataViewSet(CompanyFilterViewSet,
     companyfilter_field = 'user__company_id'
 
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'POST'])
 @permission_classes((AllowAny, ))
 def question(request):
 
     mobile = request.GET.get('mobile')
     company_id = request.GET.get("company_id")
 
-    sub_titles = SubTitle.objects.filter(company_id=company_id).all()
-    ret = []
-    for sub_title in sub_titles:
-        choice_list = sub_title.subtitlechoice_set.all()
-        record = SubTitleRecord.objects.filter(user__mobile=mobile,
-                                               user__company_id=company_id,
-                                               sub_title=sub_title).first()
-        answers = record.choice_choose.all()
-        ret.append(
-            {
-                'sub_title_id': sub_title.id,
-                'sub_title_no': sub_title.no,
-                'question_content': sub_title.name,
-                'is_single': sub_title.is_single,
-                'choice_list': [{'choice_id': choice.id, 'choice_content': choice.content} for choice in
-                                      choice_list],
-                'answer_list': [answer.id for answer in answers]
-            }
-        )
+    user = BaseUser.objects.filter(company_id=company_id, mobile=mobile).first()
+    if not user:
+        return Response({'data': []}, status=400)
 
-    return Response({'data': ret})
+    if request.method == "GET":
+        sub_titles = SubTitle.objects.filter(company_id=company_id).all()
+        ret = []
+        for sub_title in sub_titles:
+            choice_list = sub_title.subtitlechoice_set.all()
+            record = SubTitleRecord.objects.filter(user=user,
+                                                   sub_title=sub_title).first()
+            answers = record.choice_choose.all() if record else []
+            ret.append(
+                {
+                    'sub_title_id': sub_title.id,
+                    'sub_title_no': sub_title.no,
+                    'question_content': sub_title.name,
+                    'is_single': sub_title.is_single,
+                    'choice_list': [{'choice_id': choice.id, 'choice_content': choice.content} for choice in
+                                          choice_list],
+                    'answer_list': [answer.id for answer in answers]
+                }
+            )
+
+        return Response({'data': ret})
+    else:
+        data = json.loads(request.body.decode())
+        """
+        [
+            {
+                "sub_title_id": "",
+                "answer_list": []
+            }
+        ]
+        """
+        try:
+            for d in data:
+                sub_title_id = d['sub_title_id']
+                answer_list = d['answer_list']
+                sub_title = SubTitle.objects.filter(company_id=company_id, id=sub_title_id).first()
+                choice_list = SubTitleChoice.objects.filter(sub_title=sub_title, id__in=answer_list).all()
+                if sub_title:
+                    choice = SubTitleRecord.objects.filter(
+                        sub_title=sub_title, user=user).first()
+                    if not choice:
+                        obj = SubTitleRecord.objects.create(user=user, sub_title=sub_title)
+                        obj.choice_choose.add(choice_list)
+                    else:
+                        choice.choice_choose.clear()
+                        choice.choice_choose.add(choice_list)
+        except Exception as e:
+            return Response({'data': []}, status=400)
+        return Response({'data': []})
