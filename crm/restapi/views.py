@@ -1172,6 +1172,8 @@ def question(request):
                 sub_title_id = d['sub_title_id']
                 answer_list = d['answer_list']
                 sub_title = SubTitle.objects.filter(company_id=company_id, id=sub_title_id).first()
+                if sub_title.is_single and len(answer_list) > 1:
+                    answer_list = answer_list[:1]
                 choice_list = SubTitleChoice.objects.filter(sub_title=sub_title, id__in=answer_list).all()
                 if sub_title:
                     choice = SubTitleRecord.objects.filter(
