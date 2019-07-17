@@ -1181,7 +1181,7 @@ def question(request):
                         obj.choice_choose.add(choice_list)
                     else:
                         choice.choice_choose.clear()
-                        choice.choice_choose.add(choice_list)
+                        choice.choice_choose.add(*choice_list)
         except Exception as e:
             return Response({'data': []}, status=400)
         return Response({'data': []})
