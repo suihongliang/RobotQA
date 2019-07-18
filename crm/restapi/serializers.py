@@ -807,7 +807,8 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             'mobile_customer',
             'name',
             'buy_done',
-            'self_willingness'
+            'self_willingness',
+            'last_active_time'
         )
         read_only_fields = ('user', 'created')
 
