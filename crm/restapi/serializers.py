@@ -730,10 +730,14 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
     mobile_customer = serializers.SerializerMethodField(
         help_text='客户手机')
     name = serializers.SerializerMethodField()
+    buy_done = serializers.SerializerMethodField()
 
     def get_name(self, instance):
         # return instance.mark_name if instance.mark_name else instance.user.name
         return instance.user.name
+
+    def get_buy_done(self, instance):
+        return instance.user.buy_done
 
     def get_mobile_customer(self, instance):
         mobile_customer = instance.user.mobile
@@ -788,6 +792,7 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             'created',
             'mobile_customer',
             'name',
+            'buy_done'
         )
         read_only_fields = ('user', 'created')
 
