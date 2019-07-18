@@ -454,7 +454,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'tags',
             'is_staff',
             'work_space',
-            'live_space'
+            'live_space',
+            'avatar'
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
