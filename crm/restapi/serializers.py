@@ -731,6 +731,8 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
         help_text='客户手机')
     name = serializers.SerializerMethodField()
     buy_done = serializers.SerializerMethodField()
+    last_active_time = serializers.SerializerMethodField()
+    self_willingness = serializers.SerializerMethodField()
 
     def get_name(self, instance):
         # return instance.mark_name if instance.mark_name else instance.user.name
@@ -742,6 +744,18 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
     def get_mobile_customer(self, instance):
         mobile_customer = instance.user.mobile
         return mobile_customer
+
+    def get_last_active_time(self, instance):
+        return instance.user.last_active_time
+
+    def get_self_willingness(self, instance):
+        choices = [
+            ('1', '低'),
+            ('2', '中'),
+            ('3', '高'),
+            ('4', '极高')
+        ]
+        return dict(choices).get(instance.user.self_willingness)
 
     def update(self, instance, validated_data):
         if Seller.objects.filter(user=instance.user.user,
@@ -792,7 +806,8 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             'created',
             'mobile_customer',
             'name',
-            'buy_done'
+            'buy_done',
+            'self_willingness'
         )
         read_only_fields = ('user', 'created')
 

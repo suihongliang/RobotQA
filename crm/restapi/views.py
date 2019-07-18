@@ -660,11 +660,15 @@ class CustomerRelationFilter(filters.FilterSet):
     user__user__mobile = filters.CharFilter(
         field_name="user__user__mobile", lookup_expr='icontains',
         help_text='客户手机')
+    buy_done = filters.CharFilter(
+        help_text="是否成交",
+        field_name="user__buy_done",
+    )
 
     class Meta:
         model = CustomerRelation
         fields = (
-            'user__user__mobile', 'seller__user__mobile', 'mark_name', 'user__is_seller'
+            'user__user__mobile', 'seller__user__mobile', 'mark_name', 'user__is_seller', 'user__buy_done'
         )
 
 
