@@ -350,6 +350,9 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name="标签", null=True,
         blank=True, max_length=500)
 
+    work_space = models.CharField(verbose_name="工作区域", max_length=100, blank=True, null=True)
+    live_space = models.CharField(verbose_name="工作区域", max_length=100, blank=True, null=True)
+
     @property
     def tag_list(self):
         if not self.tags:

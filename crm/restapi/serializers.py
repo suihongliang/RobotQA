@@ -453,6 +453,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'self_willingness',
             'tags',
             'is_staff',
+            'work_space',
+            'live_space'
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
