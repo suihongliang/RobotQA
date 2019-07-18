@@ -660,7 +660,7 @@ class CustomerRelationFilter(filters.FilterSet):
     user__user__mobile = filters.CharFilter(
         field_name="user__user__mobile", lookup_expr='icontains',
         help_text='客户手机')
-    buy_done = filters.CharFilter(
+    buy_done = filters.BooleanFilter(
         help_text="是否成交",
         field_name="user__buy_done",
     )
