@@ -9,8 +9,6 @@ from django.contrib.auth.models import (
 )
 import json
 
-from crm.sale.models import Seller
-
 
 class UserEvent:
     def __init__(self, user_id, in_type, in_time, out_time):
@@ -416,7 +414,8 @@ class UserBehavior(models.Model, UserMobileMixin):
         verbose_name='类别', max_length=20)
     location = models.CharField(
         max_length=50, verbose_name='位置')
-    seller = models.ForeignKey(Seller, on_delete=models.CASCADE,
+    seller = models.ForeignKey(BaseUser, on_delete=models.CASCADE,
+                               related_name="seller_record",
                                verbose_name="专属销售", null=True, blank=True)
 
     def __str__(self):
