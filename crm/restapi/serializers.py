@@ -1116,6 +1116,7 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
             'location',
             'created',
             'name',
+            'visited_mobile'
         )
         read_only_fields = ('created',)
 
