@@ -388,7 +388,7 @@ class UserInfo(models.Model, UserMobileMixin):
             ('6', '120万以上'),
         ], max_length=5, verbose_name='预算', null=True, blank=True)
 
-    have_discretion = models.BooleanField(verbose_name="是否为买房决策人?", null=True, blank=True)
+    have_discretion = models.BooleanField(verbose_name="是否为买房决策人?", default=False)
     times_of_buy = models.CharField(
         choices=[
             ('1', '首次置业'),
