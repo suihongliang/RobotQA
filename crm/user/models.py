@@ -414,9 +414,7 @@ class UserBehavior(models.Model, UserMobileMixin):
         verbose_name='类别', max_length=20)
     location = models.CharField(
         max_length=50, verbose_name='位置')
-    seller = models.ForeignKey(BaseUser, on_delete=models.CASCADE,
-                               related_name="seller_record",
-                               verbose_name="专属销售", null=True, blank=True)
+    seller_mobile = models.CharField(verbose_name="销售手机号", max_length=100, null=True, blank=True)
 
     def __str__(self):
         return str(self.user)
