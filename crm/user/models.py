@@ -354,6 +354,50 @@ class UserInfo(models.Model, UserMobileMixin):
     live_space = models.CharField(verbose_name="工作区域", max_length=100, blank=True, null=True)
     avatar = models.URLField(verbose_name="头像链接", max_length=500, blank=True, null=True)
 
+    target_of_buy_house = models.CharField(
+        choices=[
+            ('1', '常驻'),
+            ('2', '改善'),
+            ('3', '投资'),
+            ('4', '养老'),
+            ('5', '其他'),
+        ], max_length=5, verbose_name='购房目的', null=True, blank=True)
+
+    community = models.CharField(
+        choices=[
+            ('1', '龙蟠里'),
+            ('2', '虎踞湾'),
+        ], max_length=5, verbose_name='选择小区', null=True, blank=True)
+
+    area_of_house = models.CharField(
+        choices=[
+            ('1', '100-110m2'),
+            ('2', '110-120m2'),
+            ('3', '120-130m2'),
+            ('4', '130-140m2'),
+            ('5', '140m2以上'),
+        ], max_length=5, verbose_name='面积需求', null=True, blank=True)
+
+    budget_of_house = models.CharField(
+        choices=[
+            ('1', '80万以下'),
+            ('2', '80-90万'),
+            ('3', '91-100万'),
+            ('4', '101-110万'),
+            ('5', '111-120万'),
+            ('6', '120万以上'),
+        ], max_length=5, verbose_name='预算', null=True, blank=True)
+
+    have_discretion = models.BooleanField(verbose_name="是否为买房决策人?", null=True, blank=True)
+    times_of_buy = models.CharField(
+        choices=[
+            ('1', '首次置业'),
+            ('2', '二次置业'),
+            ('3', '三次置业'),
+            ('4', '四次置业及以上'),
+        ], max_length=5, verbose_name='置业次数', null=True, blank=True)
+    remark = models.CharField(verbose_name="备注", null=True, blank=True, max_length=500)
+
     @property
     def tag_list(self):
         if not self.tags:

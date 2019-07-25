@@ -455,7 +455,14 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'is_staff',
             'work_space',
             'live_space',
-            'avatar'
+            'avatar',
+            'target_of_buy_house',
+            'community',
+            'area_of_house',
+            'budget_of_house',
+            'have_discretion',
+            'times_of_buy',
+            'remark',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
