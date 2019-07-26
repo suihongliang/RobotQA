@@ -366,7 +366,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             if not seller:
                 return None
             mobile = seller.user.mobile
-            b_user = BackendUser.objects.filter(mobile=mobile).first()
+            b_user = BackendUser.objects.filter(mobile=mobile, company_id=instance.user.company_id).first()
             if b_user:
                 return {
                     'seller_name': b_user.name,
@@ -453,6 +453,16 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'self_willingness',
             'tags',
             'is_staff',
+            'work_space',
+            'live_space',
+            'avatar',
+            'target_of_buy_house',
+            'community',
+            'area_of_house',
+            'budget_of_house',
+            'have_discretion',
+            'times_of_buy',
+            'remark',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
@@ -709,8 +719,10 @@ class SellerSerializer(AssignUserCompanySerializer):
             'created',
             'mobile',
             'qrcode',
-            # 'name',
+            'name',
             'is_active',
+            'avatar',
+            'profession',
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'qrcode',
@@ -726,14 +738,32 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
     mobile_customer = serializers.SerializerMethodField(
         help_text='客户手机')
     name = serializers.SerializerMethodField()
+    buy_done = serializers.SerializerMethodField()
+    last_active_time = serializers.SerializerMethodField()
+    self_willingness = serializers.SerializerMethodField()
 
     def get_name(self, instance):
         # return instance.mark_name if instance.mark_name else instance.user.name
         return instance.user.name
 
+    def get_buy_done(self, instance):
+        return instance.user.buy_done
+
     def get_mobile_customer(self, instance):
         mobile_customer = instance.user.mobile
         return mobile_customer
+
+    def get_last_active_time(self, instance):
+        return instance.user.last_active_time
+
+    def get_self_willingness(self, instance):
+        choices = [
+            ('1', '低'),
+            ('2', '中'),
+            ('3', '高'),
+            ('4', '极高')
+        ]
+        return dict(choices).get(instance.user.self_willingness)
 
     def update(self, instance, validated_data):
         if Seller.objects.filter(user=instance.user.user,
@@ -784,6 +814,9 @@ class CustomerRelationSerializer(AssignUserCompanySerializer):
             'created',
             'mobile_customer',
             'name',
+            'buy_done',
+            'self_willingness',
+            'last_active_time'
         )
         read_only_fields = ('user', 'created')
 
@@ -1090,6 +1123,7 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
             'location',
             'created',
             'name',
+            'visited_mobile'
         )
         read_only_fields = ('created',)
 

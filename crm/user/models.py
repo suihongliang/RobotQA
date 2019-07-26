@@ -350,6 +350,47 @@ class UserInfo(models.Model, UserMobileMixin):
         verbose_name="标签", null=True,
         blank=True, max_length=500)
 
+    work_space = models.CharField(verbose_name="工作区域", max_length=100, blank=True, null=True)
+    live_space = models.CharField(verbose_name="工作区域", max_length=100, blank=True, null=True)
+    avatar = models.URLField(verbose_name="头像链接", max_length=500, blank=True, null=True)
+
+    target_of_buy_house = models.CharField(max_length=500, verbose_name='购房目的', null=True, blank=True)
+
+    community = models.CharField(
+        choices=[
+            ('1', '龙蟠里'),
+            ('2', '虎踞湾'),
+        ], max_length=5, verbose_name='选择小区', null=True, blank=True)
+
+    area_of_house = models.CharField(
+        choices=[
+            ('1', '100-110m2'),
+            ('2', '110-120m2'),
+            ('3', '120-130m2'),
+            ('4', '130-140m2'),
+            ('5', '140m2以上'),
+        ], max_length=5, verbose_name='面积需求', null=True, blank=True)
+
+    budget_of_house = models.CharField(
+        choices=[
+            ('1', '80万以下'),
+            ('2', '80-90万'),
+            ('3', '91-100万'),
+            ('4', '101-110万'),
+            ('5', '111-120万'),
+            ('6', '120万以上'),
+        ], max_length=5, verbose_name='预算', null=True, blank=True)
+
+    have_discretion = models.BooleanField(verbose_name="是否为买房决策人?", default=False)
+    times_of_buy = models.CharField(
+        choices=[
+            ('1', '首次置业'),
+            ('2', '二次置业'),
+            ('3', '三次置业'),
+            ('4', '四次置业及以上'),
+        ], max_length=5, verbose_name='置业次数', null=True, blank=True)
+    remark = models.CharField(verbose_name="备注", null=True, blank=True, max_length=500)
+
     @property
     def tag_list(self):
         if not self.tags:
@@ -404,11 +445,13 @@ class UserBehavior(models.Model, UserMobileMixin):
     sellerbind: 绑定销售
     3dvr: 3d看房
     microstore: 门店到访
+    seller_call: 销售电访问
     """
     category = models.CharField(
         verbose_name='类别', max_length=20)
     location = models.CharField(
         max_length=50, verbose_name='位置')
+    visited_mobile = models.CharField(verbose_name="被访人手机号", max_length=100, null=True, blank=True)
 
     def __str__(self):
         return str(self.user)
@@ -608,3 +651,38 @@ class WebsiteConfig(models.Model):
 
     def __str__(self):
         return self.http_host
+
+
+class SubTitle(models.Model):
+    no = models.IntegerField(verbose_name="序号", default=0)
+    name = models.CharField(verbose_name="标题名", max_length=200, blank=True, null=True)
+    is_single = models.BooleanField(verbose_name="是否单选", default=True)
+    company_id = models.CharField(
+        verbose_name="公司id", max_length=20,
+        null=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = "意向购买问题"
+
+    def __str__(self):
+        return self.name
+
+
+class SubTitleChoice(models.Model):
+    sub_title = models.ForeignKey(SubTitle, verbose_name="意向购买问题", on_delete=models.CASCADE, blank=True, null=True)
+    content = models.CharField(verbose_name="选项内容", max_length=200,  blank=True, null=True)
+
+    class Meta:
+        verbose_name = verbose_name_plural = "意向购买选项"
+
+    def __str__(self):
+        return self.content
+
+class SubTitleRecord(models.Model):
+    user = models.ForeignKey(
+        BaseUser, on_delete=models.CASCADE, verbose_name="用户")
+    sub_title = models.ForeignKey(SubTitle, verbose_name="意向购买问题", on_delete=models.CASCADE, blank=True, null=True)
+    choice_choose = models.ManyToManyField(SubTitleChoice, verbose_name="意向购买问题答案")
+
+    class Meta:
+        verbose_name = verbose_name_plural = "意向记录"
