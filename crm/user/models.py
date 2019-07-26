@@ -354,14 +354,7 @@ class UserInfo(models.Model, UserMobileMixin):
     live_space = models.CharField(verbose_name="工作区域", max_length=100, blank=True, null=True)
     avatar = models.URLField(verbose_name="头像链接", max_length=500, blank=True, null=True)
 
-    target_of_buy_house = models.CharField(
-        choices=[
-            ('1', '常驻'),
-            ('2', '改善'),
-            ('3', '投资'),
-            ('4', '养老'),
-            ('5', '其他'),
-        ], max_length=5, verbose_name='购房目的', null=True, blank=True)
+    target_of_buy_house = models.CharField(max_length=5, verbose_name='购房目的', null=True, blank=True)
 
     community = models.CharField(
         choices=[
