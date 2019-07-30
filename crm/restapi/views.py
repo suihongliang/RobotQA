@@ -67,7 +67,18 @@ from .serializers import (
     BackendGroupDetailSerializer,
     UserInfoReportSerializer, PointRecordSerializer, CreatePointRecordSerializer, UserDailyDataSerializer)
 from django_filters import rest_framework as filters
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
+
+import time
+import base64
+import hmac
+from hashlib import sha1 as sha
+from django.http import HttpResponse
+import urllib.request
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import MD5
+from Crypto.PublicKey import RSA
+import urllib.parse
 
 
 # Create your views here.
@@ -1191,3 +1202,146 @@ def question(request):
         except Exception as e:
             return Response({'data': []}, status=400)
         return Response({'data': []})
+
+
+class OSSUtils:
+
+    @staticmethod
+    def get_iso_8601(expire):
+        gmt = datetime.datetime.utcfromtimestamp(expire).isoformat()
+        gmt += 'Z'
+        return gmt
+
+    @staticmethod
+    def get_token():
+        now = int(time.time())
+        expire_syncpoint = now + settings.FACE_OSS_UPLOAD_EXPIRE_TIME
+        expire = OSSUtils.get_iso_8601(expire_syncpoint)
+        policy_dict = {}
+        policy_dict['expiration'] = expire
+        condition_array = []
+        array_item = []
+        array_item.append('starts-with')
+        array_item.append('$key')
+        array_item.append(settings.FACE_OSS_UPLOAD_DIR)
+        condition_array.append(array_item)
+        policy_dict['conditions'] = condition_array
+        policy = json.dumps(policy_dict).strip()
+        policy_encode = base64.b64encode(policy.encode())
+        h = hmac.new(settings.FACE_OSS_UPLOAD_ACCESS_KEY_SECRET.encode(), policy_encode, sha)
+        sign_result = base64.encodestring(h.digest()).strip()
+        callback_dict = {}
+        callback_dict['callbackUrl'] = settings.FACE_OSS_UPLOAD_CALLBACK_URL
+        callback_dict['callbackBody'] = 'filename=${object}&size=${size}&mimeType=${mimeType}' \
+                                        '&height=${imageInfo.height}&width=${imageInfo.width}'
+        callback_dict['callbackBodyType'] = 'application/x-www-form-urlencoded'
+        callback_param = json.dumps(callback_dict).strip()
+        base64_callback_body = base64.b64encode(callback_param.encode())
+
+        token_dict = {}
+        token_dict['accessid'] = settings.FACE_OSS_UPLOAD_ACCESS_KEY_ID
+        token_dict['host'] = settings.FACE_OSS_UPLOAD_HOST
+        token_dict['policy'] = policy_encode.decode()
+        token_dict['signature'] = sign_result.decode()
+        token_dict['expire'] = expire_syncpoint
+        token_dict['dir'] = settings.FACE_OSS_UPLOAD_DIR
+        token_dict['callback'] = base64_callback_body.decode()
+        return token_dict
+
+    @staticmethod
+    def get_pub_key(pub_key_url_base64):
+        """ 抽取出 public key 公钥 """
+        pub_key_url = base64.b64decode(pub_key_url_base64.encode())
+        url_reader = urllib.request.urlopen(pub_key_url.decode())
+        pub_key = url_reader.read()
+        return pub_key
+
+    @staticmethod
+    def verify(auth_str, authorization_base64, pub_key):
+        """
+        校验签名是否正确（MD5 + RAS）
+        :param auth_str: 文本信息
+        :param authorization_base64: 签名信息
+        :param pub_key: 公钥
+        :return: 若签名验证正确返回 True 否则返回 False
+        """
+        pub_key_load = RSA.importKey(pub_key)
+        auth_md5 = MD5.new(auth_str.encode())
+        result = False
+        try:
+            result = PKCS1_v1_5.new(pub_key_load).verify(auth_md5, base64.b64decode(authorization_base64.encode()))
+        except Exception as e:
+            print(e)
+            result = False
+        return result
+
+    @staticmethod
+    def get_http_request_unquote(url):
+        return urllib.request.unquote(url)
+
+
+@api_view(['GET'])
+def oss_upload(request):
+    """
+    :param request:
+    :return:
+    """
+    token = OSSUtils.get_token()
+
+    resp = JsonResponse(token)
+    resp["Access-Control-Allow-Methods"] = "POST"
+    resp["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
+@api_view(['POST'])
+@permission_classes((AllowAny, ))
+def oss_upload_callback(request):
+    pub_key_url = ''
+    print("----------------------oss_callback_start")
+    try:
+        pub_key_url_base64 = request.META['HTTP_X_OSS_PUB_KEY_URL']
+        pub_key = OSSUtils.get_pub_key(pub_key_url_base64)
+    except Exception as e:
+        print(str(e))
+        print('Get pub key failed! pub_key_url : ' + pub_key_url)
+        resp = HttpResponse(status=400)
+        return resp
+
+    # get authorization
+    authorization_base64 = request.META['HTTP_AUTHORIZATION']
+
+    # get callback body
+    # content_length = request.META['HTTP_CONTENT_LENGTH']
+    callback_body = request.body
+
+    # compose authorization string
+    pos = request.path.find('?')
+    if -1 == pos:
+        auth_str = request.path + '\n' + callback_body.decode()
+    else:
+        auth_str = OSSUtils.get_http_request_unquote(request.path[0:pos]) + request.path[pos:] + '\n' + callback_body
+
+    result = OSSUtils.verify(auth_str, authorization_base64, pub_key)
+
+    if not result:
+        print('Authorization verify failed!')
+        print('Public key : %s' % (pub_key))
+        print('Auth string : %s' % (auth_str))
+        resp = HttpResponse(status=400)
+        return resp
+
+    print("--------------------------------upload_success")
+    try:
+        query_dict = dict(urllib.parse.parse_qsl(callback_body.decode()))
+        filename = query_dict['filename']
+        file_url = "{}/{}".format(settings.FACE_OSS_UPLOAD_HOST_HTTPS, filename)
+
+    except Exception as e:
+        file_url = ""
+        print("oss upload file callback failed")
+        print(e)
+
+    # response to OS
+    resp = JsonResponse({"Status": "OK", "file_url": file_url})
+    return resp
