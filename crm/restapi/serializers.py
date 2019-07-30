@@ -706,6 +706,8 @@ class UserDailyDataSerializer(serializers.ModelSerializer):
 class SellerSerializer(AssignUserCompanySerializer):
 
     qrcode = serializers.SerializerMethodField()
+    profession = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
 
     def get_qrcode(self, instance):
         qrcode_info = instance.qrcode
