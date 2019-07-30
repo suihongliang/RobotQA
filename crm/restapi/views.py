@@ -1208,7 +1208,7 @@ class OSSUtils:
 
     @staticmethod
     def get_iso_8601(expire):
-        gmt = datetime.datetime.utcfromtimestamp(expire).isoformat()
+        gmt = datetime.utcfromtimestamp(expire).isoformat()
         gmt += 'Z'
         return gmt
 
