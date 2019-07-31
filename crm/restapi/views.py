@@ -1345,3 +1345,17 @@ def oss_upload_callback(request):
     # response to OS
     resp = JsonResponse({"Status": "OK", "file_url": file_url})
     return resp
+
+@api_view(['GET'])
+def seller_replaced(request):
+    current_seller_mobile = request.GET.get('current_seller_mobile')
+    new_seller_mobile = request.GET.get('new_seller_mobile')
+    company_id = request.GET.get('company_id')
+
+    new_seller = Seller.objects.filter(user__mobile=new_seller_mobile, user__company_id=company_id).first()
+    if new_seller:
+        CustomerRelation.objects.filter(
+            seller__user__mobile=current_seller_mobile,
+            seller__user__company_id=company_id
+        ).update(seller=new_seller)
+    return JsonResponse({})
