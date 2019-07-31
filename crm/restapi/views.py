@@ -1348,14 +1348,15 @@ def oss_upload_callback(request):
 
 @api_view(['GET'])
 def seller_replaced(request):
-    current_seller_mobile = request.GET.get('current_seller_mobile')
-    new_seller_mobile = request.GET.get('new_seller_mobile')
-    company_id = request.GET.get('company_id')
+    current_seller_id = request.GET.get('current_seller_id')
+    new_seller_id = request.GET.get('new_seller_id')
 
-    new_seller = Seller.objects.filter(user__mobile=new_seller_mobile, user__company_id=company_id).first()
-    if new_seller:
+
+    company_id = request.user.company_id
+    current_seller = Seller.objects.filter(pk=current_seller_id, user__company_id=company_id).first()
+    new_seller = Seller.objects.filter(pk=new_seller_id, user__company_id=company_id).first()
+    if new_seller and current_seller:
         CustomerRelation.objects.filter(
-            seller__user__mobile=current_seller_mobile,
-            seller__user__company_id=company_id
+            seller=current_seller,
         ).update(seller=new_seller)
     return JsonResponse({})

@@ -16,8 +16,6 @@ class SellerAdmin():
         'user',
         'mobile',
         'qrcode',
-        'profession',
-        'avatar',
         'created',
     )
 
