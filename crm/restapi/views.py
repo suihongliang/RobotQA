@@ -1351,12 +1351,12 @@ def seller_replaced(request):
     current_seller_id = request.GET.get('current_seller_id')
     new_seller_id = request.GET.get('new_seller_id')
 
-
     company_id = request.user.company_id
-    current_seller = Seller.objects.filter(pk=current_seller_id, user__company_id=company_id).first()
-    new_seller = Seller.objects.filter(pk=new_seller_id, user__company_id=company_id).first()
+    current_seller = BackendUser.objects.filter(pk=current_seller_id, company_id=company_id).first()
+    new_seller = BackendUser.objects.filter(pk=new_seller_id, company_id=company_id).first()
     if new_seller and current_seller:
+        seller = Seller.objects.get(user__mobile=new_seller.mobile)
         CustomerRelation.objects.filter(
-            seller=current_seller,
-        ).update(seller=new_seller)
+            seller__user__mobile=current_seller.mobile,
+        ).update(seller=seller)
     return JsonResponse({})
