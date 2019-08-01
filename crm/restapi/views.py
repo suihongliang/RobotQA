@@ -294,11 +294,14 @@ class BackendUserViewSet(SellerFilterViewSet,
             field_name="group", lookup_expr='isnull')
         group_in = filters.BaseInFilter(
             field_name="group_id", lookup_expr='in')
+        is_active = filters.BooleanFilter(
+            field_name="is_active", help_text="是否禁用"
+        )
 
         class Meta:
             model = BackendUser
             fields = ['role__is_seller', 'mobile', 'no_group',
-                      'group_id', 'group_in', 'role__name']
+                      'group_id', 'group_in', 'role__name', 'is_active']
 
     # queryset = BackendUser.objects.filter(
     #     is_superuser=False, is_staff=False).order_by('created')
