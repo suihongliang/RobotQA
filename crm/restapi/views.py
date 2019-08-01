@@ -1358,7 +1358,7 @@ def seller_replaced(request):
     current_seller = BackendUser.objects.filter(pk=current_seller_id, company_id=company_id).first()
     new_seller = BackendUser.objects.filter(pk=new_seller_id, company_id=company_id).first()
     if new_seller and current_seller:
-        seller = Seller.objects.get(user__mobile=new_seller.mobile)
+        seller = Seller.objects.get(user__mobile=new_seller.mobile, user__company_id=company_id)
         CustomerRelation.objects.filter(
             seller__user__mobile=current_seller.mobile,
         ).update(seller=seller)
