@@ -288,6 +288,7 @@ class BackendUserSerializer(serializers.ModelSerializer):
             'name',
             'group',
             'group_id',
+            'avatar',
         )
         read_only_fields = ('created',)
         validators = [
@@ -705,12 +706,33 @@ class UserDailyDataSerializer(serializers.ModelSerializer):
 class SellerSerializer(AssignUserCompanySerializer):
 
     qrcode = serializers.SerializerMethodField()
+    profession = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     def get_qrcode(self, instance):
         qrcode_info = instance.qrcode
         if hasattr(qrcode_info, 'company_id') and not qrcode_info.company_id == instance.user.company_id:
             return None
         return QRCodeSerializer(qrcode_info).data if qrcode_info else None
+
+    def get_profession(self, instance):
+        back_user = BackendUser.objects.filter(mobile=instance.user.mobile, company_id=instance.user.company_id).first()
+        if not back_user:
+            return None
+        return back_user.role.name
+
+    def get_name(self, instance):
+        back_user = BackendUser.objects.filter(mobile=instance.user.mobile, company_id=instance.user.company_id).first()
+        if not back_user:
+            return None
+        return back_user.name
+
+    def get_avatar(self, instance):
+        back_user = BackendUser.objects.filter(mobile=instance.user.mobile, company_id=instance.user.company_id).first()
+        if not back_user:
+            return None
+        return back_user.avatar
 
     class Meta:
         model = Seller

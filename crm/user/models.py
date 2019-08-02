@@ -194,6 +194,7 @@ class BackendUser(AbstractBaseUser, PermissionsMixin):
     group = models.ForeignKey(
         BackendGroup, null=True, blank=True, on_delete=models.SET_NULL,
         verbose_name="用户组")
+    avatar = models.URLField(verbose_name="头像链接", max_length=500, blank=True, null=True)
 
     objects = BackendUserManager()
 
