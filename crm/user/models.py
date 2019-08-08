@@ -391,6 +391,8 @@ class UserInfo(models.Model, UserMobileMixin):
             ('4', '四次置业及以上'),
         ], max_length=5, verbose_name='置业次数', null=True, blank=True)
     remark = models.CharField(verbose_name="备注", null=True, blank=True, max_length=500)
+    buy_count = models.PositiveIntegerField(verbose_name="成交套数", default=0)
+    referrer = models.CharField(verbose_name="介绍人", max_length=100, null=True, blank=True)
 
     @property
     def tag_list(self):

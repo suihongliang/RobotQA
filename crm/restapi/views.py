@@ -1363,3 +1363,13 @@ def seller_replaced(request):
             seller__user__mobile=current_seller.mobile,
         ).update(seller=seller)
     return JsonResponse({})
+
+"""
+req_body = {
+    "company_id": company_id,
+    "user_mobile": user_mobile,
+    "change_type": change_type,
+    "change_by": change_by,
+    "coin": float(coin)
+}
+"""
