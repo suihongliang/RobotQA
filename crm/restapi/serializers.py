@@ -477,6 +477,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             'remark',
             'referrer',
             'buy_count',
+            'buy_done'
         )
         read_only_fields = (
             'user', 'created', 'mobile', 'is_seller',
