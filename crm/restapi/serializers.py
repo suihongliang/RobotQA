@@ -400,7 +400,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
             rule = CoinRule.objects.filter(company_id=instance.user.company_id,
                                            category=36).first()
             PointRecord.objects.get_or_create(
-                user=instance, rule=rule,
+                user=user_info, rule=rule,
                 defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
             validated_data.pop("referrer")
 
