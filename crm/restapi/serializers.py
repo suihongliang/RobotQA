@@ -402,7 +402,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
             PointRecord.objects.get_or_create(
                 user=user_info, rule=rule,
                 defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
-            validated_data.pop("referrer")
 
         if extra_info:
             try:
