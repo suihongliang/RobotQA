@@ -389,12 +389,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
         extra_info = validated_data.pop('extra_info', '')
         customer_remark = validated_data.pop('customer_remark', '')
 
-        if instance.buy_done:
-            return instance
-
         current_referrer = instance.referrer
         buy_done = validated_data.get('buy_done')
-        if buy_done and validated_data.get("referrer") != current_referrer:
+        if buy_done and not instance.buy_done and validated_data.get("referrer") != current_referrer:
             rule = CoinRule.objects.filter(company_id=instance.user.company_id,
                                            category=36).first()
             PointRecord.objects.get_or_create(
