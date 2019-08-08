@@ -391,7 +391,12 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
         current_referrer = instance.referrer
         buy_done = validated_data.get('buy_done')
-        if buy_done and not instance.buy_done and validated_data.get("referrer") != current_referrer:
+        referrer = validated_data.get("referrer")
+        if buy_done and not instance.buy_done and referrer != current_referrer and referrer:
+            user_info = UserInfo.objects.filter(user__mobile=referrer).first()
+            if not user_info:
+                raise serializers.ValidationError(
+                    {'detail': "介绍人不存在"})
             rule = CoinRule.objects.filter(company_id=instance.user.company_id,
                                            category=36).first()
             PointRecord.objects.get_or_create(
