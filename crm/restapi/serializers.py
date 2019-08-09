@@ -399,7 +399,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
                     {'detail': "介绍人不存在"})
             rule = CoinRule.objects.filter(company_id=instance.user.company_id,
                                            category=36).first()
-            PointRecord.objects.get_or_create(
+            PointRecord.objects.create(
                 user=user_info, rule=rule,
                 defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
 
