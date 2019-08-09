@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 import sys
+
 # from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -20,7 +21,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(
 
 # config apps path
 sys.path.insert(0, os.path.join(BASE_DIR, 'libs'))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -31,8 +31,7 @@ SECRET_KEY = 'ao!yd&&y(2a(_i1c2x*fkj)v#3(x9l&d7uayw%$dcmw+er8ljp'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -60,6 +59,7 @@ INSTALLED_APPS = [
     'crm.discount',
     'crm.report',
     'crm.restapi',
+    'crm.gaoyou'
 ]
 
 MIDDLEWARE = [
@@ -97,7 +97,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'crm.settings.wsgi.application'
 
-
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 
@@ -116,7 +115,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -129,7 +127,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = False
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
@@ -174,7 +171,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
     'DEFAULT_PAGINATION_CLASS':
-        # 'rest_framework.pagination.LimitOffsetPagination',
+    # 'rest_framework.pagination.LimitOffsetPagination',
         "crm.core.utils.CustomPagination",
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -244,3 +241,4 @@ UPDATE_USER_COIN = ERP_JIAN24_URL + '/update'
 # signature key
 INTERNAL_KEY = '8d1235sa0e212f10'
 INTERNAL_SALT = 's38d'
+# 超级用户： admin    admin

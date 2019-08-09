@@ -45,7 +45,7 @@ router.register(r'sendcoupon', rest_views.SendCouponViewSet)
 router.register(r'userbehavior', rest_views.UserBehaviorViewSet)
 router.register(r'qrcode', rest_views.QRCodeViewSet)
 router.register(r'coin_qrcode', rest_views.CoinQRCodeViewSet)
-router.register(r'backendgroup', rest_views.BackendGroupViewSet)
+router.register(r'backendgroup', rest_views.BackendGroupViewSet)  #
 router.register(r'daily_data', rest_views.DailyDataViewSet)
 
 urlpatterns = [
@@ -61,6 +61,7 @@ urlpatterns = [
     path(r'api/1.0/product/', include('crm.product.urls')),
     path(r'api/1.0/order/', include('crm.order.urls')),
     path(r'api/1.0/report/', include('crm.report.urls')),
+    path(r'display/', include('crm.gaoyou.urls')),
     path(r'api/1.0/message/', message),
     path(r'echart_data/', echart_data),
     path(r'last-week-echart-data/', last_week_echart_data),
