@@ -64,12 +64,13 @@ class SellerReport(UserInfoViewSet):
             model_houses = '已看' if row['is_sampleroom'] else '未看'
             self_willingness = row['self_willingness_display']
             willingness = row['willingness_display']
+            called_times = row['called_times']
             content.append([
                 seller, group_name, customer_name, mobile, bind_time, last_active_time,
                 model_houses, access_times, sampleroom_times, self_willingness, willingness,
-                ])
+                called_times])
         fields = ['销售', '销售团队', '用户名', '手机号', '绑定日期', '最近到访', '样板房带看',
-                  '到访次数', '样板房看房次数', '主观意向度', '客观意向度']
+                  '到访次数', '样板房看房次数', '主观意向度', '客观意向度', '销售拨打电话次数']
         table_name = '销售报表'
         with ExcelHelper(fields, content, table_name) as eh:
             binary_data = eh.to_bytes()

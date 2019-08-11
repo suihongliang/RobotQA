@@ -393,6 +393,7 @@ class UserInfo(models.Model, UserMobileMixin):
     remark = models.CharField(verbose_name="备注", null=True, blank=True, max_length=500)
     buy_count = models.PositiveIntegerField(verbose_name="成交套数", default=0)
     referrer = models.CharField(verbose_name="介绍人", max_length=100, null=True, blank=True)
+    called_times = models.PositiveIntegerField(verbose_name="被访问次数", default=0)
 
     @property
     def tag_list(self):
