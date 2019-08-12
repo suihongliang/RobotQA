@@ -1,5 +1,6 @@
 import xlwt
 import requests
+from crm.gaoyou.timer_views import run
 from django.shortcuts import HttpResponse
 from datetime import datetime, timedelta
 from crm.gaoyou.models import EveryStatistics, FaceMatch
