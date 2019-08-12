@@ -1376,6 +1376,7 @@ req_body = {
 """
 
 @api_view(['POST'])
+@permission_classes((AllowAny, ))
 def bar_auth(request):
     data = json.loads(request.body.decode())
     mobile = data.get('mobile')
