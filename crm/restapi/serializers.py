@@ -402,8 +402,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
             backend_user = BackendUser.objects.filter(mobile=instance.user.mobile, company_id=instance.user.company_id).first()
             point_record = PointRecord(seller=backend_user, user=user_info, rule=rule, coin=rule.coin, change_type='rule_reward')
             point_record.save()
-            user_info.coin += rule.coin
-            user_info.save()
         if extra_info:
             try:
                 extra_data = json.loads(instance.extra_data)
