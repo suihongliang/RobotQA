@@ -1391,4 +1391,4 @@ def bar_auth(request):
     user_perms = list(user.role.permissions.all().values_list('code', flat=True))
     if "product_m" not in user_perms:
         return JsonResponse(status=403, data={})
-    return JsonResponse({'mobile': mobile, 'username': user.name})
+    return JsonResponse({'mobile': mobile, 'username': user.name, 'company_id': company_id})
