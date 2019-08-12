@@ -1,4 +1,5 @@
 import xlwt
+import requests
 from django.shortcuts import HttpResponse
 from datetime import datetime, timedelta
 from crm.gaoyou.models import EveryStatistics, FaceMatch
@@ -7,10 +8,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Count, Sum, Avg, Max, Min
+from common import data_config
+from common.token_utils import get_token
 
-today = datetime.today().strftime('%Y-%m-%d')
+str_today = datetime.today().strftime('%Y-%m-%d')
+yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
 before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
 before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
+before_three_month = (datetime.today() + timedelta(-84)).strftime('%Y-%m-%d')
 
 
 class CustomerTendencyView(APIView):
@@ -23,33 +28,26 @@ class CustomerTendencyView(APIView):
         :param request:
         :return:
         """
-        query_sets = EveryStatistics.objects.filter(dateTime__lte=today, dateTime__gte=before_month).all()
-        query_set = EveryStatistics.objects.filter(dateTime='2019-07-24').values('male_value',
-                                                                                 'female_value')
-        for every_data in query_set:
-            customer_info = {
-                'male': 0,
-                'female': 0,
-                'male_percent': '',
-                'female_percent': '',
-                'early_people': 0,
-                'young_people': 0,
-                'middle_people': 0,
-                'old_people': 0,
-                'every_customer': 0,
-                'return_customer': 0,
-                'early_percent': '',
-                'young_percent': '',
-                'middle_percent': '',
-                'old_percent': '',
-            }
-            customer_info['every_customer'] += (every_data['male_value'] + every_data['female_value'])
-        return_customer = query_set.filter(UserType=4)
-        print(return_customer)
-        for re_customer in return_customer:
-            customer_info['return_customer'] += (re_customer['male_value'] + re_customer['female_value'])
+        customer_info = {
+            'male': 0,
+            'female': 0,
+            'male_percent': '',
+            'female_percent': '',
+            'early_people': 0,
+            'young_people': 0,
+            'middle_people': 0,
+            'old_people': 0,
+            'early_percent': '',
+            'young_percent': '',
+            'middle_percent': '',
+            'old_percent': '',
+        }
+        query_sets = EveryStatistics.objects.filter(dateTime__lte=yesterday, dateTime__gte=before_month).all()
         bs = CustomerTendencyViewSerializer(query_sets, many=True)
+        # count = 0
         for data in bs.data:
+            # count += 1
+            # print(count)
             customer_info['male'] += data['male_value']
             customer_info['female'] += data['female_value']
             customer_info['early_people'] += data['early_value']
@@ -57,13 +55,14 @@ class CustomerTendencyView(APIView):
             customer_info['middle_people'] += data['middle_value']
             customer_info['old_people'] += data['old_value']
             print(data['dateTime'])
+        # print(count)
         total_customers = customer_info['male'] + customer_info['female']
-        male_percent = round((customer_info['male'] / total_customers) * 100, 1)
-        female_percent = round((customer_info['female'] / total_customers) * 100, 1)
-        early_percent = round((customer_info['early_people'] / total_customers) * 100, 1)
-        young_percent = round((customer_info['young_people'] / total_customers) * 100, 1)
-        middle_percent = round((customer_info['middle_people'] / total_customers) * 100, 1)
-        old_percent = round((customer_info['old_people'] / total_customers) * 100, 1)
+        male_percent = round((customer_info['male'] / total_customers) * 100, 2)
+        female_percent = round((customer_info['female'] / total_customers) * 100, 2)
+        early_percent = round((customer_info['early_people'] / total_customers) * 100, 2)
+        young_percent = round((customer_info['young_people'] / total_customers) * 100, 2)
+        middle_percent = round((customer_info['middle_people'] / total_customers) * 100, 2)
+        old_percent = round((customer_info['old_people'] / total_customers) * 100, 2)
         customer_info['male_percent'] = '%s%%' % male_percent
         customer_info['female_percent'] = '%s%%' % female_percent
         customer_info['early_percent'] = '%s%%' % early_percent
@@ -91,49 +90,112 @@ class VisitMemberView(APIView):
             'thirty_days_visitors': [],
             'three_months': [],
             'three_months_visitors': [],
-            'current_customer': 0,
-            'current_back': 0
         }
 
-        str_today = datetime.today().strftime('%Y-%m-%d')
+        # str_today = datetime.today().strftime('%Y-%m-%d')
         # before_week = (datetime.today()+timedelta(-7)).strftime('%Y-%m-%d')
         # before_month = (datetime.today()+timedelta(-30)).strftime('%Y-%m-%d')
         # before_three_months = (datetime.today()+timedelta(-90)).strftime('%Y-%m-%d')
-        week_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24', dateTime__gte='2019-07-17').values(
-            'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))
-        ont_month_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24',
-                                                           dateTime__gte='2019-06-24').values(
-            'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::3]
-        three_month_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24',
-                                                             dateTime__gte='2019-04-24').values(
-            'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::7]
-        for data in week_visitor:
-            visit_member_tendency['seven_days'].append(data['dateTime'])
-            visit_member_tendency['seven_days_visitors'].append(data['male'] + data['female'])
+        strptime, strftime = datetime.strptime, datetime.strftime
+        # 七天
+        seven_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_week, "%Y-%m-%d")).days  # 两个日期之间的天数
+        seven_days_list = [strftime(strptime(before_week, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+                           range(0, seven_days + 1, 1)]
+        # print(seven_days_list)
 
-        for data in ont_month_visitor:
-            visit_member_tendency['thirty_days'].append(data['dateTime'])
-            visit_member_tendency['thirty_days_visitors'].append(data['male'] + data['female'])
+        # 三十天
+        thirty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_month, "%Y-%m-%d")).days  # 两个日期之间的天数
+        thirty_days_list = [strftime(strptime(before_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+                            range(0, thirty_days + 1, 1)][::-3][::-1]
+        # print(len(thirty_days_list), thirty_days_list)
 
-        for data in three_month_visitor:
-            visit_member_tendency['three_months'].append(data['dateTime'])
-            visit_member_tendency['three_months_visitors'].append(data['male'] + data['female'])
+        # 九十天
+        ninety_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_three_month, "%Y-%m-%d")).days  # 两个日期之间的天数
+        ninety_days_list = [strftime(strptime(before_three_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+                            range(0, ninety_days + 1, 1)][::-7][::-1]
+        print(len(ninety_days_list), ninety_days_list)
 
-        # 请求当天的数据，
+        # week_visitor = EveryStatistics.objects.filter(dateTime__lte=yesterday, dateTime__gte=before_week).values(
+        #     'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))
+        # ont_month_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24',
+        #                                                    dateTime__gte='2019-06-24').values(
+        #     'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::3]
+        # three_month_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24',
+        #                                                      dateTime__gte='2019-04-24').values(
+        #     'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::7]
+        # 近七天趋势
+        for day in seven_days_list:
+            print(day)
+            week_visitor = EveryStatistics.objects.filter(dateTime=day).values(
+                'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::1]
+            if len(week_visitor) == 0:
+                visit_member_tendency['seven_days'].append(day)
+                visit_member_tendency['seven_days_visitors'].append(0)
+            else:
+                print(type(week_visitor))
+                visit_member_tendency['seven_days'].append(week_visitor[0]['dateTime'])
+                visit_member_tendency['seven_days_visitors'].append(week_visitor[0]['male'] + week_visitor[0]['female'])
+        # 近30天趋势
+        for day in thirty_days_list:
+            print(day)
+            thirty_visitor = EveryStatistics.objects.filter(dateTime=day).values(
+                'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::1]
+            if len(thirty_visitor) == 0:
+                visit_member_tendency['thirty_days'].append(day)
+                visit_member_tendency['thirty_days_visitors'].append(0)
+            else:
+                print(type(thirty_visitor))
+                visit_member_tendency['thirty_days'].append(thirty_visitor[0]['dateTime'])
+                visit_member_tendency['thirty_days_visitors'].append(thirty_visitor[0]['male'] + thirty_visitor[0]['female'])
+        # 近90天趋势
+        for day in ninety_days_list:
+            ninety_visitor = EveryStatistics.objects.filter(dateTime=day).values(
+                'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::1]
+            if len(ninety_visitor) == 0:
+                visit_member_tendency['three_months'].append(day)
+                visit_member_tendency['three_months_visitors'].append(0)
+            else:
+                visit_member_tendency['three_months'].append(ninety_visitor[0]['dateTime'])
+                visit_member_tendency['three_months_visitors'].append(ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
 
-        current_customers = EveryStatistics.objects.filter(dateTime=str_today).values(
-            'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))
+        # 近7天趋势
+        # for data in week_visitor:
+        #     visit_member_tendency['seven_days'].append(data['dateTime'])
+        #     visit_member_tendency['seven_days_visitors'].append(data['male'] + data['female'])
+        # 近一个月趋势
+        # for data in ont_month_visitor:
+        #     visit_member_tendency['thirty_days'].append(data['dateTime'])
+        #     visit_member_tendency['thirty_days_visitors'].append(data['male'] + data['female'])
+        # 近三个月趋势
+        # for data in three_month_visitor:
+        #     visit_member_tendency['three_months'].append(data['dateTime'])
+        #     visit_member_tendency['three_months_visitors'].append(data['male'] + data['female'])
 
-        for current_customer in current_customers:
-            visit_member_tendency['current_customer'] += (current_customer['male'] + current_customer['female'])
-        current_back_customers = EveryStatistics.objects.filter(dateTime=str_today, UserType=4).values('dateTime',
-                                                                                                       'male_value',
-                                                                                                       'female_value')
-        for current_back_customer in current_back_customers:
-            visit_member_tendency['current_back'] += (
-                    current_back_customer['male_value'] + current_back_customer['female_value'])
-        # 获取当前的客流小时数
         return Response(visit_member_tendency)
+
+
+class CurrentPersonView(APIView):
+    # 前端每一个小时对该接口记性请求一次获取最新数据
+    def get(self, request, *args, **kwargs):
+        """
+        当天客流量和回头客
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        current_people = {
+            'current_customer': 0,
+            'current_back': 0
+        }
+        data_config.headers['Authorization'] = get_token()
+        data_config.params['dateTime'] = str_today
+        result = requests.get(url=data_config.face_statistics, headers=data_config.headers, params=data_config.params)
+        for current_data in result.json()['data']:
+            current_people['current_customer'] += current_data['totalNum']
+            if current_data['userType'] == 4:
+                current_people['current_back'] = current_data['totalNum']
+        return Response(current_people)
 
 
 class FaceMatchPagination(PageNumberPagination):
@@ -206,7 +268,3 @@ class FaceMatchView(APIView):
 
         else:
             return HttpResponse('有效结束时间不能早于开始时间')
-
-
-import io
-from io import BytesIO
