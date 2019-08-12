@@ -69,7 +69,7 @@ urlpatterns = [
     path(r'top-data/', top_data),
     path(r'question/', question),
     path(r'oss-upload-callback', oss_upload_callback),
-    path(r'bar-auth/', bar_auth),
+    path(r'bar-auth', bar_auth),
 ]
 
 # if settings.DEBUG:
