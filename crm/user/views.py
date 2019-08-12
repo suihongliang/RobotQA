@@ -13,7 +13,7 @@ logger = logging.getLogger('user_logger')
 
 class LoginView(View):
 
-    @method_decorator(csrf_exempt)  # 取消跨站请求伪造
+    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -21,11 +21,9 @@ class LoginView(View):
         '''
         登录
         '''
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode())
         mobile = data.get('mobile')
         password = data.get('password')
-        # mobile = request.POST.get('mobile')
-        # password = request.POST.get('password')
         if not mobile or not password:
             return JsonResponse(
                 {'detail': '密码不能空'}, status=400)

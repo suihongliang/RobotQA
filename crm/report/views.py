@@ -45,7 +45,7 @@ class SellerReport(UserInfoViewSet):
 
     ordering = ('customerrelation__seller', 'created', 'gender', 'name',)
 
-    @action(detail=False)  # 表示路径的格式不用加参数，模式get请求方式
+    @action(detail=False)
     def seller(self, request):
         queryset = self.filter_queryset(
             self.get_queryset()).filter(customerrelation__seller__isnull=False)
