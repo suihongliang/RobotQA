@@ -400,11 +400,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
             rule = CoinRule.objects.filter(company_id=instance.user.company_id,
                                            category=36).first()
             backend_user = BackendUser.objects.filter(mobile=instance.user.mobile, company_id=instance.user.company_id).first()
-            PointRecord.objects.get_or_create(
-                seller=backend_user,
-                user=user_info, rule=rule,
-                defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
-
+            point_record = PointRecord(seller=backend_user, user=user_info, rule=rule, coin=rule.coin, change_type='rule_reward')
+            point_record.save()
         if extra_info:
             try:
                 extra_data = json.loads(instance.extra_data)
