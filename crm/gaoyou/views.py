@@ -17,6 +17,7 @@ yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
 before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
 before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
 before_three_month = (datetime.today() + timedelta(-84)).strftime('%Y-%m-%d')
+run()
 
 
 class CustomerTendencyView(APIView):
@@ -147,7 +148,8 @@ class VisitMemberView(APIView):
             else:
                 print(type(thirty_visitor))
                 visit_member_tendency['thirty_days'].append(thirty_visitor[0]['dateTime'])
-                visit_member_tendency['thirty_days_visitors'].append(thirty_visitor[0]['male'] + thirty_visitor[0]['female'])
+                visit_member_tendency['thirty_days_visitors'].append(
+                    thirty_visitor[0]['male'] + thirty_visitor[0]['female'])
         # 近90天趋势
         for day in ninety_days_list:
             ninety_visitor = EveryStatistics.objects.filter(dateTime=day).values(
@@ -157,7 +159,8 @@ class VisitMemberView(APIView):
                 visit_member_tendency['three_months_visitors'].append(0)
             else:
                 visit_member_tendency['three_months'].append(ninety_visitor[0]['dateTime'])
-                visit_member_tendency['three_months_visitors'].append(ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
+                visit_member_tendency['three_months_visitors'].append(
+                    ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
 
         # 近7天趋势
         # for data in week_visitor:
