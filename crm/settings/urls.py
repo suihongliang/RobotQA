@@ -18,7 +18,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
 from crm.report.views import echart_data, last_week_echart_data, top_data
-from crm.restapi.views import sdvr, message, question, oss_upload_callback, oss_upload, seller_replaced
+from crm.restapi.views import sdvr, message, question, oss_upload_callback, oss_upload, seller_replaced, bar_auth
 from ..restapi import views as rest_views
 from ..user import views as user_views
 import xadmin
@@ -69,6 +69,7 @@ urlpatterns = [
     path(r'top-data/', top_data),
     path(r'question/', question),
     path(r'oss-upload-callback', oss_upload_callback),
+    path(r'bar-auth/', bar_auth),
 ]
 
 # if settings.DEBUG:

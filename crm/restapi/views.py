@@ -4,6 +4,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.permissions import AllowAny
 from datetime import date, datetime
 from django.conf import settings
+from django.contrib.auth import authenticate
 
 from crm.core.utils import website_config
 from ..user.models import (
@@ -1373,3 +1374,20 @@ req_body = {
     "coin": float(coin)
 }
 """
+
+@api_view(['POST'])
+def bar_auth(request):
+    data = json.loads(request.body.decode())
+    mobile = data.get('mobile')
+    password = data.get('password')
+    company_id = data.get('company_id')
+    user = authenticate(
+        username=mobile,
+        password=password,
+        company_id=company_id)
+    if not user:
+        return JsonResponse(status=401, data={})
+    user_perms = list(user.role.permissions.all().values_list('code', flat=True))
+    if "product_m" not in user_perms:
+        return JsonResponse(status=403, data={})
+    return JsonResponse({})
