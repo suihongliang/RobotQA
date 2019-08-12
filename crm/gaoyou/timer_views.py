@@ -106,7 +106,12 @@ def get_yesterday_face_statistics():
         continue
 
 
-insert_face_statistics()
+
 sche = BlockingScheduler()
 sche.add_job(get_yesterday_face_statistics, 'cron', day_of_week='0-6', hour=20, minute=35)
-sche.start()
+def run():
+    insert_face_statistics()
+    sche.start()
+
+if __name__ == '__main__':
+    run()
