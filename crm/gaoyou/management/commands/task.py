@@ -1,22 +1,18 @@
 import requests
 import os
 import django
-import pymysql
 from datetime import datetime, timedelta
 from common import data_config
 from common.token_utils import get_token
 from django.core.management.base import BaseCommand, CommandError
+from django.db import connection
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "crm.settings.settings")
 django.setup()
 from crm.gaoyou.models import EveryStatistics
 
-conn = pymysql.connect(host='localhost', user='root', password='1234', database='crm', charset='utf8')
-cursor = conn.cursor()
-sql = 'truncate table gaoyou_everystatistics;'
-res = cursor.execute(sql)  # 执行sql语句，返回sql查询成功的记录数目,我只在表中插入一条记录，查询成功最多所以也就一条记录数
-cursor.close()
-conn.close()
+cursor = connection.cursor()
+cursor.execute('truncate table gaoyou_everystatistics;')
 count = 1
 
 

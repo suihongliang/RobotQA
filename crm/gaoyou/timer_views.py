@@ -1,7 +1,7 @@
 import requests
 import os
 import django
-import pymysql
+# import pymysqld
 from datetime import datetime, timedelta
 from common import data_config
 from common.token_utils import get_token
@@ -13,14 +13,20 @@ from crm.gaoyou.models import EveryStatistics
 
 count = 1
 
-conn = pymysql.connect(host='localhost', user='root', password='sui123', database='crm', charset='utf8')
-cursor = conn.cursor()
-sql = 'truncate table gaoyou_everystatistics;'
-res = cursor.execute(sql)  # 执行sql语句，返回sql查询成功的记录数目,我只在表中插入一条记录，查询成功最多所以也就一条记录数
+# conn = pymysql.connect(host='localhost', user='root', password='sui123', database='crm', charset='utf8')
+# cursor = conn.cursor()
+# sql = 'truncate table gaoyou_everystatistics;'
+# res = cursor.execute(sql)  # 执行sql语句，返回sql查询成功的记录数目,我只在表中插入一条记录，查询成功最多所以也就一条记录数
+#
+#
+# cursor.close()
+# conn.close()
 
 
-cursor.close()
-conn.close()
+from django.db import connection
+
+cursor = connection.cursor()
+cursor.execute('truncate table gaoyou_everystatistics;')
 
 
 def insert_face_statistics():
@@ -37,7 +43,6 @@ def insert_face_statistics():
     # print(days)
     date_list = [strftime(strptime(start_time, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
                  range(0, days + 1, 1)]
-
     for date in date_list:
         count += 1
         print(count)
@@ -103,7 +108,6 @@ def get_yesterday_face_statistics():
             )
         continue
 
-
 #
 # sche = BlockingScheduler()
 # sche.add_job(get_yesterday_face_statistics, 'cron', day_of_week='0-6', hour=23, minute=59)
@@ -114,4 +118,4 @@ def get_yesterday_face_statistics():
 #     sche.start()
 
 
-# insert_face_statistics()
+insert_face_statistics()
