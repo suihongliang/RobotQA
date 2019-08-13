@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 
 from crm.core.utils import website_config
-from crm.settings.local_settings import VR_MAP
+
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -1066,7 +1066,7 @@ def sdvr(request):
             defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
 
     # vr = VR.objects.filter(company_id=company_id).first()
-    url = VR_MAP.get(url_type, "1")
+    url = settings.VR_MAP.get(url_type, "1")
     return HttpResponseRedirect(url)
 
 
