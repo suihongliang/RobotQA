@@ -1,6 +1,5 @@
 import xlwt
 import requests
-from crm.gaoyou.timer_views import run
 from django.shortcuts import HttpResponse
 from datetime import datetime, timedelta
 from crm.gaoyou.models import EveryStatistics, FaceMatch
@@ -11,13 +10,6 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Count, Sum, Avg, Max, Min
 from common import data_config
 from common.token_utils import get_token
-
-str_today = datetime.today().strftime('%Y-%m-%d')
-yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
-before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
-before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
-before_three_month = (datetime.today() + timedelta(-84)).strftime('%Y-%m-%d')
-run()
 
 
 class CustomerTendencyView(APIView):
@@ -44,6 +36,8 @@ class CustomerTendencyView(APIView):
             'middle_percent': '',
             'old_percent': '',
         }
+        yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
+        before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
         query_sets = EveryStatistics.objects.filter(dateTime__lte=yesterday, dateTime__gte=before_month).all()
         bs = CustomerTendencyViewSerializer(query_sets, many=True)
         # count = 0
@@ -94,10 +88,10 @@ class VisitMemberView(APIView):
             'three_months_visitors': [],
         }
 
-        # str_today = datetime.today().strftime('%Y-%m-%d')
-        # before_week = (datetime.today()+timedelta(-7)).strftime('%Y-%m-%d')
-        # before_month = (datetime.today()+timedelta(-30)).strftime('%Y-%m-%d')
-        # before_three_months = (datetime.today()+timedelta(-90)).strftime('%Y-%m-%d')
+        yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
+        before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
+        before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
+        before_three_month = (datetime.today() + timedelta(-84)).strftime('%Y-%m-%d')
         strptime, strftime = datetime.strptime, datetime.strftime
         # 七天
         seven_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_week, "%Y-%m-%d")).days  # 两个日期之间的天数
@@ -192,6 +186,7 @@ class CurrentPersonView(APIView):
             'current_customer': 0,
             'current_back': 0
         }
+        str_today = datetime.today().strftime('%Y-%m-%d')
         data_config.headers['Authorization'] = get_token()
         data_config.params['dateTime'] = str_today
         result = requests.get(url=data_config.face_statistics, headers=data_config.headers, params=data_config.params)
@@ -213,7 +208,8 @@ class FaceMatchPagination(PageNumberPagination):
 class FaceMatchView(APIView):
     authentication_classes = []
     permission_classes = []
-
+    from django.views.decorators.csrf import csrf_exempt,csrf_protect
+    @csrf_exempt
     def get(self, request, *args, **kwargs):
         """
         人脸匹配，按时间和进行搜索并能将报表进行导出
@@ -231,7 +227,8 @@ class FaceMatchView(APIView):
         start_time = '2019-08-01'
         end_time = '2019-08-05'
         # 获取每页要显示的记录条数
-        page_size = 10  # 从前端进行接收，接收后调用分离器组件
+        page_size = 10  # 从前端进行接收，接收后调用分离器组件,
+        # 从前端获取参数包括：起始时间，导出请求，分页
         from datetime import datetime
         days = (datetime.strptime(end_time, "%Y-%m-%d") - datetime.strptime(start_time, "%Y-%m-%d")).days
         print(days)

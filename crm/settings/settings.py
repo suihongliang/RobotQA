@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'crm.discount',
     'crm.report',
     'crm.restapi',
-    'crm.gaoyou'
+    'crm.gaoyou',
 ]
 
 MIDDLEWARE = [
