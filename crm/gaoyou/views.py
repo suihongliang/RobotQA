@@ -1,6 +1,7 @@
 import xlwt
 import requests
 from django.shortcuts import HttpResponse
+from rest_framework.permissions import AllowAny
 from datetime import datetime, timedelta
 from crm.gaoyou.models import EveryStatistics, FaceMatch
 from crm.gaoyou.serializers import CustomerTendencyViewSerializer, FaceMatchViewSerializer
@@ -14,7 +15,7 @@ from common.token_utils import get_token
 
 class CustomerTendencyView(APIView):
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [AllowAny]
 
     def get(self, request, *ages, **kwargs):
         """
@@ -71,7 +72,7 @@ class CustomerTendencyView(APIView):
 
 class VisitMemberView(APIView):
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         """
@@ -174,6 +175,9 @@ class VisitMemberView(APIView):
 
 class CurrentPersonView(APIView):
     # 前端每一个小时对该接口记性请求一次获取最新数据
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def get(self, request, *args, **kwargs):
         """
         当天客流量和回头客
@@ -198,17 +202,30 @@ class CurrentPersonView(APIView):
 
 
 class FaceMatchPagination(PageNumberPagination):
-    page_size = 5  # 每页显示的多少条，可以通过前端进行传过来
-    page_query_param = 'page'  # url中每页显示条数的key值
-    page_size_query_param = 'size'  #
-    max_page_size = 20
+    # page_size = 5  # 每页显示的多少条，可以通过前端进行传过来
+    # page_query_param = 'page'  # url中每页显示条数的key值
+    # page_size_query_param = 'size'  #
+    # max_page_size = 20
+
+    page_query_description = '页面查询描述'
+    page_size_query_param = 'page_size'
+
+    def get_paginated_response(self, data):
+        return Response({
+            'next': self.get_next_link(),  # 下一页
+            'previous': self.get_previous_link(),  # 上一页
+            'page': self.page.number,  # 当前页码
+            'page_seize': self.get_page_size(self.request),  # 每页显示的记录条数，默认显示15条
+            'count': self.page.paginator.count,  # 总共查询出来的记录条数
+            'results': data  # 每条记录的详细内容
+        })
 
 
 # 进行人脸匹配
 class FaceMatchView(APIView):
     authentication_classes = []
     permission_classes = []
-    from django.views.decorators.csrf import csrf_exempt,csrf_protect
+    from django.views.decorators.csrf import csrf_exempt, csrf_protect
     @csrf_exempt
     def get(self, request, *args, **kwargs):
         """
@@ -216,22 +233,12 @@ class FaceMatchView(APIView):
         :param request:
         :return:
         """
-        # 通过接口获取数据存入到mysql中
-        # 按时间查询后将所有字段返回给前端
-        # 按人名查询后返还给前端
-        # 将生成的报表导出excel格式
-        # 接收前端穿过来的时间
-        # 调用接口默认会按分页进行显示
         export = 1  # 用来接收前端的导出信号，接收成功则进行导出excel
-        # 日期默认为空，用户不传默认为空,ajax中data是前端传过来的数据
-        start_time = '2019-08-01'
-        end_time = '2019-08-05'
-        # 获取每页要显示的记录条数
-        page_size = 10  # 从前端进行接收，接收后调用分离器组件,
-        # 从前端获取参数包括：起始时间，导出请求，分页
-        from datetime import datetime
+        start_time = '2019-01-01'
+        end_time = '2019-12-05'
+        # page_size = 10  # 从前端进行接收，接收后调用分离器组件
+        # 将上一页下一页的生成的url传过去，没有对应的就是null,
         days = (datetime.strptime(end_time, "%Y-%m-%d") - datetime.strptime(start_time, "%Y-%m-%d")).days
-        print(days)
         if request.is_ajax():
             array = request.POST.getlist('ids')
         if days >= 0:
@@ -261,11 +268,11 @@ class FaceMatchView(APIView):
                         response = HttpResponse(
                             content_type='application/vnd.ms-excel')  # 这里响应对象获得了一个特殊的mime类型,告诉浏览器这是个excel文件不是html
                         response[
-                            'Content-Disposition'] = 'attachment; filename=facematch.xls'  # 这里响应对象获得了附加的Content-Disposition协议头,它含有excel文件的名称,文件名随意,当浏览器访问它时,会以"另存为"对话框中使用它.
+                            'Content-Disposition'] = 'attachment; filename=facematch.xls'
+                        # 这里响应对象获得了附加的Content-Disposition协议头,它含有excel文件的名称,文件名随意,当浏览器访问它时,会以"另存为"对话框中使用它.
                         workbook.save(response)
                 return response
             return page_obj.get_paginated_response(ser.data)  # 实现分页的功能
             # return Response(ser.data)  # 实现分页的功能
-
         else:
             return HttpResponse('有效结束时间不能早于开始时间')

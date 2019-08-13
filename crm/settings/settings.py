@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 import sys
+# import sentry_sdk
+# from sentry_sdk.integrations.django import DjangoIntegration
 
 # from celery.schedules import crontab
 
@@ -242,3 +244,11 @@ UPDATE_USER_COIN = ERP_JIAN24_URL + '/update'
 INTERNAL_KEY = '8d1235sa0e212f10'
 INTERNAL_SALT = 's38d'
 # 超级用户： admin    admin
+
+# # 设置sentry错误日志监控系统
+# sentry_sdk.init(
+#
+#     # 5c5e2401017a405e90c5120a833b9a3d59fa58df50574bae87b40abcf96c2c78
+#     dsn="https://e7e81725e8b3425fa67825898bf745b6@sentry.io/1529255",
+#     integrations=[DjangoIntegration()]
+# )
