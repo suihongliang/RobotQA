@@ -16,6 +16,7 @@ from .models import (
     SubTitle,
     SubTitleChoice,
     SubTitleRecord,
+    VR
 )
 # from django.utils import timezone
 
@@ -162,3 +163,12 @@ class SubTitleRecordAdmin():
         'sub_title',
     )
     style_fields = {'choice_choose': 'm2m_transfer'}
+
+
+@xadmin.sites.register(VR)
+class VRAdmin():
+    list_display = (
+        'company_id',
+        'left',
+        'right'
+    )

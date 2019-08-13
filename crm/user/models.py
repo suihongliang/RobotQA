@@ -690,3 +690,15 @@ class SubTitleRecord(models.Model):
 
     class Meta:
         verbose_name = verbose_name_plural = "意向记录"
+
+
+class VR(models.Model):
+    company_id = models.CharField(verbose_name="公司id", max_length=20, null=True)
+    left = models.URLField(verbose_name="左")
+    right = models.URLField(verbose_name="右")
+
+    class Meta:
+        verbose_name = verbose_name_plural = "VR链接"
+
+    def __str__(self):
+        return self.company_id or ""

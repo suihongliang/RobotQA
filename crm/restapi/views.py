@@ -20,7 +20,7 @@ from ..user.models import (
     SubTitle,
     SubTitleRecord,
     SubTitleChoice,
-    )
+    VR)
 from ..sale.models import (
     Seller,
     CustomerRelation,
@@ -1063,8 +1063,14 @@ def sdvr(request):
             rule=rule,
             created_at__date=date.today(),
             defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
-    url = settings.MARKET_URL if url_type == "1" else settings.COFFEE_URL
+
+    vr = VR.objects.filter(company_id=company_id).first()
+    if not vr:
+        url = settings.MARKET_URL if url_type == "1" else settings.COFFEE_URL
+    else:
+        url = vr.left if url_type == "1" else vr.right
     return HttpResponseRedirect(url)
+
 
 
 @api_view(['GET'])
