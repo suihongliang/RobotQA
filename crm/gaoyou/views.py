@@ -67,7 +67,12 @@ class CustomerTendencyView(APIView):
         customer_info['middle_percent'] = '%s%%' % middle_percent
         customer_info['old_percent'] = '%s%%' % old_percent
         # print(type(Response(customer_info)))
-        return Response(customer_info)
+        response = Response(customer_info)
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+        response["Access-Control-Max-Age"] = "1000"
+        response['Access-Control-Allow-Methods'] = '*'
+        return response
 
 
 class VisitMemberView(APIView):
@@ -169,8 +174,12 @@ class VisitMemberView(APIView):
         # for data in three_month_visitor:
         #     visit_member_tendency['three_months'].append(data['dateTime'])
         #     visit_member_tendency['three_months_visitors'].append(data['male'] + data['female'])
-
-        return Response(visit_member_tendency)
+        response = Response(visit_member_tendency)
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+        response["Access-Control-Max-Age"] = "1000"
+        response['Access-Control-Allow-Methods'] = '*'
+        return response
 
 
 class CurrentPersonView(APIView):
@@ -198,7 +207,12 @@ class CurrentPersonView(APIView):
             current_people['current_customer'] += current_data['totalNum']
             if current_data['userType'] == 4:
                 current_people['current_back'] = current_data['totalNum']
-        return Response(current_people)
+        response = Response(current_people)
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+        response["Access-Control-Max-Age"] = "1000"
+        response['Access-Control-Allow-Methods'] = '*'
+        return response
 
 
 class FaceMatchPagination(PageNumberPagination):
@@ -225,14 +239,14 @@ class FaceMatchPagination(PageNumberPagination):
 class FaceMatchView(APIView):
     authentication_classes = []
     permission_classes = []
-    from django.views.decorators.csrf import csrf_exempt, csrf_protect
-    @csrf_exempt
+
     def get(self, request, *args, **kwargs):
         """
         人脸匹配，按时间和进行搜索并能将报表进行导出
         :param request:
         :return:
         """
+
         export = 1  # 用来接收前端的导出信号，接收成功则进行导出excel
         start_time = '2019-01-01'
         end_time = '2019-12-05'
