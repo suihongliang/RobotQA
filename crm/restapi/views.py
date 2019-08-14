@@ -1441,7 +1441,7 @@ def confirm_bar_order_record(request):
 
 @api_view(['PUT'])
 def cancel_bar_order_record(request):
-    company_id = request.GET.get('company_id')
+    company_id = request.user.company_id
     id = request.GET.get('id')
     params = {
         "company_id": company_id,
