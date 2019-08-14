@@ -87,7 +87,7 @@ import urllib.parse
 # Create your views here.
 
 def cores(data, status=200):
-    resp = Response(data, status=status)
+    resp = JsonResponse(data, status=status)
     if settings.DEBUG:
         resp["Access-Control-Allow-Origin"] = "*"
         resp["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
@@ -1422,4 +1422,30 @@ def bar_order_record(request):
         "page": page
     }
     res = requests.get(settings.ERP_JIAN24_URL + "/crm/bar-order-record", params=params)
+    return cores(res.json())
+
+
+@api_view(['PUT'])
+def confirm_bar_order_record(request):
+    company_id = request.user.company_id
+    id = request.GET.get('id')
+    confirm = request.GET.get('confirm')
+    params = {
+        "company_id": company_id,
+        "id": id,
+        "confirm": confirm
+    }
+    res = requests.get(settings.ERP_JIAN24_URL + "/crm/confirm-bar-order-record", params=params)
+    return cores(res.json())
+
+
+@api_view(['PUT'])
+def cancel_bar_order_record(request):
+    company_id = request.GET.get('company_id')
+    id = request.GET.get('id')
+    params = {
+        "company_id": company_id,
+        "id": id
+    }
+    res = requests.get(settings.ERP_JIAN24_URL + "/crm/cancel-bar-order-record", params=params)
     return cores(res.json())
