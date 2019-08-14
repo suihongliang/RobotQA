@@ -1220,6 +1220,9 @@ def question(request):
                         choice.choice_choose.add(*choice_list)
         except Exception as e:
             return Response({'data': []}, status=400)
+        rule = CoinRule.objects.filter(company_id=company_id, category=37).first()
+        if rule:
+            PointRecord.objects.create(user_id=user.id, rule=rule, coin=rule.coin, change_type='rule_reward')
         return Response({'data': []})
 
 
