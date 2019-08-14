@@ -392,16 +392,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
         current_referrer = instance.referrer
         buy_done = validated_data.get('buy_done')
         referrer = validated_data.get("referrer")
-        if buy_done and not instance.buy_done and referrer != current_referrer and referrer:
-            user_info = UserInfo.objects.filter(user__mobile=referrer, user__company_id=instance.user.company_id).first()
-            if not user_info:
-                raise serializers.ValidationError(
-                    {'detail': "介绍人不存在"})
-            rule = CoinRule.objects.filter(company_id=instance.user.company_id,
-                                           category=36).first()
-            backend_user = BackendUser.objects.filter(mobile=instance.user.mobile, company_id=instance.user.company_id).first()
-            point_record = PointRecord(seller=backend_user, user=user_info, rule=rule, coin=rule.coin, change_type='seller_send')
-            point_record.save()
         if extra_info:
             try:
                 extra_data = json.loads(instance.extra_data)
@@ -426,6 +416,17 @@ class UserInfoSerializer(serializers.ModelSerializer):
             else:
                 setattr(instance, attr, value)
         instance.save()
+
+        if buy_done and not instance.buy_done and referrer != current_referrer and referrer:
+            user_info = UserInfo.objects.filter(user__mobile=referrer, user__company_id=instance.user.company_id).first()
+            if not user_info:
+                raise serializers.ValidationError(
+                    {'detail': "介绍人不存在"})
+            rule = CoinRule.objects.filter(company_id=instance.user.company_id,
+                                           category=36).first()
+            backend_user = BackendUser.objects.filter(mobile=instance.user.mobile, company_id=instance.user.company_id).first()
+            point_record = PointRecord(seller=backend_user, user=user_info, rule=rule, coin=rule.coin, change_type='seller_send')
+            point_record.save()
 
         return instance
 
