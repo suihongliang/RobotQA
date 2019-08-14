@@ -392,6 +392,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
         current_referrer = instance.referrer
         buy_done = validated_data.get('buy_done')
         referrer = validated_data.get("referrer")
+        origin_buy_done = instance.buy_done
         if extra_info:
             try:
                 extra_data = json.loads(instance.extra_data)
@@ -417,7 +418,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
         instance.save()
 
-        if buy_done and not instance.buy_done and referrer != current_referrer and referrer:
+        if buy_done and not origin_buy_done and referrer != current_referrer and referrer:
             user_info = UserInfo.objects.filter(user__mobile=referrer, user__company_id=instance.user.company_id).first()
             if not user_info:
                 raise serializers.ValidationError(
