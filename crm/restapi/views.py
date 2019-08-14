@@ -1,4 +1,5 @@
 import json
+import requests
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.permissions import AllowAny
@@ -7,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 
 from crm.core.utils import website_config
+from crm.report.views import cores
 
 from ..user.models import (
     BaseUser,
@@ -1396,3 +1398,19 @@ def bar_auth(request):
     if "product_m" not in user_perms:
         return JsonResponse(status=403, data={})
     return JsonResponse({'mobile': mobile, 'username': user.name, 'company_id': company_id})
+
+
+@api_view(['GET'])
+def bar_order_record(request):
+    company_id = request.user.company_id
+    mobile = request.GET.get('mobile')
+    limit = request.GET.get('limit', 10)  # 每页最大数量
+    page = request.GET.get('page', 1)  # 页码
+    params = {
+        "company_id": company_id,
+        "mobile": mobile,
+        "limit": limit,
+        "page": page
+    }
+    res = requests.get(settings.ERP_JIAN24_URL + "/crm/bar-order-record", params=params)
+    return cores(res.json())

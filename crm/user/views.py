@@ -5,6 +5,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
+
+from crm.report.views import cores
 from .models import BackendUser, WebsiteConfig
 from crm.core.utils import website_config, json_response
 
@@ -97,3 +99,48 @@ class PasswordView(View):
             return JsonResponse(result, status=status)
         else:
             return JsonResponse(dict(detail='参数错误'), status=400)
+
+
+class LoginView2(View):
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request):
+        '''
+        登录
+        '''
+        data = json.loads(request.body.decode())
+        mobile = data.get('mobile')
+        password = data.get('password')
+        if not mobile or not password:
+            return cores(
+                {'detail': '密码不能空'}, status=400)
+        http_host = request.META["HTTP_HOST"].split(":")[0]
+        try:
+            company_id = WebsiteConfig.objects.get(http_host=http_host).company_id
+        except WebsiteConfig.DoesNotExist:
+            return cores({'detail': '域名尚未关联公司'}, status=400)
+        user = authenticate(username=mobile,
+                            password=password,
+                            company_id=company_id)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                return cores(
+                    {
+                        'results': {
+                            'mobile': mobile,
+                            'company_id': user.company_id,
+                            'role': user.role.name if user.role else None,
+                            'username': user.username,
+                        }
+                    })
+        else:
+            if BackendUser.objects.filter(
+                    username=mobile, company_id=company_id, is_active=False).exists():
+                return cores(
+                    {'detail': '此用户被禁用'}, status=403)
+        return cores(
+            {'detail': '用户名或密码错误'}, status=400)
