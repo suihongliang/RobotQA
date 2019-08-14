@@ -391,6 +391,9 @@ class UserInfo(models.Model, UserMobileMixin):
             ('4', '四次置业及以上'),
         ], max_length=5, verbose_name='置业次数', null=True, blank=True)
     remark = models.CharField(verbose_name="备注", null=True, blank=True, max_length=500)
+    buy_count = models.PositiveIntegerField(verbose_name="成交套数", default=0)
+    referrer = models.CharField(verbose_name="介绍人", max_length=100, null=True, blank=True)
+    called_times = models.PositiveIntegerField(verbose_name="被访问次数", default=0)
 
     @property
     def tag_list(self):
@@ -687,3 +690,15 @@ class SubTitleRecord(models.Model):
 
     class Meta:
         verbose_name = verbose_name_plural = "意向记录"
+
+
+class VR(models.Model):
+    company_id = models.CharField(verbose_name="公司id", max_length=20, null=True)
+    left = models.URLField(verbose_name="左")
+    right = models.URLField(verbose_name="右")
+
+    class Meta:
+        verbose_name = verbose_name_plural = "VR链接"
+
+    def __str__(self):
+        return self.company_id or ""

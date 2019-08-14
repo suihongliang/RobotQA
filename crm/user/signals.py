@@ -109,6 +109,13 @@ def user_behavior_event(sender, **kwargs):
     '''
     instance = kwargs['instance']
     category = instance.category
+    visited_mobile = instance.visited_mobile
+    if category == "seller_call" and visited_mobile:
+        UserInfo.objects.filter(
+            user__company_id=instance.user.company_id,
+            user__mobile=visited_mobile).update(called_times=F('called_times') + 1)
+        return
+
     filter_query = {'category': category, 'user': instance.user}
     if category not in ('signup', 'sellerbind'):  # 注册 绑定销售
         filter_query.update({'created__date': timezone.now().date()})

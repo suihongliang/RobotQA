@@ -72,6 +72,7 @@ class CoinRule(models.Model):
         (34, '活动扫码二七'),
         (35, '活动扫码二八'),
         ####################
+        (36, '成交积分')
     ]
 
     category = models.IntegerField(

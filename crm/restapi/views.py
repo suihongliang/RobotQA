@@ -1,11 +1,14 @@
 import json
+import requests
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.permissions import AllowAny
 from datetime import date, datetime
 from django.conf import settings
+from django.contrib.auth import authenticate
 
 from crm.core.utils import website_config
+
 from ..user.models import (
     BaseUser,
     UserInfo,
@@ -19,7 +22,7 @@ from ..user.models import (
     SubTitle,
     SubTitleRecord,
     SubTitleChoice,
-    )
+    VR)
 from ..sale.models import (
     Seller,
     CustomerRelation,
@@ -82,6 +85,16 @@ import urllib.parse
 
 
 # Create your views here.
+
+def cores(data, status=200):
+    resp = JsonResponse(data, status=status)
+    if settings.DEBUG:
+        resp["Access-Control-Allow-Origin"] = "*"
+        resp["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+        resp[
+            "Access-Control-Allow-Headers"] = "Access-Control-Allow-Methods,Origin, Accept，Content-Type, Access-Control-Allow-Origin, access-control-allow-headers,Authorization, X-Requested-With"
+
+    return resp
 
 
 class ChoicesViewMixin():
@@ -1062,8 +1075,11 @@ def sdvr(request):
             rule=rule,
             created_at__date=date.today(),
             defaults={'coin': rule.coin, 'change_type': 'rule_reward'})
-    url = settings.MARKET_URL if url_type == "1" else settings.COFFEE_URL
+
+    # vr = VR.objects.filter(company_id=company_id).first()
+    url = settings.VR_MAP.get(url_type, "1")
     return HttpResponseRedirect(url)
+
 
 
 @api_view(['GET'])
@@ -1363,3 +1379,75 @@ def seller_replaced(request):
             seller__user__mobile=current_seller.mobile,
         ).update(seller=seller)
     return JsonResponse({})
+
+"""
+req_body = {
+    "company_id": company_id,
+    "user_mobile": user_mobile,
+    "change_type": change_type,
+    "change_by": change_by,
+    "coin": float(coin)
+}
+"""
+
+@api_view(['POST'])
+@permission_classes((AllowAny, ))
+def bar_auth(request):
+    data = json.loads(request.body.decode())
+    mobile = data.get('mobile')
+    password = data.get('password')
+    company_id = data.get('company_id')
+    user = authenticate(
+        username=mobile,
+        password=password,
+        company_id=company_id)
+    if not user:
+        return JsonResponse(status=401, data={})
+    user_perms = list(user.role.permissions.all().values_list('code', flat=True))
+    if "product_m" not in user_perms:
+        return JsonResponse(status=403, data={})
+    return JsonResponse({'mobile': mobile, 'username': user.name, 'company_id': company_id})
+
+
+@api_view(['GET'])
+def bar_order_record(request):
+    company_id = request.user.company_id
+    mobile = request.GET.get('mobile')
+    limit = request.GET.get('limit', 10)  # 每页最大数量
+    page = request.GET.get('page', 1)  # 页码
+    desc = request.GET.get('desc', 0)  # 页码
+    params = {
+        "company_id": company_id,
+        "mobile": mobile,
+        "limit": limit,
+        "page": page,
+        "desc": desc
+    }
+    res = requests.get(settings.ERP_JIAN24_URL + "/crm/bar-order-record", params=params)
+    return cores(res.json())
+
+
+@api_view(['PUT'])
+def confirm_bar_order_record(request):
+    company_id = request.user.company_id
+    id = request.GET.get('id')
+    confirm = request.GET.get('confirm')
+    params = {
+        "company_id": company_id,
+        "id": id,
+        "confirm": confirm
+    }
+    res = requests.put(settings.ERP_JIAN24_URL + "/crm/confirm-bar-order-record", params=params)
+    return cores(res.json())
+
+
+@api_view(['PUT'])
+def cancel_bar_order_record(request):
+    company_id = request.user.company_id
+    id = request.GET.get('id')
+    params = {
+        "company_id": company_id,
+        "id": id
+    }
+    res = requests.put(settings.ERP_JIAN24_URL + "/crm/cancel-bar-order-record", params=params)
+    return cores(res.json())

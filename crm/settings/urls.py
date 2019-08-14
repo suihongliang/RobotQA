@@ -18,7 +18,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
 from crm.report.views import echart_data, last_week_echart_data, top_data
-from crm.restapi.views import sdvr, message, question, oss_upload_callback, oss_upload, seller_replaced
+from crm.restapi.views import sdvr, message, question, oss_upload_callback, oss_upload, seller_replaced, bar_auth, \
+    bar_order_record, confirm_bar_order_record, cancel_bar_order_record
 from ..restapi import views as rest_views
 from ..user import views as user_views
 import xadmin
@@ -52,6 +53,7 @@ urlpatterns = [
     path(r'xadmin/', xadmin.site.urls),
     path(r'website-config/', user_views.WebsiteConfigView.as_view()),
     path(r'user/login/', user_views.LoginView.as_view()),
+    path(r'user/login2/', user_views.LoginView2.as_view()),
     path(r'user/logout/', user_views.LogoutView.as_view()),
     path(r'user/password/', user_views.PasswordView.as_view()),
     path(r'3dvr/', sdvr),
@@ -64,6 +66,9 @@ urlpatterns = [
     path(r'api/1.0/message/', message),
     path(r'api/1.0/oss_upload/', oss_upload),
     path(r'api/1.0/seller-replaced/', seller_replaced),
+    path(r'api/1.0/bar-order-record', bar_order_record),
+    path(r'api/1.0/confirm-bar-order-record', confirm_bar_order_record),
+    path(r'api/1.0/cancel-bar-order-record', cancel_bar_order_record),
     path(r'echart_data/', echart_data),
     path(r'last-week-echart-data/', last_week_echart_data),
     path(r'top-data/', top_data),
