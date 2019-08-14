@@ -1415,7 +1415,7 @@ def bar_order_record(request):
     mobile = request.GET.get('mobile')
     limit = request.GET.get('limit', 10)  # 每页最大数量
     page = request.GET.get('page', 1)  # 页码
-    desc = request.GET.get('desc', 1)  # 页码
+    desc = request.GET.get('desc', 0)  # 页码
     params = {
         "company_id": company_id,
         "mobile": mobile,
