@@ -16,7 +16,7 @@ logger = logging.getLogger('user_logger')
 
 
 def cores(data, status=200):
-    resp = Response(data, status=status)
+    resp = JsonResponse(data, status=status)
     if settings.DEBUG:
         resp["Access-Control-Allow-Origin"] = "*"
         resp["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
