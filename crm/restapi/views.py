@@ -1435,7 +1435,7 @@ def confirm_bar_order_record(request):
         "id": id,
         "confirm": confirm
     }
-    res = requests.get(settings.ERP_JIAN24_URL + "/crm/confirm-bar-order-record", params=params)
+    res = requests.put(settings.ERP_JIAN24_URL + "/crm/confirm-bar-order-record", params=params)
     return cores(res.json())
 
 
@@ -1447,5 +1447,5 @@ def cancel_bar_order_record(request):
         "company_id": company_id,
         "id": id
     }
-    res = requests.get(settings.ERP_JIAN24_URL + "/crm/cancel-bar-order-record", params=params)
+    res = requests.put(settings.ERP_JIAN24_URL + "/crm/cancel-bar-order-record", params=params)
     return cores(res.json())
