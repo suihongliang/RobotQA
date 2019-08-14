@@ -5,12 +5,25 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
+from django.conf import settings
 
-from crm.report.views import cores
+from rest_framework.response import Response
+
 from .models import BackendUser, WebsiteConfig
 from crm.core.utils import website_config, json_response
 
 logger = logging.getLogger('user_logger')
+
+
+def cores(data, status=200):
+    resp = Response(data, status=status)
+    if settings.DEBUG:
+        resp["Access-Control-Allow-Origin"] = "*"
+        resp["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+        resp[
+            "Access-Control-Allow-Headers"] = "Access-Control-Allow-Methods,Origin, Accept，Content-Type, Access-Control-Allow-Origin, access-control-allow-headers,Authorization, X-Requested-With"
+
+    return resp
 
 
 class LoginView(View):
