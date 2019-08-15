@@ -24,6 +24,8 @@ class CustomerTendencyView(APIView):
         :return:
         """
         customer_info = {
+            'code': 200,
+            'msg': 'success',
             'male': 0,
             'female': 0,
             'male_percent': '',
@@ -86,6 +88,8 @@ class VisitMemberView(APIView):
         :return:
         """
         visit_member_tendency = {
+            'code': 200,
+            'msg': 'success',
             'seven_days': [],
             'seven_days_visitors': [],
             'thirty_days': [],
@@ -196,6 +200,8 @@ class CurrentPersonView(APIView):
         :return:
         """
         current_people = {
+            'code': 200,
+            'msg': 'success',
             'current_customer': 0,
             'current_back': 0
         }
@@ -246,12 +252,15 @@ class FaceMatchView(APIView):
         :param request:
         :return:
         """
-
+        # 人脸匹配
+        # start_time = request.GET.get('start')
+        # end_time = request.GET.get('end')    # 进行筛选
+        # export = request.GET.get('export)  # 获取导出的信号做判断，默认是0，触发是变为1
         export = 1  # 用来接收前端的导出信号，接收成功则进行导出excel
         start_time = '2019-01-01'
         end_time = '2019-12-05'
         # page_size = 10  # 从前端进行接收，接收后调用分离器组件
-        # 将上一页下一页的生成的url传过去，没有对应的就是null,
+        # 将上一页下一页的生成的url传过去，没有对应的就是null，ajax获取后端传过来的数据
         days = (datetime.strptime(end_time, "%Y-%m-%d") - datetime.strptime(start_time, "%Y-%m-%d")).days
         if request.is_ajax():
             array = request.POST.getlist('ids')
