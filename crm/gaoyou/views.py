@@ -96,12 +96,15 @@ class VisitMemberView(APIView):
             'thirty_days_visitors': [],
             'three_months': [],
             'three_months_visitors': [],
+            'six_month': [],
+            'six_month_visitors': []
         }
 
         yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
         before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
         before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
         before_three_month = (datetime.today() + timedelta(-84)).strftime('%Y-%m-%d')
+        before_six_month = (datetime.today() + timedelta(-180)).strftime('%Y-%m-%d')
         strptime, strftime = datetime.strptime, datetime.strftime
         # 七天
         seven_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_week, "%Y-%m-%d")).days  # 两个日期之间的天数
@@ -121,6 +124,10 @@ class VisitMemberView(APIView):
                             range(0, ninety_days + 1, 1)][::-7][::-1]
         print(len(ninety_days_list), ninety_days_list)
 
+        # 一百八十天
+        one_hundred_eighty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_six_month, "%Y-%m-%d")).days
+        one_hundred_eighty_days_list = [strftime(strptime(before_six_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+                                        range(0, one_hundred_eighty_days + 1, 1)][::-30][::-1]
         # week_visitor = EveryStatistics.objects.filter(dateTime__lte=yesterday, dateTime__gte=before_week).values(
         #     'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))
         # ont_month_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24',
@@ -164,6 +171,17 @@ class VisitMemberView(APIView):
             else:
                 visit_member_tendency['three_months'].append(ninety_visitor[0]['dateTime'])
                 visit_member_tendency['three_months_visitors'].append(
+                    ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
+        # 近半年的趋势
+        for day in one_hundred_eighty_days_list:
+            ninety_visitor = EveryStatistics.objects.filter(dateTime=day).values(
+                'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))[::1]
+            if len(ninety_visitor) == 0:
+                visit_member_tendency['six_month'].append(day)
+                visit_member_tendency['six_month_visitors'].append(0)
+            else:
+                visit_member_tendency['six_month'].append(ninety_visitor[0]['dateTime'])
+                visit_member_tendency['six_month_visitors'].append(
                     ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
 
         # 近7天趋势
