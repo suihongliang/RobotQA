@@ -96,8 +96,11 @@ class VisitMemberView(APIView):
             'thirty_days_visitors': [],
             'three_months': [],
             'three_months_visitors': [],
+            'three_months_extrenum': [{}, {}],
             'six_month': [],
-            'six_month_visitors': []
+            'six_month_visitors': [],
+            'six_month_extrenum': [{}, {}],
+
         }
 
         yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
@@ -126,7 +129,8 @@ class VisitMemberView(APIView):
 
         # 一百八十天
         one_hundred_eighty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_six_month, "%Y-%m-%d")).days
-        one_hundred_eighty_days_list = [strftime(strptime(before_six_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+        one_hundred_eighty_days_list = [strftime(strptime(before_six_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for
+                                        i in
                                         range(0, one_hundred_eighty_days + 1, 1)][::-15][::-1]
         # week_visitor = EveryStatistics.objects.filter(dateTime__lte=yesterday, dateTime__gte=before_week).values(
         #     'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))
@@ -172,6 +176,14 @@ class VisitMemberView(APIView):
                 visit_member_tendency['three_months'].append(ninety_visitor[0]['dateTime'])
                 visit_member_tendency['three_months_visitors'].append(
                     ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
+        min_value = min(visit_member_tendency['three_months_visitors'])
+        min_date = visit_member_tendency['three_months'][visit_member_tendency['three_months_visitors'].index(min_value)]
+        max_value = max(visit_member_tendency['three_months_visitors'])
+        max_date = visit_member_tendency['three_months'][visit_member_tendency['three_months_visitors'].index(max_value)]
+        visit_member_tendency['three_months_extrenum'][0]['min_date'] = min_date
+        visit_member_tendency['three_months_extrenum'][0]['min_value'] = min_value
+        visit_member_tendency['three_months_extrenum'][1]['max_date'] = max_date
+        visit_member_tendency['three_months_extrenum'][1]['max_value'] = max_value
         # 近半年的趋势
         for day in one_hundred_eighty_days_list:
             ninety_visitor = EveryStatistics.objects.filter(dateTime=day).values(
@@ -183,7 +195,14 @@ class VisitMemberView(APIView):
                 visit_member_tendency['six_month'].append(ninety_visitor[0]['dateTime'])
                 visit_member_tendency['six_month_visitors'].append(
                     ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
-
+        min_value = min(visit_member_tendency['six_month_visitors'])
+        min_date = visit_member_tendency['six_month'][visit_member_tendency['six_month_visitors'].index(min_value)]
+        max_value = max(visit_member_tendency['six_month_visitors'])
+        max_date = visit_member_tendency['six_month'][visit_member_tendency['six_month_visitors'].index(max_value)]
+        visit_member_tendency['six_month_extrenum'][0]['min_date'] = min_date
+        visit_member_tendency['six_month_extrenum'][0]['min_value'] = min_value
+        visit_member_tendency['six_month_extrenum'][1]['max_date'] = max_date
+        visit_member_tendency['six_month_extrenum'][1]['max_value'] = max_value
         # 近7天趋势
         # for data in week_visitor:
         #     visit_member_tendency['seven_days'].append(data['dateTime'])
