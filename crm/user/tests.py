@@ -18,5 +18,5 @@ strptime, strftime = datetime.strptime, datetime.strftime
 one_hundred_eighty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_six_month, "%Y-%m-%d")).days  # 两个日期之间的天数
 print(one_hundred_eighty_days)
 one_hundred_eighty_days_list = [strftime(strptime(before_six_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
-                                range(0, one_hundred_eighty_days + 1, 1)][::-30][::-1]
+                                range(0, one_hundred_eighty_days + 1, 1)][::-15][::-1]
 print(one_hundred_eighty_days_list)

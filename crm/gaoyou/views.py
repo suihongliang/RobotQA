@@ -127,7 +127,7 @@ class VisitMemberView(APIView):
         # 一百八十天
         one_hundred_eighty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_six_month, "%Y-%m-%d")).days
         one_hundred_eighty_days_list = [strftime(strptime(before_six_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
-                                        range(0, one_hundred_eighty_days + 1, 1)][::-30][::-1]
+                                        range(0, one_hundred_eighty_days + 1, 1)][::-15][::-1]
         # week_visitor = EveryStatistics.objects.filter(dateTime__lte=yesterday, dateTime__gte=before_week).values(
         #     'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))
         # ont_month_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24',
