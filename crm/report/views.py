@@ -720,9 +720,11 @@ def call_count(request):
     print(min_create_datetime, max_create_datetime, mobile, '报表：', export)
     ret = []
     rows = []
-    record_list = UserBehavior.objects.filter(category='seller_call').values_list('user__mobile').all()
-    # record_list = UserBehavior.objects.values_list('user__mobile').all()
+    # record_list = UserBehavior.objects.filter(category='seller_call').values_list('user__mobile').all()
+    from django.db.models.aggregates import Count
+    record_list = UserBehavior.objects.filter(category='seller_call').values('user', 'user__mobile').annotate(call_count=Count('user'))
     print(record_list)
+    # record_list = UserBehavior.objects.values_list('user__mobile').all()
     if not mobile and not (min_create_datetime and max_create_datetime):
         paginator = Paginator(record_list.all(), limit)
         try:
@@ -732,10 +734,17 @@ def call_count(request):
         except EmptyPage:
             limit_values = paginator.page(paginator.num_pages)
         for mobile in limit_values:
+            print(mobile)
         # for mobile in record_list:
-            count = UserBehavior.objects.filter(user__mobile=mobile[0], category='seller_call').count()
-            if BackendUser.objects.filter(mobile=mobile[0]):
-                name = BackendUser.objects.filter(mobile=mobile[0]).values_list('name')[0][0]
+        #     count = UserBehavior.objects.filter(user__mobile=mobile[0], category='seller_call').count()
+            count = mobile['call_count']
+            # if BackendUser.objects.filter(mobile=mobile[0]):
+            name = BackendUser.objects.filter(mobile='18809461418').values('name').first()['name']
+            print('用户名', name)
+            if BackendUser.objects.filter(mobile=mobile['user__mobile']):
+                # name = BackendUser.objects.filter(mobile=mobile[0]).values_list('name')[0][0]
+                name = BackendUser.objects.filter(mobile=mobile['user__mobile']).values('name').first()['name']
+                print(name)
                 rows.append([name, count])
                 ret.append({'name': name,
                             'count': count
