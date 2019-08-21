@@ -394,7 +394,7 @@ class UserOnlineOrder(models.Model, UserMobileMixin):
 class UserBehavior(models.Model, UserMobileMixin):
 
     user = models.ForeignKey(
-        BaseUser, on_delete=models.CASCADE, verbose_name="用户")
+        BaseUser, on_delete=models.CASCADE, verbose_name="用户(外键)")
     created = models.DateTimeField(
         verbose_name='创建时间', auto_now_add=True)
     """
@@ -404,6 +404,7 @@ class UserBehavior(models.Model, UserMobileMixin):
     sellerbind: 绑定销售
     3dvr: 3d看房
     microstore: 门店到访
+    seller_call: 销售电话访问
     """
     category = models.CharField(
         verbose_name='类别', max_length=20)
