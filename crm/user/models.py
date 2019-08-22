@@ -410,6 +410,13 @@ class UserBehavior(models.Model, UserMobileMixin):
         verbose_name='类别', max_length=20)
     location = models.CharField(
         max_length=50, verbose_name='位置')
+    capture_url = models.CharField(max_length=255, verbose_name='捕获图片url')
+    result = models.IntegerField(
+        choices=[
+            (0, '未勾选'),
+            (1, '正确'),
+            (2, '错误'),
+        ], default=0, verbose_name='复查结果')
 
     def __str__(self):
         return str(self.user)

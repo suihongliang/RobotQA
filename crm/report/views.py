@@ -19,6 +19,7 @@ from django.views.decorators.cache import cache_page
 import xlwt
 from crm.user.models import UserBehavior, UserInfo, BackendUser
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.views.decorators.csrf import csrf_exempt
 
 
 class SellerReport(UserInfoViewSet):
@@ -713,6 +714,7 @@ def get_company_id(request):
 
 @api_view(['GET'])
 @permission_classes((AllowAny,))
+@csrf_exempt
 def call_count(request):
     min_create_datetime = request.GET.get('min_create_datetime')
     max_create_datetime = request.GET.get('max_create_datetime')
