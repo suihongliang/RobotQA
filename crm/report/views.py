@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 
 from rest_framework.response import Response
 
-from crm.user.models import UserBehavior, UserInfo, UserVisit, WebsiteConfig
+from crm.user.models import UserBehavior, UserInfo, UserVisit, WebsiteConfig, BaseUser
 from ..core.views import (
     custom_permission,
 )
@@ -728,40 +728,33 @@ def call_count(request):
     rows = []
     # record_list = UserBehavior.objects.filter(category='seller_call').values_list('user__mobile').all()
     from django.db.models.aggregates import Count
-    record_list = UserBehavior.objects.filter(category='seller_call').values('user', 'user__mobile').annotate(
-        call_count=Count('user'))
-    print(record_list)
+    # record_list = UserBehavior.objects.filter(category='seller_call').values('user', 'user__mobile').annotate(
+    #     call_count=Count('user'))
+    mobiles = BackendUser.objects.filter(company_id='4').values_list('mobile', 'name')
+    total_count = BackendUser.objects.filter(company_id='4').count()
+    print(total_count)
+    print('手机号', mobiles)
+    # print(record_list)
     # record_list = UserBehavior.objects.values_list('user__mobile').all()
     if not mobile and not (min_create_datetime and max_create_datetime):
-        paginator = Paginator(record_list.all(), limit)
+        paginator = Paginator(mobiles.all(), limit)
         try:
             limit_values = paginator.page(page)
         except PageNotAnInteger:
             limit_values = paginator.page(1)
         except EmptyPage:
             limit_values = paginator.page(paginator.num_pages)
-        for mobile in limit_values:
-            print(mobile)
-            # for mobile in record_list:
-            #     count = UserBehavior.objects.filter(user__mobile=mobile[0], category='seller_call').count()
-            count = mobile['call_count']
-            # if BackendUser.objects.filter(mobile=mobile[0]):
-            name = BackendUser.objects.filter(mobile='18809461418').values('name').first()['name']
-            print('用户名', name)
-            if BackendUser.objects.filter(mobile=mobile['user__mobile']):
-                # name = BackendUser.objects.filter(mobile=mobile[0]).values_list('name')[0][0]
-                name = BackendUser.objects.filter(mobile=mobile['user__mobile']).values('name').first()['name']
-                print(name)
-                rows.append([name, count])
-                ret.append({'name': name,
-                            'count': count
-                            })
-
-            else:
-                rows.append([None, count])
-                ret.append({'name': None,
-                            'count': count
-                            })
+        for msg in limit_values:
+            print(msg)
+            count = UserBehavior.objects.filter(user__mobile=msg[0], category='seller_call').count()
+            # mobile = msg[0]
+            name = msg[1]
+            rows.append([name, count])
+            print(rows)
+            ret.append({
+                'name': name,
+                'count': count
+            })
         if export == '1':
             return export_count(rows)
 
@@ -770,52 +763,95 @@ def call_count(request):
             'msg': 'success',
             'page_size': limit,
             'current_page': page,
-            'total_size': record_list.count(),
+            'total_size': total_count,
             'total_pages': paginator.num_pages,
             'data': ret,
         })
 
     elif not mobile and (min_create_datetime and max_create_datetime):
-        record_list = UserBehavior.objects.filter(category='seller_call', created__gte=min_create_datetime,
-                                                  created__lte=max_create_datetime).values('user',
-                                                                                           'user__mobile').annotate(
-            call_count=Count('user'))
-        # record_list = UserBehavior.objects.filter(created__gte=min_create_datetime,
-        #                                         created__lte=max_create_datetime).values_list('user__mobile').distinct()
-        paginator = Paginator(record_list.all(), limit)
+        data_list = []
+        rows_list = []
+        mobiles = BackendUser.objects.filter(company_id='4').values_list('mobile', 'name')
+        total_counts = 0
+        for msg in mobiles:
+            mobile = msg[0]
+            query_set = BaseUser.objects.filter(mobile=mobile, company_id='4').values('id').first()
+            base_user_id = query_set['id']
+            if not UserBehavior.objects.filter(user=base_user_id, created__gte=min_create_datetime,
+                                               created__lte=max_create_datetime):
+                continue
+            count = UserBehavior.objects.filter(user__mobile=mobile, category='seller_call',
+                                                created__gte=min_create_datetime, created__lte=max_create_datetime).count()
+            total_counts += 1
+            name = msg[1]
+            rows.append([name, count])
+            ret.append({
+                'name': name,
+                'count': count
+            })
+        paginator = Paginator(ret, limit)
         try:
             limit_values = paginator.page(page)
         except PageNotAnInteger:
             limit_values = paginator.page(1)
         except EmptyPage:
             limit_values = paginator.page(paginator.num_pages)
-        for mobile in limit_values:  # mobile是一个字典
-            # count = UserBehavior.objects.filter(created__gte=min_create_datetime, created__lte=max_create_datetime,
-            #                                     user__mobile=mobile[0], category='seller_call').count()
-            count = mobile['call_count']
-            if BackendUser.objects.filter(mobile=mobile['user__mobile']):
-                # name = BackendUser.objects.filter(mobile=mobile[0]).values_list('name')[0][0]
-                name = BackendUser.objects.filter(mobile=mobile['user__mobile']).values('name').first()['name']
-                rows.append([name, count])
-                ret.append({'name': name,
-                            'count': count
-                            })
-            else:
-                rows.append([None, count])
-                ret.append({'name': None,
-                            'count': count
-                            })
+        print(limit_values)
+        for data in limit_values:
+            data_list.append(data)
+            rows_list.append([data['name'], data['count']])
         if export == '1':
-            return export_count(rows)
+            return export_count(rows_list)
+        print(rows_list)
         return Response({
             'code': 200,
             'msg': 'success',
             'page_size': limit,
             'current_page': page,
-            'total_size': record_list.count(),
+            'total_size': total_count,
             'total_pages': paginator.num_pages,
-            'data': ret,
+            'data': data_list
         })
+        # record_list = UserBehavior.objects.filter(category='seller_call', created__gte=min_create_datetime,
+        #                                           created__lte=max_create_datetime).values('user',
+        #                                                                                    'user__mobile').annotate(
+        #     call_count=Count('user'))
+        # # record_list = UserBehavior.objects.filter(created__gte=min_create_datetime,
+        # #                                         created__lte=max_create_datetime).values_list('user__mobile').distinct()
+        # paginator = Paginator(record_list.all(), limit)
+        # try:
+        #     limit_values = paginator.page(page)
+        # except PageNotAnInteger:
+        #     limit_values = paginator.page(1)
+        # except EmptyPage:
+        #     limit_values = paginator.page(paginator.num_pages)
+        # for mobile in limit_values:  # mobile是一个字典
+        #     # count = UserBehavior.objects.filter(created__gte=min_create_datetime, created__lte=max_create_datetime,
+        #     #                                     user__mobile=mobile[0], category='seller_call').count()
+        #     count = mobile['call_count']
+        #     if BackendUser.objects.filter(mobile=mobile['user__mobile']):
+        #         # name = BackendUser.objects.filter(mobile=mobile[0]).values_list('name')[0][0]
+        #         name = BackendUser.objects.filter(mobile=mobile['user__mobile']).values('name').first()['name']
+        #         rows.append([name, count])
+        #         ret.append({'name': name,
+        #                     'count': count
+        #                     })
+        #     else:
+        #         rows.append([None, count])
+        #         ret.append({'name': None,
+        #                     'count': count
+        #                     })
+        # if export == '1':
+        #     return export_count(rows)
+        # return Response({
+        #     'code': 200,
+        #     'msg': 'success',
+        #     'page_size': limit,
+        #     'current_page': page,
+        #     'total_size': record_list.count(),
+        #     'total_pages': paginator.num_pages,
+        #     'data': ret,
+        # })
     elif mobile and not (min_create_datetime and max_create_datetime):
         count = UserBehavior.objects.filter(user__mobile=mobile, category='seller_call').count()
         if BackendUser.objects.filter(mobile=mobile):
@@ -887,6 +923,241 @@ def call_count(request):
                 "total_pages": 1,
                 'data': ret
             })
+
+
+class SellerCallViewset(UserBehaviorViewSet):
+    """销售打电话次数"""
+
+    c_perms = {
+        'list': [
+            'report_m',
+        ],
+        'retrieve': [
+            'report_m',
+        ],
+        'gender_list': [
+            'report_m',
+        ],
+        'status_list': [
+            'report_m',
+        ],
+        'willingness_list': [
+            'report_m',
+        ],
+    }
+    permission_classes = (
+        custom_permission(c_perms),
+    )
+
+    @action(detail=False)
+    def seller_call_count(self, request):
+        min_create_datetime = request.GET.get('min_create_datetime')
+        max_create_datetime = request.GET.get('max_create_datetime')
+        mobile = request.GET.get('mobile')
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 20))
+        export = request.GET.get('export', 0)
+        print(min_create_datetime, max_create_datetime, mobile, '报表：', export)
+        ret = []
+        rows = []
+        # record_list = UserBehavior.objects.filter(category='seller_call').values_list('user__mobile').all()
+        from django.db.models.aggregates import Count
+        # record_list = UserBehavior.objects.filter(category='seller_call').values('user', 'user__mobile').annotate(
+        #     call_count=Count('user'))
+        mobiles = BackendUser.objects.filter(company_id='4').values_list('mobile', 'name')
+        total_count = BackendUser.objects.filter(company_id='4').count()
+        print(total_count)
+        print('手机号', mobiles)
+        # print(record_list)
+        # record_list = UserBehavior.objects.values_list('user__mobile').all()
+        if not mobile and not (min_create_datetime and max_create_datetime):
+            paginator = Paginator(mobiles.all(), limit)
+            try:
+                limit_values = paginator.page(page)
+            except PageNotAnInteger:
+                limit_values = paginator.page(1)
+            except EmptyPage:
+                limit_values = paginator.page(paginator.num_pages)
+            for msg in limit_values:
+                print(msg)
+                count = UserBehavior.objects.filter(user__mobile=msg[0], category='seller_call').count()
+                # mobile = msg[0]
+                name = msg[1]
+                rows.append([name, count])
+                print(rows)
+                ret.append({
+                    'name': name,
+                    'count': count
+                })
+            if export == '1':
+                return export_count(rows)
+
+            return Response({
+                'code': 200,
+                'msg': 'success',
+                'page_size': limit,
+                'current_page': page,
+                'total_size': total_count,
+                'total_pages': paginator.num_pages,
+                'data': ret,
+            })
+
+        elif not mobile and (min_create_datetime and max_create_datetime):
+            data_list = []
+            rows_list = []
+            mobiles = BackendUser.objects.filter(company_id='4').values_list('mobile', 'name')
+            total_counts = 0
+            for msg in mobiles:
+                mobile = msg[0]
+                query_set = BaseUser.objects.filter(mobile=mobile, company_id='4').values('id').first()
+                base_user_id = query_set['id']
+                if not UserBehavior.objects.filter(user=base_user_id, created__gte=min_create_datetime,
+                                                   created__lte=max_create_datetime):
+                    continue
+                count = UserBehavior.objects.filter(user__mobile=mobile, category='seller_call',
+                                                    created__gte=min_create_datetime,
+                                                    created__lte=max_create_datetime).count()
+                total_counts += 1
+                name = msg[1]
+                rows.append([name, count])
+                ret.append({
+                    'name': name,
+                    'count': count
+                })
+            paginator = Paginator(ret, limit)
+            try:
+                limit_values = paginator.page(page)
+            except PageNotAnInteger:
+                limit_values = paginator.page(1)
+            except EmptyPage:
+                limit_values = paginator.page(paginator.num_pages)
+            print(limit_values)
+            for data in limit_values:
+                data_list.append(data)
+                rows_list.append([data['name'], data['count']])
+            if export == '1':
+                return export_count(rows_list)
+            print(rows_list)
+            return Response({
+                'code': 200,
+                'msg': 'success',
+                'page_size': limit,
+                'current_page': page,
+                'total_size': total_count,
+                'total_pages': paginator.num_pages,
+                'data': data_list
+            })
+            # record_list = UserBehavior.objects.filter(category='seller_call', created__gte=min_create_datetime,
+            #                                           created__lte=max_create_datetime).values('user',
+            #                                                                                    'user__mobile').annotate(
+            #     call_count=Count('user'))
+            # # record_list = UserBehavior.objects.filter(created__gte=min_create_datetime,
+            # #                                         created__lte=max_create_datetime).values_list('user__mobile').distinct()
+            # paginator = Paginator(record_list.all(), limit)
+            # try:
+            #     limit_values = paginator.page(page)
+            # except PageNotAnInteger:
+            #     limit_values = paginator.page(1)
+            # except EmptyPage:
+            #     limit_values = paginator.page(paginator.num_pages)
+            # for mobile in limit_values:  # mobile是一个字典
+            #     # count = UserBehavior.objects.filter(created__gte=min_create_datetime, created__lte=max_create_datetime,
+            #     #                                     user__mobile=mobile[0], category='seller_call').count()
+            #     count = mobile['call_count']
+            #     if BackendUser.objects.filter(mobile=mobile['user__mobile']):
+            #         # name = BackendUser.objects.filter(mobile=mobile[0]).values_list('name')[0][0]
+            #         name = BackendUser.objects.filter(mobile=mobile['user__mobile']).values('name').first()['name']
+            #         rows.append([name, count])
+            #         ret.append({'name': name,
+            #                     'count': count
+            #                     })
+            #     else:
+            #         rows.append([None, count])
+            #         ret.append({'name': None,
+            #                     'count': count
+            #                     })
+            # if export == '1':
+            #     return export_count(rows)
+            # return Response({
+            #     'code': 200,
+            #     'msg': 'success',
+            #     'page_size': limit,
+            #     'current_page': page,
+            #     'total_size': record_list.count(),
+            #     'total_pages': paginator.num_pages,
+            #     'data': ret,
+            # })
+        elif mobile and not (min_create_datetime and max_create_datetime):
+            count = UserBehavior.objects.filter(user__mobile=mobile, category='seller_call').count()
+            if BackendUser.objects.filter(mobile=mobile):
+                name = BackendUser.objects.filter(mobile=mobile).values_list('name')[0][0]
+                rows.append([name, count])
+                ret.append({'name': name,
+                            'count': count
+                            })
+                if export == '1':
+                    return export_count(rows)
+                return Response({
+                    'code': 200,
+                    'msg': 'success',
+                    "page_size": 1,
+                    "current_page": 1,
+                    "total_size": 1,
+                    "total_pages": 1,
+                    'data': ret
+                })
+            else:
+                rows.append([None, count])
+                ret.append({'name': None,
+                            'count': count
+                            })
+                if export == '1':
+                    return export_count(rows)
+                return Response({
+                    'code': 200,
+                    'msg': 'success',
+                    "page_size": 1,
+                    "current_page": 1,
+                    "total_size": 1,
+                    "total_pages": 1,
+                    'data': ret
+                })
+        elif mobile and min_create_datetime and max_create_datetime:
+            count = UserBehavior.objects.filter(created__gte=min_create_datetime, created__lte=max_create_datetime,
+                                                user__mobile=mobile, category='seller_call').count()
+            if BackendUser.objects.filter(mobile=mobile):
+                name = BackendUser.objects.filter(mobile=mobile).values_list('name')[0][0]
+                rows.append([name, count])
+                ret.append({'name': name,
+                            'count': count
+                            })
+                if export == '1':
+                    return export_count(rows)
+                return Response({
+                    'code': 200,
+                    'msg': 'success',
+                    "page_size": 1,
+                    "current_page": 1,
+                    "total_size": 1,
+                    "total_pages": 1,
+                    'data': ret
+                })
+            else:
+                rows.append([None, count])
+                ret.append({'name': None,
+                            'count': count
+                            })
+                if export == '1':
+                    return export_count(rows)
+                return Response({
+                    'code': 200,
+                    'msg': 'success',
+                    "page_size": 1,
+                    "current_page": 1,
+                    "total_size": 1,
+                    "total_pages": 1,
+                    'data': ret
+                })
 
 
 def export_count(rows):

@@ -11,6 +11,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Count, Sum, Avg, Max, Min
 from common import data_config
 from common.token_utils import get_token
+from crm.user.models import UserVisit
 
 yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
 before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
@@ -337,7 +338,7 @@ class FaceMatchView(APIView):
         else:
             return HttpResponse('有效结束时间不能早于开始时间')
 
-from crm.user.models import UserVisit
+
 class MemberTendency(APIView):
     authentication_classes = []
     permission_classes = []
