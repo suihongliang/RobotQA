@@ -2,7 +2,7 @@ import xlwt
 import requests
 from django.shortcuts import HttpResponse
 from rest_framework.permissions import AllowAny
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from crm.gaoyou.models import EveryStatistics, FaceMatch
 from crm.gaoyou.serializers import CustomerTendencyViewSerializer, FaceMatchViewSerializer
 from rest_framework.response import Response
@@ -11,6 +11,36 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Count, Sum, Avg, Max, Min
 from common import data_config
 from common.token_utils import get_token
+
+yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
+before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
+before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
+before_three_month = (datetime.today() + timedelta(-84)).strftime('%Y-%m-%d')
+before_six_month = (datetime.today() + timedelta(-180)).strftime('%Y-%m-%d')
+strptime, strftime = datetime.strptime, datetime.strftime
+# 七天
+seven_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_week, "%Y-%m-%d")).days  # 两个日期之间的天数
+seven_days_list = [strftime(strptime(before_week, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+                   range(0, seven_days + 1, 1)]
+# print(seven_days_list)
+
+# 三十天
+thirty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_month, "%Y-%m-%d")).days  # 两个日期之间的天数
+thirty_days_list = [strftime(strptime(before_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+                    range(0, thirty_days + 1, 1)][::-3][::-1]
+# print(len(thirty_days_list), thirty_days_list)
+
+# 九十天
+ninety_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_three_month, "%Y-%m-%d")).days  # 两个日期之间的天数
+ninety_days_list = [strftime(strptime(before_three_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
+                    range(0, ninety_days + 1, 1)][::-7][::-1]
+print(len(ninety_days_list), ninety_days_list)
+
+# 一百八十天
+one_hundred_eighty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_six_month, "%Y-%m-%d")).days
+one_hundred_eighty_days_list = [strftime(strptime(before_six_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for
+                                i in
+                                range(0, one_hundred_eighty_days + 1, 1)][::-15][::-1]
 
 
 class CustomerTendencyView(APIView):
@@ -102,36 +132,6 @@ class VisitMemberView(APIView):
             'six_month_extrenum': [{}, {}],
 
         }
-
-        yesterday = (datetime.today() + timedelta(-1)).strftime('%Y-%m-%d')
-        before_week = (datetime.today() + timedelta(-7)).strftime('%Y-%m-%d')
-        before_month = (datetime.today() + timedelta(-30)).strftime('%Y-%m-%d')
-        before_three_month = (datetime.today() + timedelta(-84)).strftime('%Y-%m-%d')
-        before_six_month = (datetime.today() + timedelta(-180)).strftime('%Y-%m-%d')
-        strptime, strftime = datetime.strptime, datetime.strftime
-        # 七天
-        seven_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_week, "%Y-%m-%d")).days  # 两个日期之间的天数
-        seven_days_list = [strftime(strptime(before_week, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
-                           range(0, seven_days + 1, 1)]
-        # print(seven_days_list)
-
-        # 三十天
-        thirty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_month, "%Y-%m-%d")).days  # 两个日期之间的天数
-        thirty_days_list = [strftime(strptime(before_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
-                            range(0, thirty_days + 1, 1)][::-3][::-1]
-        # print(len(thirty_days_list), thirty_days_list)
-
-        # 九十天
-        ninety_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_three_month, "%Y-%m-%d")).days  # 两个日期之间的天数
-        ninety_days_list = [strftime(strptime(before_three_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for i in
-                            range(0, ninety_days + 1, 1)][::-7][::-1]
-        print(len(ninety_days_list), ninety_days_list)
-
-        # 一百八十天
-        one_hundred_eighty_days = (strptime(yesterday, "%Y-%m-%d") - strptime(before_six_month, "%Y-%m-%d")).days
-        one_hundred_eighty_days_list = [strftime(strptime(before_six_month, "%Y-%m-%d") + timedelta(i), "%Y-%m-%d") for
-                                        i in
-                                        range(0, one_hundred_eighty_days + 1, 1)][::-15][::-1]
         # week_visitor = EveryStatistics.objects.filter(dateTime__lte=yesterday, dateTime__gte=before_week).values(
         #     'dateTime').annotate(male=Sum('male_value')).annotate(female=Sum('female_value'))
         # ont_month_visitor = EveryStatistics.objects.filter(dateTime__lte='2019-07-24',
@@ -336,3 +336,24 @@ class FaceMatchView(APIView):
             # return Response(ser.data)  # 实现分页的功能
         else:
             return HttpResponse('有效结束时间不能早于开始时间')
+
+from crm.user.models import UserVisit
+class MemberTendency(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        """
+        会员到访数据走势
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        date_range = [date.today() - timedelta(days=7 - i) for i in range(1, 8)]
+        for date_at in date_range[:-1]:
+            user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').first()
+            print(user_visit)
+        return Response({'msg':'success'})
+        pass
+

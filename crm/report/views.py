@@ -627,6 +627,7 @@ def last_week_echart_data(request):
     data = []
 
     for date_at in date_range[:-1]:
+        print(date_at)
         user_visit = UserVisit.objects.filter(created_at=date_at, company_id=company_id).first()
         all_access_total = user_visit.all_access_total if user_visit else 0
         all_sample_room_total = user_visit.all_sample_room_total if user_visit else 0

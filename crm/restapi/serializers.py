@@ -1090,6 +1090,8 @@ class UserBehaviorSerializer(AssignUserCompanySerializer):
             'location',
             'created',
             'name',
+            'lib_image_url',
+            'face_image_url'
         )
         read_only_fields = ('created',)
 

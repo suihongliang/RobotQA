@@ -396,7 +396,7 @@ class UserBehavior(models.Model, UserMobileMixin):
     user = models.ForeignKey(
         BaseUser, on_delete=models.CASCADE, verbose_name="用户(外键)")
     created = models.DateTimeField(
-        verbose_name='创建时间', auto_now_add=True)
+        verbose_name='创建时间', default=timezone.now)
     """
     access: 到访(摄像头)
     signup: 注册
@@ -410,13 +410,14 @@ class UserBehavior(models.Model, UserMobileMixin):
         verbose_name='类别', max_length=20)
     location = models.CharField(
         max_length=50, verbose_name='位置')
-    capture_url = models.CharField(max_length=255, verbose_name='捕获图片url')
     result = models.IntegerField(
         choices=[
             (0, '未勾选'),
             (1, '正确'),
             (2, '错误'),
         ], default=0, verbose_name='复查结果')
+    lib_image_url = models.URLField(verbose_name="脸库图像", max_length=255, null=True, blank=True)
+    face_image_url = models.URLField(verbose_name="捕捉图像", max_length=255, null=True, blank=True)
 
     def __str__(self):
         return str(self.user)
