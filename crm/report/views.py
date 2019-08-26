@@ -6,6 +6,7 @@ from datetime import datetime, date, timedelta
 
 from rest_framework.response import Response
 
+from crm.sale.models import CustomerRelation
 from crm.user.models import UserBehavior, UserInfo, UserVisit, WebsiteConfig, BaseUser
 from ..core.views import (
     custom_permission,
@@ -585,6 +586,78 @@ def get_today(create_at, start, end, company_id, is_cron=False):
         'micro_store_total': micro_store_total,
     }
 
+def get_today2(create_at, start, end, company_id, is_cron=False):
+    """
+      access: 到访(摄像头)
+    signup: 注册
+    sampleroom: 样板房
+    sellerbind: 绑定销售
+    3dvr: 3d看房
+    microstore: 门店到访
+    :param create_at:
+    :return:
+    """
+    cate_set = ['access', 'sampleroom', 'microstore']
+    user_id_list = UserBehavior.objects.filter(
+        user__seller__isnull=True, category__in=cate_set,
+        user__userinfo__is_staff=False,
+        created__gte=start,
+        created__lte=end,
+        user__company_id=company_id,
+    ).values_list('user_id', flat=True).distinct()
+    all_access_total = 0
+    for user_id in user_id_list:
+        _count = 0
+        last_at = UserBehavior.objects.filter(
+            user_id=user_id,
+            user__seller__isnull=True,
+            user__company_id=company_id,
+            created__gte=start,
+            created__lte=end,
+            category__in=cate_set, user__userinfo__is_staff=False).latest('created').created
+        first_at = UserBehavior.objects.filter(
+            user_id=user_id,
+            user__company_id=company_id,
+            created__gte=start,
+            created__lte=end,
+            user__seller__isnull=True,
+            category__in=cate_set, user__userinfo__is_staff=False).latest('-created').created
+        if last_at - first_at <= timedelta(hours=4):
+            all_access_total += 1
+            _count += 1
+        elif timedelta(hours=4) < last_at - first_at <= timedelta(hours=8):
+            all_access_total += 2
+            _count += 2
+        else:
+            if UserBehavior.objects.filter(
+                    created__gte=start,
+                    created__lte=end,
+                    user__company_id=company_id,
+            ).filter(
+                user_id=user_id,
+                user__seller__isnull=True, category__in=cate_set,
+                user__userinfo__is_staff=False,
+                created__gt=first_at + timedelta(hours=4),
+                created__lte=first_at + timedelta(hours=8)).exists():
+                all_access_total += 3
+                _count += 3
+            else:
+                all_access_total += 2
+                _count += 2
+        if is_cron:
+            u = UserInfo.objects.get(user_id=user_id)
+            u.access_times += _count
+            u.save()
+
+    register_total = UserInfo.objects.filter(
+        user__company_id=company_id,
+        is_staff=False,
+        created__date=create_at).count()
+    return {
+        'all_access_total': all_access_total,
+        'register_total': register_total
+    }
+
 
 @cache_page(60)
 @api_view(['GET'])
@@ -674,19 +747,20 @@ def last_week_echart_data(request):
 @permission_classes((AllowAny,))
 def top_data(request):
     is_self = request.GET.get('is_self')
+    limit = int(request.GET.get('limit', 20))
     company_id = get_company_id(request)
     if is_self:
         info = UserInfo.objects.exclude(status=2).filter(
             user__seller__isnull=True, is_staff=False,
             user__company_id=company_id
         ).order_by('-self_willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'self_willingness',
-                                                                         'customerrelation__mark_name')[:20]
+                                                                         'customerrelation__mark_name')[:limit]
     else:
         info = UserInfo.objects.exclude(status=2).filter(
             user__seller__isnull=True, is_staff=False,
             user__company_id=company_id
         ).order_by('-willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'willingness',
-                                                                    'customerrelation__mark_name')[:20]
+                                                                    'customerrelation__mark_name')[:limit]
 
     ret = []
     for mobile, name, willingness, mark_name in info:
@@ -1190,3 +1264,34 @@ def export_count(rows):
                 'Content-Disposition'] = 'attachment; filename=seller_call_count.xls'
             workbook.save(response)
     return response
+
+
+@cache_page(60)
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def day_data(request):
+    create_at = request.GET.get('create_at')
+    company_id = get_company_id(request)
+    if not create_at:
+        create_at = timezone.now().date()
+    else:
+        create_at = datetime.strptime(create_at, "%Y-%m-%d").date()
+
+    start, end = start_end(create_at)
+    data = get_today2(create_at, start, end, company_id)
+
+    today_access_total = data['access_total']
+    today_register_total = data['register_total']
+    seller_customers = CustomerRelation.objects.filter(created__date=create_at, seller__user__company_id=company_id).count()
+    register_total = UserInfo.objects.filter(user__company_id=company_id, is_staff=False).count()
+    multi_access_total = 0
+    access_total = 0
+
+    return cores({
+        "today_access_total": today_access_total,
+        "today_register_total": today_register_total,
+        "seller_customers": seller_customers,
+        "register_total": register_total,
+        "multi_access_total": multi_access_total,
+        "access_total": access_total
+    })

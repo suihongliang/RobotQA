@@ -46,9 +46,9 @@ class Command(BaseCommand):
                 c = store_times * 0.1
                 d = user_info.sdver_times * 0.1
 
-                e = calc_will(big_room_time, access_times, access_times)
-                f = calc_will(sample_time, sample_times, sample_times)
-                g = calc_will(store_time, 1 if store_times > 0 else 0, store_times)
+                e = calc_will(big_room_time, access_times, access_times) * 0.6
+                f = calc_will(sample_time, sample_times, sample_times) * 0.6
+                g = calc_will(store_time, 1 if store_times > 0 else 0, store_times) * 0.6
                 value = a + b + c + d + e + f + g
 
                 user_info.microstore_times=store_times
@@ -74,7 +74,7 @@ def calc_will_flag(v):
         return '1'
     elif 1 <= v < 2:
         return '2'
-    elif 2 <= v < 3:
+    elif 2 <= v < 4.5:
         return '3'
     else:
         return '4'
