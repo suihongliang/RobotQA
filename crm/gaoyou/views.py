@@ -382,10 +382,11 @@ class MemberTendency(APIView):
         for date_at in seven_date_range:
             user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
             if not user_visit:
+                visit_member_tendency['seven_days'].append(date_at)
                 visit_member_tendency['seven_days_visitors'].append(0)
             for access_total in user_visit:
                 print(date_at, access_total)
-                visit_member_tendency['seven_days'] = seven_date_range
+                visit_member_tendency['seven_days'].append(date_at)
                 visit_member_tendency['seven_days_visitors'].append(access_total['access_total'])
 
         print(visit_member_tendency['seven_days_visitors'])
@@ -393,21 +394,23 @@ class MemberTendency(APIView):
         for date_at in thirty_date_range:
             user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
             if not user_visit:
+                visit_member_tendency['thirty_days'].append(date_at)
                 visit_member_tendency['thirty_days_visitors'].append(0)
             else:
                 for access_total in user_visit:
                     print(date_at, access_total)
-                    visit_member_tendency['thirty_days'] = thirty_date_range
+                    visit_member_tendency['thirty_days'].append(date_at)
                     visit_member_tendency['thirty_days_visitors'].append(access_total['access_total'])
 
         for date_at in three_months_range:
             user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
             if not user_visit:
+                visit_member_tendency['three_months'].append(date_at)
                 visit_member_tendency['three_months_visitors'].append(0)
             else:
                 for access_total in user_visit:
                     print(date_at, access_total)
-                    visit_member_tendency['three_months'] = three_months_range
+                    visit_member_tendency['three_months'].append(date_at)
                     visit_member_tendency['three_months_visitors'].append(access_total['access_total'])
         min_value = min(visit_member_tendency['three_months_visitors'])
         min_date = visit_member_tendency['three_months'][
@@ -423,13 +426,15 @@ class MemberTendency(APIView):
         for date_at in six_months_range:
             user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
             if not user_visit:
+                visit_member_tendency['six_months'].append(date_at)
                 visit_member_tendency['six_month_visitors'].append(0)
             else:
                 for access_total in user_visit:
                     print(date_at, access_total)
-                    visit_member_tendency['six_months'] = six_months_range
+                    visit_member_tendency['six_months'].append(date_at)
                     visit_member_tendency['six_month_visitors'].append(access_total['access_total'])
         min_value = min(visit_member_tendency['six_month_visitors'])
+        print(min_value)
         min_date = visit_member_tendency['six_months'][visit_member_tendency['six_month_visitors'].index(min_value)]
         max_value = max(visit_member_tendency['six_month_visitors'])
         max_date = visit_member_tendency['six_months'][visit_member_tendency['six_month_visitors'].index(max_value)]
