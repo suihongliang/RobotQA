@@ -689,7 +689,7 @@ def top_data(request):
                                                                     'customerrelation__mark_name')[:20]
 
     ret = []
-    for mobile, name, willingness, mark_name, seller_mobile in info:
+    for mobile, name, willingness, mark_name in info:
         u = UserInfo.objects.get(user__mobile=mobile, user__company_id=company_id)
         seller = u.customerrelation.seller
         seller_name = None
