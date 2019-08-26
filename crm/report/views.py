@@ -855,7 +855,7 @@ def call_count(request):
     elif mobile and not (min_create_datetime and max_create_datetime):
         count = UserBehavior.objects.filter(user__mobile=mobile, category='seller_call').count()
         if BackendUser.objects.filter(mobile=mobile):
-            name = BackendUser.objects.filter(mobile=mobile).values_list('name')[0][0]
+            name = BackendUser.objects.filter(mobile=mobile, company_id='4').values_list('name')[0][0]
             rows.append([name, count])
             ret.append({'name': name,
                         'count': count
@@ -891,7 +891,7 @@ def call_count(request):
         count = UserBehavior.objects.filter(created__gte=min_create_datetime, created__lte=max_create_datetime,
                                             user__mobile=mobile, category='seller_call').count()
         if BackendUser.objects.filter(mobile=mobile):
-            name = BackendUser.objects.filter(mobile=mobile).values_list('name')[0][0]
+            name = BackendUser.objects.filter(mobile=mobile, company_id='4').values_list('name')[0][0]
             rows.append([name, count])
             ret.append({'name': name,
                         'count': count
