@@ -1255,6 +1255,7 @@ def day_data(request):
 
 
 @api_view(['GET'])
+@permission_classes((AllowAny,))
 def get_seller_bind_customer(request):
     mobile = request.GET.get('mobile')
     company_id = get_company_id(request)
