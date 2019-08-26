@@ -598,63 +598,20 @@ def get_today2(create_at, start, end, company_id, is_cron=False):
     :return:
     """
     cate_set = ['access', 'sampleroom', 'microstore']
-    user_id_list = UserBehavior.objects.filter(
-        user__seller__isnull=True, category__in=cate_set,
-        user__userinfo__is_staff=False,
-        created__gte=start,
-        created__lte=end,
+    access_total = UserBehavior.objects.filter(
         user__company_id=company_id,
-    ).values_list('user_id', flat=True).distinct()
-    all_access_total = 0
-    for user_id in user_id_list:
-        _count = 0
-        last_at = UserBehavior.objects.filter(
-            user_id=user_id,
-            user__seller__isnull=True,
-            user__company_id=company_id,
-            created__gte=start,
-            created__lte=end,
-            category__in=cate_set, user__userinfo__is_staff=False).latest('created').created
-        first_at = UserBehavior.objects.filter(
-            user_id=user_id,
-            user__company_id=company_id,
-            created__gte=start,
-            created__lte=end,
-            user__seller__isnull=True,
-            category__in=cate_set, user__userinfo__is_staff=False).latest('-created').created
-        if last_at - first_at <= timedelta(hours=4):
-            all_access_total += 1
-            _count += 1
-        elif timedelta(hours=4) < last_at - first_at <= timedelta(hours=8):
-            all_access_total += 2
-            _count += 2
-        else:
-            if UserBehavior.objects.filter(
-                    created__gte=start,
-                    created__lte=end,
-                    user__company_id=company_id,
-            ).filter(
-                user_id=user_id,
-                user__seller__isnull=True, category__in=cate_set,
-                user__userinfo__is_staff=False,
-                created__gt=first_at + timedelta(hours=4),
-                created__lte=first_at + timedelta(hours=8)).exists():
-                all_access_total += 3
-                _count += 3
-            else:
-                all_access_total += 2
-                _count += 2
-        if is_cron:
-            u = UserInfo.objects.get(user_id=user_id)
-            u.access_times += _count
-            u.save()
+        user__userinfo__is_staff=False,
+        user__seller__isnull=True,
+        category__in=cate_set,
+        created__gte=start,
+        created__lte=end).values('user_id').distinct().count()
 
     register_total = UserInfo.objects.filter(
         user__company_id=company_id,
         is_staff=False,
         created__date=create_at).count()
     return {
-        'all_access_total': all_access_total,
+        'access_total': access_total,
         'register_total': register_total
     }
 
