@@ -7,7 +7,7 @@ from datetime import datetime, date, timedelta
 from rest_framework.response import Response
 
 from crm.sale.models import CustomerRelation
-from crm.user.models import UserBehavior, UserInfo, UserVisit, WebsiteConfig, BaseUser
+from crm.user.models import UserBehavior, UserInfo, UserVisit, WebsiteConfig, BaseUser, BackendGroup
 from ..core.views import (
     custom_permission,
 )
@@ -1251,4 +1251,29 @@ def day_data(request):
         "register_total": register_total,
         "multi_access_total": multi_access_total,
         "access_total": access_total
+    })
+
+
+@api_view(['GET'])
+def get_seller_bind_customer(request):
+    mobile = request.GET.get('mobile')
+    company_id = get_company_id(request)
+    buy_done = request.GET.get('buy_done')
+    willingness = request.GET.get('willingness')
+
+    backend_user_mobiles = BackendUser.objects.filter(group__manager__mobile=mobile, company_id=company_id).values_list("mobile", flat=True)
+    backend_user_mobiles = backend_user_mobiles if backend_user_mobiles else [mobile]
+    query = {}
+    if buy_done:
+        query["user__buy_done"] = buy_done
+    if willingness:
+        query["user__willingness"] = willingness
+
+    customer_mobiles = CustomerRelation.objects.filter(
+        user__user__company_id=company_id,
+        seller__user__mobile__in=backend_user_mobiles, **query).values_list("seller__user__mobile", flat=True)
+    return Response({
+        'code': 200,
+        'msg': 'success',
+        'data': list(set(customer_mobiles))
     })

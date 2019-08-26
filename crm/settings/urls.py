@@ -17,7 +17,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
-from crm.report.views import echart_data, last_week_echart_data, top_data, call_count, day_data
+from crm.report.views import echart_data, last_week_echart_data, top_data, call_count, day_data, get_seller_bind_customer
 from crm.restapi.views import sdvr, message
 from ..restapi import views as rest_views
 from ..user import views as user_views
@@ -68,6 +68,7 @@ urlpatterns = [
     path(r'top-data/', top_data),
     path(r'call_count/', call_count),
     path(r'day-data/', day_data),
+    path(r'get-seller-bind-customer/', get_seller_bind_customer)
 ]
 
 # if settings.DEBUG:
