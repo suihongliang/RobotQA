@@ -14,7 +14,7 @@ def scan_bind_seller(request):
     code = request.GET.get('code', '')
     mobile_customer = request.GET.get('mobile_customer')
     company_id = request.GET.get('company_id')
-    user, create = BaseUser.objects.get_or_create(mobile=mobile_customer,  company_id=company_id)
+    user, create = BaseUser.objects.get_or_create(mobile=mobile_customer, company_id=company_id)
     customer_relation = CustomerRelation.objects.get(
         user__user__mobile=mobile_customer, user__user__company_id=company_id)
     if customer_relation.seller:
@@ -44,3 +44,44 @@ def scan_bind_seller(request):
                                    coin=rule.coin,
                                    change_type='rule_reward')
     return Response(msg)
+
+
+from rest_framework.views import APIView
+from crm.core.utils import CustomPagination
+from crm.user.models import UserBehavior
+from crm.sale.serializes import MatchFaceSerialize
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.generics import ListAPIView
+
+
+@api_view()
+@permission_classes([])
+def match_face(request):
+    """
+    人脸匹配报告
+    :param request:
+    :return:
+    """
+    return Response({'msg': 'success'})
+    pass
+
+
+class MatchFace(APIView):
+    """人脸匹配报告"""
+    print('hello world')
+
+    def get(self, request, *args, **kwargs):
+        page = request.GET.get('page', 1)
+        limit = request.GET.get('limit', 20)
+        min_create_datetime = request.GET.get('min_create_datetime', None)
+        max_create_datetime = request.GET.get('max_create_datetime', None)
+        queryset = UserBehavior.objects.values('user__userinfo__name',
+                                               'user__mobile', 'created',
+                                               'lib_image_url',
+                                               'face_image_url', 'result')
+
+        print(queryset)
+        bs = MatchFaceSerialize(queryset, many=True)
+
+        # return Response({'msg': 'success'})
+        return Response(bs.data)

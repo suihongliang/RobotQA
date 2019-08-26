@@ -426,7 +426,8 @@ class UserInfoFilter(filters.FilterSet):
         )
 
 
-class UserInfoViewSet(SellerFilterViewSet,
+class \
+        UserInfoViewSet(SellerFilterViewSet,
                       mixins.RetrieveModelMixin,
                       mixins.ListModelMixin,
                       mixins.UpdateModelMixin,

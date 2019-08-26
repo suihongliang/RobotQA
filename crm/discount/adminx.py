@@ -1,4 +1,24 @@
 import xadmin
+from xadmin import views
+
+
+# 创建xadmin的最基本管理器配置，并与view绑定
+class BaseSetting(object):
+    # 开启主题功能
+    enable_themes = True
+    use_bootswatch = True
+
+
+# 全局修改，固定写法
+class GlobalSettings(object):
+    # 修改title
+    site_title = 'CRM后台管理界面'
+    # 修改footer
+    site_footer = 'jian24的公司'
+    # 收起菜单
+    # menu_style = 'accordion'
+
+
 # from django.http import HttpResponseRedirect
 from .models import (
     CoinRule,
@@ -6,7 +26,9 @@ from .models import (
     SendCoupon,
     CoinQRCode,
     PointRecord,
-    )
+)
+
+
 # from django.utils import timezone
 
 
@@ -15,6 +37,8 @@ class CoinRuleAdmin():
     '''
     '''
     list_display = ('get_category_display', 'created', 'coin')
+    # list_filter = ['coin']
+    # search_fields = ['coin']
 
 
 @xadmin.sites.register(Coupon)
@@ -67,3 +91,10 @@ class PointRecordAdmin():
         return None
 
     change_obj.short_description = '变更对象'
+
+# #
+# 将基本配置管理与view绑定
+xadmin.site.register(views.BaseAdminView,BaseSetting)
+
+# 将title和footer信息进行注册
+xadmin.site.register(views.CommAdminView,GlobalSettings)

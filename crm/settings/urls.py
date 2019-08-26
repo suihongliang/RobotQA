@@ -17,9 +17,9 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_swagger.views import get_swagger_view
 # from django.conf import settings
-from crm.report.views import echart_data, last_week_echart_data, top_data
 from crm.restapi.views import sdvr, message, question, oss_upload_callback, oss_upload, seller_replaced, bar_auth, \
     bar_order_record, confirm_bar_order_record, cancel_bar_order_record
+from crm.report.views import echart_data, last_week_echart_data, top_data, call_count, day_data, get_seller_bind_customer
 from ..restapi import views as rest_views
 from ..user import views as user_views
 import xadmin
@@ -63,6 +63,7 @@ urlpatterns = [
     path(r'api/1.0/product/', include('crm.product.urls')),
     path(r'api/1.0/order/', include('crm.order.urls')),
     path(r'api/1.0/report/', include('crm.report.urls')),
+    path(r'display/', include('crm.gaoyou.urls')),
     path(r'api/1.0/message/', message),
     path(r'api/1.0/oss_upload/', oss_upload),
     path(r'api/1.0/seller-replaced/', seller_replaced),
@@ -74,6 +75,9 @@ urlpatterns = [
     path(r'top-data/', top_data),
     path(r'question/', question),
     path(r'oss-upload-callback', oss_upload_callback),
+    path(r'call_count/', call_count),
+    path(r'day-data/', day_data),
+    path(r'get-seller-bind-customer/', get_seller_bind_customer)
 ]
 
 # if settings.DEBUG:

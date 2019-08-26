@@ -7,8 +7,10 @@ router = routers.SimpleRouter()
 router.register(r'seller', views.SellerReport)
 router.register(r'customer', views.CustomerReport)
 router.register(r'userbehavior', views.UserBehaviorReport)
+router.register(r'sellercallcount', views.SellerCallViewset)
 router.register(r'user_analysis', views.UserAnalysisReport)
 router.register(r'daily_data', views.DailyDataReport)
+# router.register(r'call_count', views.SellerCallCountViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
