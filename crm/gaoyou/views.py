@@ -178,9 +178,11 @@ class VisitMemberView(APIView):
                 visit_member_tendency['three_months_visitors'].append(
                     ninety_visitor[0]['male'] + ninety_visitor[0]['female'])
         min_value = min(visit_member_tendency['three_months_visitors'])
-        min_date = visit_member_tendency['three_months'][visit_member_tendency['three_months_visitors'].index(min_value)]
+        min_date = visit_member_tendency['three_months'][
+            visit_member_tendency['three_months_visitors'].index(min_value)]
         max_value = max(visit_member_tendency['three_months_visitors'])
-        max_date = visit_member_tendency['three_months'][visit_member_tendency['three_months_visitors'].index(max_value)]
+        max_date = visit_member_tendency['three_months'][
+            visit_member_tendency['three_months_visitors'].index(max_value)]
         visit_member_tendency['three_months_extrenum'][0]['min_date'] = min_date
         visit_member_tendency['three_months_extrenum'][0]['min_value'] = min_value
         visit_member_tendency['three_months_extrenum'][1]['max_date'] = max_date
@@ -351,10 +353,93 @@ class MemberTendency(APIView):
         :param kwargs:
         :return:
         """
-        date_range = [date.today() - timedelta(days=7 - i) for i in range(1, 8)]
-        for date_at in date_range[:-1]:
-            user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').first()
-            print(user_visit)
-        return Response({'msg':'success'})
-        pass
+        visit_member_tendency = {
+            'code': 200,
+            'msg': 'success',
+            'seven_days': [],
+            'seven_days_visitors': [],
+            'thirty_days': [],
+            'thirty_days_visitors': [],
+            'three_months': [],
+            'three_months_visitors': [],
+            'three_months_extrenum': [{}, {}],
+            'six_months': [],
+            'six_month_visitors': [],
+            'six_month_extrenum': [{}, {}],
 
+        }
+        seven_date_range = [(date.today() - timedelta(days=7 - i)).strftime('%Y-%m-%d') for i in range(0, 7)]
+        thirty_date_range = [(date.today() - timedelta(days=30 - i)).strftime('%Y-%m-%d') for i in range(1, 30)][::-3][
+                            ::-1]
+        three_months_range = [(date.today() - timedelta(days=90 - i)).strftime('%Y-%m-%d') for i in range(7, 90)][::-7][
+                             ::-1]
+        six_months_range = [(date.today() - timedelta(days=180 - i)).strftime('%Y-%m-%d') for i in range(1, 180)][
+                           ::-15][::-1]
+        # print(seven_date_range)
+        # print(thirty_date_range)
+        # print(three_months_range)
+        # print(six_months_range)
+        for date_at in seven_date_range:
+            user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
+            if not user_visit:
+                visit_member_tendency['seven_days_visitors'].append(0)
+            for access_total in user_visit:
+                print(date_at, access_total)
+                visit_member_tendency['seven_days'] = seven_date_range
+                visit_member_tendency['seven_days_visitors'].append(access_total['access_total'])
+
+        print(visit_member_tendency['seven_days_visitors'])
+
+        for date_at in thirty_date_range:
+            user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
+            if not user_visit:
+                visit_member_tendency['thirty_days_visitors'].append(0)
+            else:
+                for access_total in user_visit:
+                    print(date_at, access_total)
+                    visit_member_tendency['thirty_days'] = thirty_date_range
+                    visit_member_tendency['thirty_days_visitors'].append(access_total['access_total'])
+
+        for date_at in three_months_range:
+            user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
+            if not user_visit:
+                visit_member_tendency['three_months_visitors'].append(0)
+            else:
+                for access_total in user_visit:
+                    print(date_at, access_total)
+                    visit_member_tendency['three_months'] = three_months_range
+                    visit_member_tendency['three_months_visitors'].append(access_total['access_total'])
+        min_value = min(visit_member_tendency['three_months_visitors'])
+        min_date = visit_member_tendency['three_months'][
+            visit_member_tendency['three_months_visitors'].index(min_value)]
+        max_value = max(visit_member_tendency['three_months_visitors'])
+        max_date = visit_member_tendency['three_months'][
+            visit_member_tendency['three_months_visitors'].index(max_value)]
+        visit_member_tendency['three_months_extrenum'][0]['min_date'] = min_date
+        visit_member_tendency['three_months_extrenum'][0]['min_value'] = min_value
+        visit_member_tendency['three_months_extrenum'][1]['max_date'] = max_date
+        visit_member_tendency['three_months_extrenum'][1]['max_value'] = max_value
+
+        for date_at in six_months_range:
+            user_visit = UserVisit.objects.filter(created_at=date_at, company_id='4').values('access_total')
+            if not user_visit:
+                visit_member_tendency['six_month_visitors'].append(0)
+            else:
+                for access_total in user_visit:
+                    print(date_at, access_total)
+                    visit_member_tendency['six_months'] = six_months_range
+                    visit_member_tendency['six_month_visitors'].append(access_total['access_total'])
+        min_value = min(visit_member_tendency['six_month_visitors'])
+        min_date = visit_member_tendency['six_months'][visit_member_tendency['six_month_visitors'].index(min_value)]
+        max_value = max(visit_member_tendency['six_month_visitors'])
+        max_date = visit_member_tendency['six_months'][visit_member_tendency['six_month_visitors'].index(max_value)]
+        visit_member_tendency['six_month_extrenum'][0]['min_date'] = min_date
+        visit_member_tendency['six_month_extrenum'][0]['min_value'] = min_value
+        visit_member_tendency['six_month_extrenum'][1]['max_date'] = max_date
+        visit_member_tendency['six_month_extrenum'][1]['max_value'] = max_value
+        response = Response(visit_member_tendency)
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+        response["Access-Control-Max-Age"] = "1000"
+        response['Access-Control-Allow-Methods'] = '*'
+        return response
