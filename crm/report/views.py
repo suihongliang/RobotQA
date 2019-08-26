@@ -679,18 +679,18 @@ def top_data(request):
         info = UserInfo.objects.exclude(status=2).filter(
             user__seller__isnull=True, is_staff=False,
             user__company_id=company_id
-        ).order_by('-self_willingness', '-big_room_seconds').values_list('id', 'user__mobile', 'name', 'self_willingness',
+        ).order_by('-self_willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'self_willingness',
                                                                          'customerrelation__mark_name')[:20]
     else:
         info = UserInfo.objects.exclude(status=2).filter(
             user__seller__isnull=True, is_staff=False,
             user__company_id=company_id
-        ).order_by('-willingness', '-big_room_seconds').values_list('id', 'user__mobile', 'name', 'willingness',
+        ).order_by('-willingness', '-big_room_seconds').values_list('user__mobile', 'name', 'willingness',
                                                                     'customerrelation__mark_name')[:20]
 
     ret = []
-    for id, mobile, name, willingness, mark_name, seller_mobile in info:
-        u = UserInfo.objects.get(pk=id)
+    for mobile, name, willingness, mark_name, seller_mobile in info:
+        u = UserInfo.objects.get(user__mobile=mobile, user__company_id=company_id)
         seller = u.customerrelation.seller
         seller_name = None
         if seller:
