@@ -1272,7 +1272,7 @@ def get_seller_bind_customer(request):
 
     customer_mobiles = CustomerRelation.objects.filter(
         user__user__company_id=company_id,
-        seller__user__mobile__in=backend_user_mobiles, **query).values_list("seller__user__mobile", flat=True)
+        seller__user__mobile__in=backend_user_mobiles, **query).values_list("user__user__mobile", flat=True)
     return Response({
         'code': 200,
         'msg': 'success',
